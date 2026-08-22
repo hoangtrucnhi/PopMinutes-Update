@@ -1,0 +1,2295 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>PopMinutes</title>
+    
+    <!-- PWA CONFIGURATION -->
+    <link rel="manifest" href="/PopMinutes-PWA/manifest.json">
+    <link rel="apple-touch-icon" sizes="192x192" href="https://raw.githubusercontent.com/hoangtrucnhi/PopMinutes-PWA/main/launchericon-192x192.png">
+    <link rel="apple-touch-icon" sizes="512x512" href="https://raw.githubusercontent.com/hoangtrucnhi/PopMinutes-PWA/main/launchericon-512x512.png">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="#1B2B7A">
+
+    <!-- FONTS & ICONS -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link rel="icon" type="image/png" href="./launchericon-192x192.png">
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <style>
+        /* ========== TOÀN BỘ STYLE ========== */
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        :root {
+            --navy: #1B2B7A;
+            --navy-deep: #131F5C;
+            --navy-mid: #243086;
+            --navy-light: #2D3FA6;
+            --navy-pale: #F0F3FF;
+            --white: #FFFFFF;
+            --surface: #F8FAFC;
+            --border: #E2E8F0;
+            --text: #0F172A;
+            --muted: #64748B;
+            --success: #10B981;
+            --danger: #EF4444;
+            --danger-pale: #FEF2F2;
+            --radius-sm: 12px;
+            --radius-md: 16px;
+            --radius-lg: 24px;
+            --radius-xl: 32px;
+            --shadow-sm: 0 2px 8px rgba(15, 23, 42, 0.04);
+            --shadow-md: 0 8px 24px rgba(27, 43, 122, 0.08);
+            --shadow-lg: 0 20px 48px rgba(27, 43, 122, 0.16);
+            --shadow-float: 0 12px 32px rgba(239, 68, 68, 0.24);
+        }
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: #E2E8F0;
+            display: flex;
+            justify-content: center;
+        }
+        .app {
+            width: 100%;
+            max-width: 1200px;
+            min-height: 100vh;
+            background: var(--surface);
+            position: relative;
+            overflow-x: hidden;
+            box-shadow: var(--shadow-lg);
+            margin: 0 auto;
+        }
+
+        /* ===== Nút ngôn ngữ hình tròn ===== */
+        .lang-btn {
+            width: 44px;
+            height: 44px;
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.15);
+            backdrop-filter: blur(4px);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-size: 20px;
+            cursor: pointer;
+            transition: all 0.2s;
+            z-index: 10;
+            position: relative;
+        }
+        .lang-btn:hover {
+            background: rgba(255,255,255,0.25);
+        }
+        .lang-btn:active {
+            transform: scale(0.95);
+        }
+
+        /* ===== Menu ngôn ngữ popup - luôn hiển thị trên cùng ===== */
+        .lang-menu {
+            position: absolute;
+            top: 52px;
+            right: 0;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+            padding: 8px 0;
+            min-width: 170px;
+            z-index: 999999 !important;
+            display: none;
+            overflow: visible;
+        }
+        .lang-menu.active {
+            display: block;
+        }
+        .lang-menu-item {
+            padding: 10px 20px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text);
+            transition: background 0.15s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .lang-menu-item:hover {
+            background: #F1F5F9;
+        }
+        .lang-menu-item.active-lang {
+            background: var(--navy-pale);
+            color: var(--navy);
+        }
+
+        /* ===== Nút ngôn ngữ trên login ===== */
+        .login-lang-wrapper {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            z-index: 20;
+        }
+        .login-lang-wrapper .lang-menu {
+            right: 0;
+            top: 52px;
+        }
+
+        .loader {
+            width: 20px;
+            height: 20px;
+            border: 2.5px solid rgba(255, 255, 255, 0.3);
+            border-top-color: #fff;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            display: none;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        .screen {
+            position: relative;
+            z-index: 1;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background: var(--surface);
+        }
+        .login-hero {
+            background: var(--navy);
+            padding: 56px 32px 72px;
+            position: relative;
+            overflow: visible;
+        }
+        .login-hero::before {
+            content: '';
+            position: absolute;
+            width: 320px;
+            height: 320px;
+            background: linear-gradient(135deg, rgba(255,255,255,0.08), rgba(255,255,255,0));
+            border-radius: 50%;
+            top: -100px;
+            right: -80px;
+        }
+        .login-logo {
+            width: 56px;
+            height: 56px;
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(8px);
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: #fff;
+            margin-bottom: 24px;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        .login-hero h1 {
+            font-size: 32px;
+            font-weight: 800;
+            color: var(--white);
+            line-height: 1.15;
+            margin-bottom: 12px;
+            letter-spacing: -0.5px;
+        }
+        .login-hero p {
+            font-size: 14px;
+            color: rgba(255,255,255,0.7);
+            font-weight: 500;
+            line-height: 1.5;
+        }
+        .login-body {
+            flex: 1;
+            background: var(--surface);
+            border-radius: 32px 32px 0 0;
+            margin-top: -32px;
+            padding: 40px 28px 48px;
+            position: relative;
+            z-index: 1;
+            box-shadow: 0 -8px 24px rgba(19,31,92,0.08);
+        }
+        .login-body h2 {
+            font-size: 22px;
+            font-weight: 800;
+            color: var(--text);
+            margin-bottom: 6px;
+            letter-spacing: -0.3px;
+        }
+        .login-body > p {
+            font-size: 14px;
+            color: var(--muted);
+            margin-bottom: 32px;
+            font-weight: 500;
+        }
+        .field-label {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            margin-bottom: 8px;
+            display: block;
+        }
+        .input-wrap {
+            position: relative;
+            margin-bottom: 24px;
+        }
+        .input-wrap i {
+            position: absolute;
+            left: 18px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--muted);
+            font-size: 15px;
+        }
+        .modal-input {
+            width: 100%;
+            padding: 15px 18px;
+            border: 1.5px solid var(--border);
+            border-radius: var(--radius-sm);
+            font-family: inherit;
+            font-size: 14.5px;
+            font-weight: 500;
+            color: var(--text);
+            background: var(--white);
+            outline: none;
+            transition: all 0.2s ease;
+            box-shadow: var(--shadow-sm);
+        }
+        .modal-input:focus {
+            border-color: var(--navy-light);
+            box-shadow: 0 0 0 4px rgba(45,63,166,0.1);
+        }
+        .modal-input:disabled {
+            background: #F1F5F9;
+            color: #94A3B8;
+            cursor: not-allowed;
+            border-color: transparent;
+            box-shadow: none;
+        }
+        .modal-input::placeholder {
+            color: #94A3B8;
+        }
+        .btn-primary {
+            width: 100%;
+            padding: 16px 20px;
+            background: var(--navy);
+            color: var(--white);
+            border: none;
+            border-radius: var(--radius-md);
+            font-family: inherit;
+            font-size: 15.5px;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: all 0.2s ease;
+            box-shadow: 0 6px 24px rgba(27,43,122,0.25);
+        }
+        .btn-primary:hover {
+            background: var(--navy-deep);
+            transform: translateY(-1px);
+            box-shadow: 0 8px 32px rgba(27,43,122,0.3);
+        }
+        .btn-primary:active {
+            transform: translateY(1px) scale(0.98);
+            box-shadow: 0 2px 12px rgba(27,43,122,0.2);
+        }
+        .btn-primary:disabled {
+            background: #CBD5E1;
+            color: #F8FAFC;
+            cursor: not-allowed;
+            box-shadow: none;
+            transform: none;
+        }
+        .dash-header {
+            background: var(--navy);
+            padding: 28px 28px 28px;
+            position: relative;
+            overflow: visible;
+            z-index: 10;
+        }
+        .dash-topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
+            z-index: 1;
+            gap: 10px;
+        }
+        .dash-greeting p {
+            font-size: 13px;
+            color: rgba(255,255,255,0.7);
+            font-weight: 500;
+            margin-bottom: 2px;
+        }
+        .dash-greeting h2 {
+            font-size: 22px;
+            font-weight: 800;
+            color: var(--white);
+            letter-spacing: -0.3px;
+        }
+        .avatar-btn {
+            width: 44px;
+            height: 44px;
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.15);
+            backdrop-filter: blur(4px);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-size: 15px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .avatar-btn:hover {
+            background: rgba(255,255,255,0.2);
+        }
+        .avatar-btn:active {
+            transform: scale(0.95);
+        }
+        .hero-card {
+            background: var(--white);
+            border-radius: var(--radius-xl);
+            margin: -20px 24px 0;
+            padding: 28px 24px 24px;
+            box-shadow: var(--shadow-md);
+            position: relative;
+            z-index: 2;
+            border: 1px solid rgba(226,232,240,0.8);
+        }
+        .hero-card-company {
+            font-size: 15px;
+            font-weight: 800;
+            color: var(--text);
+            margin-bottom: 12px;
+        }
+        .hours-row {
+            display: flex;
+            align-items: baseline;
+            justify-content: space-between;
+            gap: 8px;
+            margin-bottom: 0;
+        }
+        .hours-number {
+            font-size: 56px;
+            font-weight: 800;
+            color: var(--navy);
+            line-height: 1;
+            letter-spacing: -2px;
+        }
+        .hours-unit {
+            display: none;
+        }
+        .hours-meta {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            color: var(--muted);
+            font-weight: 600;
+            margin-top: 4px;
+        }
+        .hours-bar-track {
+            width: 100%;
+            height: 6px;
+            background: var(--navy-pale);
+            border-radius: 99px;
+            margin-top: 20px;
+            overflow: hidden;
+        }
+        .hours-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--navy-light), var(--navy));
+            border-radius: 99px;
+            width: 65%;
+            transition: width 1s ease-out;
+        }
+        .dash-section {
+            padding: 32px 24px 24px;
+        }
+        .section-title {
+            font-size: 17px;
+            font-weight: 800;
+            color: var(--text);
+            margin-bottom: 16px;
+            letter-spacing: 0.5px;
+        }
+        .feature-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+        .feature-card {
+            background: var(--white);
+            border-radius: var(--radius-lg);
+            padding: 24px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 16px;
+            border: 1px solid var(--border);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: left;
+            width: 100%;
+            box-shadow: var(--shadow-sm);
+        }
+        .feature-card:active {
+            border-color: var(--navy-pale);
+            transform: translateY(2px) scale(0.98);
+            background: #F8FAFC;
+        }
+        .feature-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+        .feature-icon.navy {
+            background: var(--navy-pale);
+            color: var(--navy);
+        }
+        .feature-icon.dark {
+            background: var(--navy);
+            color: var(--white);
+            box-shadow: 0 4px 12px rgba(27,43,122,0.2);
+        }
+        .feature-label {
+            font-size: 14.5px;
+            font-weight: 800;
+            color: var(--text);
+            margin-bottom: 2px;
+        }
+        .feature-sub {
+            font-size: 12.5px;
+            color: var(--muted);
+            font-weight: 500;
+        }
+        #recorderModal {
+            position: fixed;
+            inset: 0;
+            background: rgba(15,23,42,0.65);
+            backdrop-filter: blur(8px);
+            display: none;
+            align-items: flex-end;
+            justify-content: center;
+            z-index: 100;
+        }
+        #recorderModal.flex {
+            display: flex;
+            animation: fadeIn 0.2s ease-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        .modal-sheet {
+            background: var(--surface);
+            border-radius: 32px 32px 0 0;
+            width: 100%;
+            max-width: 100%;
+            max-height: 92vh;
+            overflow-y: auto;
+            padding: 0 0 calc(36px + env(safe-area-inset-bottom));
+            animation: slideUp 0.35s cubic-bezier(0.2,0.8,0.2,1);
+            box-shadow: 0 -12px 48px rgba(0,0,0,0.15);
+        }
+        @media (min-width: 640px) {
+            .modal-sheet {
+                max-width: 500px;
+                border-radius: 32px;
+                margin: 0 auto;
+            }
+        }
+        @keyframes slideUp {
+            from { transform: translateY(100%); }
+            to { transform: translateY(0); }
+        }
+        .modal-handle {
+            display: flex;
+            justify-content: center;
+            padding: 12px 0 8px;
+            position: sticky;
+            top: 0;
+            background: var(--surface);
+            z-index: 10;
+            border-radius: 32px 32px 0 0;
+        }
+        .modal-handle-bar {
+            width: 48px;
+            height: 5px;
+            background: #CBD5E1;
+            border-radius: 99px;
+        }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 28px 24px;
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 25px;
+            background: var(--surface);
+            z-index: 9;
+        }
+        .modal-title {
+            font-size: 18px;
+            font-weight: 800;
+            color: var(--text);
+            letter-spacing: -0.3px;
+        }
+        .modal-close {
+            width: 36px;
+            height: 36px;
+            background: #F1F5F9;
+            border: none;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            color: var(--muted);
+            cursor: pointer;
+        }
+        .modal-close:active {
+            transform: scale(0.9);
+            background: #E2E8F0;
+        }
+        .modal-body {
+            padding: 28px 28px 0;
+        }
+        .fields-stack {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            margin-bottom: 28px;
+        }
+        .record-panel {
+            background: var(--white);
+            border-radius: var(--radius-lg);
+            padding: 24px;
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow-sm);
+        }
+        .record-panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+        .record-panel-title {
+            font-size: 14px;
+            font-weight: 800;
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .timer-badge,
+        #waveformCanvas {
+            display: none !important;
+        }
+        .dual-controls {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 48px;
+            width: 100%;
+            padding-bottom: 8px;
+        }
+        .control-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+        .circle-btn {
+            width: 72px;
+            height: 72px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.25s cubic-bezier(0.2,0.8,0.2,1);
+            cursor: pointer;
+            border: 2.5px solid transparent;
+            text-decoration: none;
+            background: var(--navy-pale);
+            border-color: #BFDBFE;
+            color: var(--navy);
+            box-shadow: 0 8px 24px rgba(27,43,122,0.1);
+        }
+        #recordBtn {
+            background: rgba(239, 68, 68, 0.25);
+            border-color: #EF4444;
+            color: #EF4444;
+            box-shadow: 0 8px 24px rgba(239,68,68,0.1);
+            transition: all 0.25s;
+        }
+        #recordBtn:hover {
+            background: rgba(239, 68, 68, 0.4);
+            transform: scale(1.02);
+        }
+        #recordBtn.recording {
+            animation: pulse 1s infinite;
+            background: rgba(239, 68, 68, 0.4);
+            border-color: #DC2626;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.08); }
+            100% { transform: scale(1); }
+        }
+        .circle-btn:active {
+            transform: scale(0.92);
+            box-shadow: none;
+        }
+        .circle-btn i {
+            font-size: 26px;
+        }
+        .control-label {
+            font-size: 13.5px;
+            font-weight: 700;
+            color: var(--text);
+            text-align: center;
+        }
+        .error-pill {
+            background: #FEF2F2;
+            border: 1px solid #FECACA;
+            color: var(--danger);
+            border-radius: var(--radius-sm);
+            padding: 12px 16px;
+            font-size: 13.5px;
+            font-weight: 600;
+            text-align: center;
+            margin-top: 20px;
+        }
+        .warning-pill {
+            background: #FFFBEB;
+            border: 1px solid #FDE68A;
+            color: #B45309;
+            border-radius: var(--radius-sm);
+            padding: 12px 16px;
+            font-size: 13px;
+            font-weight: 600;
+            text-align: center;
+            margin-top: 16px;
+            line-height: 1.5;
+        }
+        .info-box {
+            background: #EFF6FF;
+            color: #1D4ED8;
+            padding: 12px 16px;
+            border-radius: var(--radius-sm);
+            font-size: 13px;
+            font-weight: 600;
+            text-align: center;
+            margin-top: 16px;
+            line-height: 1.5;
+        }
+        .input-tip {
+            font-size: 12px;
+            color: #D97706;
+            font-weight: 600;
+            margin-top: 8px;
+            display: flex;
+            gap: 6px;
+            align-items: flex-start;
+            line-height: 1.5;
+        }
+        .footer-tip {
+            font-size: 12.5px;
+            color: var(--muted);
+            text-align: center;
+            margin-top: 20px;
+            line-height: 1.6;
+        }
+        .hidden {
+            display: none !important;
+        }
+        audio {
+            width: 100%;
+            margin-top: 20px;
+            border-radius: 12px;
+            height: 44px;
+            outline: none;
+        }
+        #recordStatus {
+            margin-top: 24px;
+            text-align: center;
+            font-size: 14px;
+            line-height: 1.5;
+            font-weight: 600;
+            color: var(--text);
+        }
+        .status-loading {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--navy);
+        }
+        .status-loading i {
+            font-size: 16px;
+        }
+        #fileStatus {
+            font-size: 13px;
+            font-weight: 700;
+            text-align: center;
+            margin-top: 16px;
+            color: var(--success);
+        }
+        @media (max-width: 640px) {
+            .app { max-width: 100%; }
+            .hero-card { margin-left: 16px; margin-right: 16px; }
+            .dash-section { padding-left: 16px; padding-right: 16px; }
+        }
+        .history-modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.6);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+        }
+        .history-modal.active {
+            display: flex !important;
+        }
+        .history-container {
+            background: white;
+            width: 90%;
+            max-width: 500px;
+            max-height: 80vh;
+            border-radius: 24px;
+            overflow-y: auto;
+            padding: 20px;
+            position: relative;
+            box-shadow: 0 20px 35px -8px rgba(0,0,0,0.3);
+        }
+        .history-item {
+            border-bottom: 1px solid #eee;
+            padding: 12px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        .history-item:last-child {
+            border-bottom: none;
+        }
+        .history-info {
+            flex: 2;
+            font-size: 14px;
+            font-weight: 500;
+        }
+        .history-actions {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+        .status-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            white-space: nowrap;
+        }
+        .status-Done { background: #10B981; color: white; }
+        .status-Processing { background: #F59E0B; color: white; }
+        .status-Uploaded { background: #3B82F6; color: white; }
+        .expedite-btn {
+            background: #EF4444;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+        .expedite-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        .history-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+        .close-history {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .close-history:hover { background: #f0f0f0; }
+        .consent-disclaimer {
+            font-size: 14px;
+            font-weight: 400;
+            font-style: italic;
+            color: #1E293B;
+            text-align: center;
+            line-height: 1.7;
+            margin: 24px 0 18px;
+            padding: 14px 18px;
+            background: #F8FAFC;
+            border-radius: 10px;
+            border: 1px solid #CBD5E1;
+            box-shadow: none;
+            transition: all 0.2s ease;
+        }
+        .consent-disclaimer i {
+            color: var(--muted);
+            font-size: 16px;
+            margin-right: 8px;
+        }
+        .consent-disclaimer strong {
+            font-weight: 400;
+            color: inherit;
+            font-style: italic;
+        }
+        #fileStatusLabel {
+            pointer-events: none;
+        }
+        label.file-pick-btn {
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+<div class="app">
+
+    <!-- ========== LOGIN SCREEN ========== -->
+    <div id="login-screen" class="screen">
+        <div class="login-hero">
+            <div class="login-lang-wrapper" style="position:absolute; top:16px; right:16px; z-index:20;">
+                <button class="lang-btn" id="loginLangToggleBtn" title="Chọn ngôn ngữ">
+                    <span id="loginLangFlag">🇻🇳</span>
+                </button>
+                <div class="lang-menu" id="loginLangMenu">
+                    <div class="lang-menu-item" data-lang="vi">🇻🇳 Tiếng Việt</div>
+                    <div class="lang-menu-item" data-lang="en">🇬🇧 English</div>
+                </div>
+            </div>
+
+            <div class="login-logo"><i class="fa-solid fa-microphone-lines"></i></div>
+            <h1 data-i18n="login_title">Smart Meeting<br>Minutes AI</h1>
+            <p data-i18n="login_sub">Hệ thống xử lý biên bản cuộc họp tối giản dành cho chuyên viên Sales</p>
+        </div>
+        <div class="login-body">
+            <h2 data-i18n="login_heading">Đăng nhập</h2>
+            <p data-i18n="login_desc">Nhập Email và User ID gửi trong email xác thực</p>
+
+            <label class="field-label" data-i18n="email_label">Email</label>
+            <div class="input-wrap">
+                <i class="fa-regular fa-envelope"></i>
+                <input type="email" id="emailInput" class="modal-input" data-i18n-placeholder="email_placeholder" placeholder="sales@congty.com" onkeydown="if(event.key==='Enter') handleLogin()" style="padding-left:44px;">
+            </div>
+
+            <label class="field-label" data-i18n="userid_label">User ID</label>
+            <div class="input-wrap">
+                <i class="fa-regular fa-id-card"></i>
+                <input type="text" id="userIdInput" class="modal-input" data-i18n-placeholder="userid_placeholder" placeholder="S-PM-APP-000" style="padding-left:44px;">
+            </div>
+
+            <button class="btn-primary" onclick="handleLogin()">
+                <span id="login-text" data-i18n="login_btn">Tiếp tục</span>
+                <div id="login-loader" class="loader"></div>
+            </button>
+
+            <div id="error-message" class="error-pill hidden"></div>
+            <div id="https-warning" class="warning-pill hidden"></div>
+        </div>
+    </div>
+
+    <!-- ========== DASHBOARD ========== -->
+    <div id="dashboard-screen" class="hidden screen">
+        <div class="dash-header">
+            <div class="dash-topbar">
+                <div class="dash-greeting">
+                    <p data-i18n="greeting">Người dùng:</p>
+                    <h2 id="user-name-display">Sales Name</h2>
+                </div>
+                <div style="display:flex; align-items:center; gap:8px; position:relative; z-index:99;">
+                    <button class="lang-btn" id="dashLangToggleBtn" title="Chọn ngôn ngữ">
+                        <span id="dashLangFlag">🇻🇳</span>
+                    </button>
+                    <div class="lang-menu" id="dashLangMenu">
+                        <div class="lang-menu-item" data-lang="vi">🇻🇳 Tiếng Việt</div>
+                        <div class="lang-menu-item" data-lang="en">🇬🇧 English</div>
+                    </div>
+                    <button class="avatar-btn" onclick="handleLogout()" title="Đăng xuất">
+                        <i class="fa-solid fa-arrow-right-from-bracket"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="hero-card">
+            <div class="field-label" style="margin-bottom:6px;" data-i18n="customer_label">Khách Hàng</div>
+            <div class="hero-card-company" id="company-name-display">Tên Công Ty</div>
+            <div class="hours-row">
+                <div class="hours-number" id="remaining-hours-display">--</div>
+                <div class="hours-unit"></div>
+            </div>
+            <div class="hours-meta" style="margin-top:4px;">
+                <i class="fa-solid fa-coffee" style="color:var(--navy-light)"></i>
+                <span data-i18n="hours_unit">Giờ sử dụng tại quán cafe</span>
+            </div>
+            <div class="grid grid-cols-2 gap-2 mt-3 text-sm">
+                <div>
+                    <div class="text-xs text-muted uppercase tracking-wide" data-i18n="package_label">Gói dịch vụ</div>
+                    <div class="font-semibold" id="package-display">--</div>
+                </div>
+                <div>
+                    <div class="text-xs text-muted uppercase tracking-wide" data-i18n="expiry_label">Hạn sử dụng</div>
+                    <div class="font-semibold" id="expiry-display">--</div>
+                </div>
+            </div>
+            <div class="hours-bar-track"><div class="hours-bar-fill"></div></div>
+        </div>
+
+        <div class="dash-section">
+            <div class="section-title" data-i18n="tools_title">Tiện ích</div>
+            <div class="feature-grid">
+                <button class="feature-card" id="checkinBtn">
+                    <div class="feature-icon navy"><i class="fa-solid fa-location-dot"></i></div>
+                    <div>
+                        <div class="feature-label" data-i18n="cafe_btn">Quán cafe</div>
+                        <div class="feature-sub" data-i18n="cafe_sub">Đặt chỗ hẹn</div>
+                    </div>
+                </button>
+                <button class="feature-card" id="openRecorderBtn">
+                    <div class="feature-icon navy"><i class="fa-solid fa-microphone"></i></div>
+                    <div>
+                        <div class="feature-label" data-i18n="ai_btn">PopMinutes AI</div>
+                        <div class="feature-sub" data-i18n="ai_sub">Xử lý biên bản họp</div>
+                    </div>
+                </button>
+            </div>
+        </div>
+
+        <div class="dash-section">
+            <div class="section-title" data-i18n="history_title">Lịch sử</div>
+            <div class="feature-grid">
+                <button class="feature-card" id="qrCheckinBtn">
+                    <div class="feature-icon navy"><i class="fa-solid fa-qrcode"></i></div>
+                    <div>
+                        <div class="feature-label" data-i18n="checkin_btn">Check-in</div>
+                        <div class="feature-sub" data-i18n="checkin_sub">Địa điểm sử dụng</div>
+                    </div>
+                </button>
+                <button class="feature-card" id="historyBtn">
+                    <div class="feature-icon navy"><i class="fa-solid fa-clock-rotate-left"></i></div>
+                    <div>
+                        <div class="feature-label" data-i18n="minutes_btn">Biên bản</div>
+                        <div class="feature-sub" data-i18n="minutes_sub">Lịch sử xử lý</div>
+                    </div>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== RECORDER MODAL ========== -->
+    <div id="recorderModal">
+        <div class="modal-sheet">
+            <div class="modal-handle"><div class="modal-handle-bar"></div></div>
+            <div class="modal-header">
+                <span class="modal-title" data-i18n="modal_title">Khởi tạo biên bản họp AI</span>
+                <button class="modal-close" id="closeModalBtn"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="modal-body">
+                <div class="fields-stack">
+                    <div>
+                        <label class="field-label" data-i18n="creator_label">Người tạo</label>
+                        <input type="text" id="salesNameDisplay" disabled class="modal-input">
+                    </div>
+                    <div>
+                        <label class="field-label" style="color:var(--text)" data-i18n="client_label">Đối tác / Khách của bạn <span class="text-red-500">*</span></label>
+                        <input type="text" id="clientNameInput" class="modal-input" data-i18n-placeholder="client_placeholder" placeholder="Ví dụ: Anh Hoàng - Công ty ABC">
+                        <span class="input-tip"><i class="fas fa-info-circle" style="margin-top:2px;"></i> <span data-i18n="client_tip">Điền tên của đối tác / khách hàng bạn gặp.</span></span>
+                    </div>
+
+                    <div>
+                        <label class="field-label" data-i18n="email_label_modal">Email nhận biên bản</label>
+                        <input type="email" id="salesEmailDisplay" disabled class="modal-input">
+                    </div>
+
+                    <div>
+                        <button id="toggleCcBtn" type="button" style="color:var(--navy-light); font-size:13px; font-weight:700; background:none; border:none; cursor:pointer; display:inline-flex; align-items:center; gap:6px; padding:4px 0;">
+                            <i class="fa-solid fa-circle-plus"></i> <span data-i18n="add_cc_btn">Thêm người nhận</span>
+                        </button>
+                        <div id="ccFields" class="hidden flex flex-col gap-3 mt-3">
+                            <input type="email" id="ccEmail1" class="modal-input" data-i18n-placeholder="cc_placeholder" placeholder="abc@congty.com (tùy chọn)">
+                            <input type="email" id="ccEmail2" class="modal-input" data-i18n-placeholder="cc_placeholder" placeholder="abc@congty.com (tùy chọn)">
+                        </div>
+                    </div>
+
+                    <!-- ===== PHẦN CHỌN NGÔN NGỮ BIÊN BẢN ===== -->
+                    <div>
+                        <label class="field-label" data-i18n="language_mode_label">Chế độ ngôn ngữ</label>
+                        <select id="outputMode" class="modal-input" onchange="toggleLanguageTarget()">
+                            <option value="auto" data-i18n="lang_mode_auto">Ngôn ngữ gốc</option>
+                            <option value="translate" data-i18n="lang_mode_translate">Dịch sang</option>
+                            <option value="bilingual" data-i18n="lang_mode_bilingual">Song ngữ</option>
+                        </select>
+                    </div>
+                    <!-- Ngôn ngữ 1: (chỉ hiển thị khi chọn Song ngữ) -->
+                    <div id="sourceLangDiv" style="display:none;">
+                        <label class="field-label">Ngôn ngữ 1:</label>
+                        <input type="text" id="sourceLangDisplay" class="modal-input" disabled value="Ngôn ngữ gốc">
+                    </div>
+                    <!-- Ngôn ngữ đích (hiển thị khi chọn Dịch sang hoặc Song ngữ) -->
+                    <div id="targetLangDiv" style="display:none;">
+                        <label class="field-label" id="targetLabel">Ngôn ngữ đích</label>
+                        <select id="outputTargetLang" class="modal-input">
+                            <!-- Ưu tiên tiếng Việt lên đầu -->
+                            <option value="vi" data-i18n="lang_vi">🇻🇳 Tiếng Việt</option>
+                            <!-- Châu Á -->
+                            <option value="en" data-i18n="lang_en">🇬🇧 English</option>
+                            <option value="id" data-i18n="lang_id">🇮🇩 Indonesia</option>
+                            <option value="ms" data-i18n="lang_ms">🇲🇾 Malaysia</option>
+                            <option value="tl" data-i18n="lang_tl">🇵🇭 Filipino</option>
+                            <option value="th" data-i18n="lang_th">🇹🇭 ภาษาไทย</option>
+                            <option value="km" data-i18n="lang_km">🇰🇭 ភាសាខ្មែរ</option>
+                            <option value="lo" data-i18n="lang_lo">🇱🇦 ພາສາລາວ</option>
+                            <option value="my" data-i18n="lang_my">🇲🇲 မြန်မာစာ</option>
+                            <option value="zh" data-i18n="lang_zh">🇨🇳 中文</option>
+                            <option value="ja" data-i18n="lang_ja">🇯🇵 日本語</option>
+                            <option value="ko" data-i18n="lang_ko">🇰🇷 한국어</option>
+                            <option value="hi" data-i18n="lang_hi">🇮🇳 हिन्दी</option>
+                            <!-- Châu Âu -->
+                            <option value="es" data-i18n="lang_es">🇪🇸 Español</option>
+                            <option value="fr" data-i18n="lang_fr">🇫🇷 Français</option>
+                            <option value="de" data-i18n="lang_de">🇩🇪 Deutsch</option>
+                            <option value="it" data-i18n="lang_it">🇮🇹 Italiano</option>
+                            <option value="pt" data-i18n="lang_pt">🇵🇹 Português</option>
+                            <option value="ru" data-i18n="lang_ru">🇷🇺 Русский</option>
+                            <!-- Các ngôn ngữ khác -->
+                            <option value="ar" data-i18n="lang_ar">🇸🇦 العربية</option>
+                            <option value="tr" data-i18n="lang_tr">🇹🇷 Türkçe</option>
+                        </select>
+                    </div>
+                    <!-- ===== KẾT THÚC ===== -->
+                </div>
+
+                <div class="record-panel">
+                    <div class="record-panel-header">
+                        <div class="record-panel-title"><i class="fa-solid fa-wave-square" style="color:var(--navy)"></i> <span data-i18n="file_panel_title">Tệp âm thanh</span></div>
+                        <div class="timer-badge" id="recordTimer">00:00</div>
+                    </div>
+                    <canvas id="waveformCanvas" width="400" height="64"></canvas>
+
+                    <div class="dual-controls">
+                        <!-- Nút tải file lên -->
+                        <div class="control-wrapper">
+                            <label for="fileInput" class="circle-btn file-pick-btn"><i class="fa-solid fa-folder-open"></i></label>
+                            <input type="file" id="fileInput" accept="audio/*, .webm, .mp3, .m4a, .wav" class="hidden">
+                            <span id="fileStatusLabel" class="control-label" data-i18n="upload_btn">Tải lên</span>
+                        </div>
+
+                        <!-- Nút ghi âm màu đỏ -->
+                        <div class="control-wrapper">
+                            <button type="button" id="recordBtn" class="circle-btn">
+                                <i class="fa-solid fa-microphone"></i>
+                            </button>
+                            <span id="recordLabel" class="control-label" data-i18n="record_btn">Ghi âm</span>
+                        </div>
+                    </div>
+                    <div id="fileStatus"></div>
+                    <p class="footer-tip" data-i18n="file_tip">Hỗ trợ: <strong>mp3, m4a, wav, webm...</strong></p>
+                </div>
+
+                <audio id="audioPlayback" controls class="hidden"></audio>
+
+                <div class="consent-disclaimer">
+                    <i class="fa-solid fa-shield"></i>
+                    <strong data-i18n="consent_text">Bằng việc tải lên, bạn xác nhận có quyền hợp pháp và đã được sự đồng ý của những người tham gia để xử lý dữ liệu cuộc họp này.</strong>
+                </div>
+
+                <button id="uploadRecordBtn" class="btn-primary" style="margin-top:8px; height:56px;" disabled>
+                    <i class="fa-solid fa-play"></i> <span data-i18n="start_btn">Bắt đầu</span>
+                </button>
+
+                <div id="recordStatus"></div>
+                <div id="httpsHelp" class="info-box hidden"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== HISTORY MODAL ========== -->
+    <div id="historyModal" class="history-modal">
+        <div class="history-container">
+            <div class="history-header">
+                <h3 data-i18n="history_title_modal">Lịch sử xử lý</h3>
+                <button class="close-history" id="closeHistoryBtn">&times;</button>
+            </div>
+            <div id="historyList">
+                <p data-i18n="history_loading">Đang tải...</p>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- BUTTON CÀI ĐẶT PWA -->
+<button id="btnInstall" style="display:none; background-color:#28a745; position:fixed; bottom:20px; right:20px; z-index:9999; padding:10px 15px; border:none; border-radius:30px; color:white; font-weight:bold; cursor:pointer;">
+    📥 Cài đặt Ứng dụng PopMinutes
+</button>
+
+<script>
+    // ========================================================================
+    //  I18N – ĐA NGÔN NGỮ GIAO DIỆN
+    // ========================================================================
+    const translations = {
+        vi: {
+            login_title: 'Smart Meeting Minutes AI',
+            login_sub: 'Hệ thống xử lý biên bản cuộc họp tối giản dành cho chuyên viên Sales',
+            login_heading: 'Đăng nhập',
+            login_desc: 'Nhập Email và User ID gửi trong email xác thực',
+            email_label: 'Email',
+            email_placeholder: 'sales@congty.com',
+            userid_label: 'User ID',
+            userid_placeholder: 'S-PM-APP-000',
+            login_btn: 'Tiếp tục',
+            greeting: 'Người dùng:',
+            customer_label: 'Khách Hàng',
+            hours_unit: 'Giờ sử dụng tại quán cafe',
+            package_label: 'Gói dịch vụ',
+            expiry_label: 'Hạn sử dụng',
+            undefined_package: 'Chưa xác định',
+            undefined_expiry: '--',
+            trial_account: 'Tài khoản Dùng thử',
+            tools_title: 'Tiện ích',
+            cafe_btn: 'Quán cafe',
+            cafe_sub: 'Đặt chỗ hẹn',
+            ai_btn: 'PopMinutes AI',
+            ai_sub: 'Xử lý biên bản họp',
+            history_title: 'Lịch sử',
+            checkin_btn: 'Check-in',
+            checkin_sub: 'Địa điểm sử dụng',
+            minutes_btn: 'Biên bản',
+            minutes_sub: 'Lịch sử xử lý',
+            modal_title: 'Khởi tạo biên bản họp AI',
+            creator_label: 'Người tạo',
+            client_label: 'Đối tác / Khách của bạn',
+            client_placeholder: 'Ví dụ: Anh Hoàng - Công ty ABC',
+            client_tip: 'Điền tên của đối tác / khách hàng bạn gặp.',
+            email_label_modal: 'Email nhận biên bản',
+            add_cc_btn: 'Thêm người nhận',
+            hide_cc_btn: 'Ẩn',
+            cc_placeholder: 'abc@congty.com (tùy chọn)',
+            file_panel_title: 'Tệp âm thanh',
+            upload_btn: 'Tải lên',
+            change_file_btn: 'Đổi tệp khác',
+            record_btn: 'Ghi âm',
+            stop_record_btn: 'Dừng ghi',
+            recording_status: 'Đang ghi âm (Micro + Âm thanh Tab)...',
+            file_tip: 'Hỗ trợ: <strong>mp3, m4a, wav, webm...</strong>',
+            consent_text: 'Bằng việc tải lên, bạn xác nhận có quyền hợp pháp và đã được sự đồng ý của những người tham gia để xử lý dữ liệu cuộc họp này.',
+            start_btn: 'Bắt đầu',
+            history_title_modal: 'Lịch sử xử lý',
+            history_empty: 'Chưa có bản ghi nào.',
+            history_loading: 'Đang tải...',
+            expedite_btn: 'Xử lý gấp',
+            toast_upload_success: '✅ Tải lên thành công! AI đang lập biên bản.',
+            toast_expedite_sent: 'Đã gửi yêu cầu xử lý gấp!',
+            toast_expedite_fail: '⚠️ Không thể gửi yêu cầu',
+            toast_network_error: '❌ Lỗi kết nối: ',
+            toast_login_required: 'Vui lòng đăng nhập.',
+            toast_upgrade_required: 'Nâng cấp gói để sử dụng tính năng.',
+            err_empty: 'Vui lòng nhập đầy đủ Email và User ID!',
+            err_invalid: 'Email hoặc User ID không đúng!',
+            err_network: 'Không thể kết nối tới máy chủ.',
+            err_client_empty: 'Vui lòng điền tên đối tác.',
+            err_no_file: 'Chưa có file.',
+            err_upload_init: 'Không thể lấy Signed URL',
+            err_upload_fail: 'Tải file lên Cloud Storage thất bại',
+            err_process_fail: 'Tải lên thất bại! AI đang lập biên bản.',
+            err_mic_permission: 'Không thể truy cập Microphone hoặc Âm thanh Tab. Vui lòng cấp quyền.',
+            status_connecting: 'Đang khởi tạo kết nối...',
+            status_uploading: 'Đang tải file lên Cloud...',
+            status_processing: 'AI đang tiến hành phân tích cuộc họp...',
+            recording_saved: 'Đã hoàn tất thu âm!',
+            select_language: 'Chọn ngôn ngữ',
+            // ===== NGÔN NGỮ BIÊN BẢN =====
+            language_mode_label: 'Chế độ ngôn ngữ',
+            lang_mode_auto: 'Ngôn ngữ gốc',
+            lang_mode_translate: 'Dịch sang',
+            lang_mode_bilingual: 'Song ngữ',
+            target_lang_label: 'Ngôn ngữ đích',
+            lang_en: '🇬🇧 English',
+            lang_vi: '🇻🇳 Tiếng Việt',
+            lang_id: '🇮🇩 Indonesia',
+            lang_ms: '🇲🇾 Malaysia',
+            lang_tl: '🇵🇭 Filipino',
+            lang_th: '🇹🇭 ภาษาไทย',
+            lang_km: '🇰🇭 ភាសាខ្មែរ',
+            lang_lo: '🇱🇦 ພາສາລາວ',
+            lang_my: '🇲🇲 မြန်မာစာ',
+            lang_zh: '🇨🇳 中文',
+            lang_ja: '🇯🇵 日本語',
+            lang_ko: '🇰🇷 한국어',
+            lang_hi: '🇮🇳 हिन्दी',
+            lang_es: '🇪🇸 Español',
+            lang_fr: '🇫🇷 Français',
+            lang_de: '🇩🇪 Deutsch',
+            lang_it: '🇮🇹 Italiano',
+            lang_pt: '🇵🇹 Português',
+            lang_ru: '🇷🇺 Русский',
+            lang_ar: '🇸🇦 العربية',
+            lang_tr: '🇹🇷 Türkçe',
+        },
+        en: {
+            login_title: 'Smart Meeting Minutes AI',
+            login_sub: 'Minimal meeting minutes processing system for Sales professionals',
+            login_heading: 'Login',
+            login_desc: 'Enter Email and User ID sent in the verification email',
+            email_label: 'Email',
+            email_placeholder: 'sales@company.com',
+            userid_label: 'User ID',
+            userid_placeholder: 'S-PM-APP-000',
+            login_btn: 'Continue',
+            greeting: 'User:',
+            customer_label: 'Customer',
+            hours_unit: 'Hours used at café',
+            package_label: 'Package',
+            expiry_label: 'Expiry',
+            undefined_package: 'Not defined',
+            undefined_expiry: '--',
+            trial_account: 'Trial Account',
+            tools_title: 'Utilities',
+            cafe_btn: 'Café',
+            cafe_sub: 'Book a meeting spot',
+            ai_btn: 'PopMinutes AI',
+            ai_sub: 'Process meeting minutes',
+            history_title: 'History',
+            checkin_btn: 'Check-in',
+            checkin_sub: 'Location usage',
+            minutes_btn: 'Minutes',
+            minutes_sub: 'Processing history',
+            modal_title: 'Initialize AI Meeting Minutes',
+            creator_label: 'Creator',
+            client_label: 'Partner / Your Client',
+            client_placeholder: 'e.g. Mr. Hoang - ABC Company',
+            client_tip: 'Enter the name of your partner/client you are meeting.',
+            email_label_modal: 'Email to receive minutes',
+            add_cc_btn: 'Add recipient',
+            hide_cc_btn: 'Hide',
+            cc_placeholder: 'abc@company.com (optional)',
+            file_panel_title: 'Audio file',
+            upload_btn: 'Upload',
+            change_file_btn: 'Change file',
+            record_btn: 'Record',
+            stop_record_btn: 'Stop recording',
+            recording_status: 'Recording (Microphone + Tab Audio)...',
+            file_tip: 'Supports: <strong>mp3, m4a, wav, webm...</strong>',
+            consent_text: 'By uploading, you confirm that you have the legal right and have obtained consent from participants to process this meeting data.',
+            start_btn: 'Start',
+            history_title_modal: 'Processing History',
+            history_empty: 'No records yet.',
+            history_loading: 'Loading...',
+            expedite_btn: 'Expedite',
+            toast_upload_success: '✅ Upload successful! AI is generating minutes.',
+            toast_expedite_sent: 'Expedite request sent!',
+            toast_expedite_fail: '⚠️ Failed to send request',
+            toast_network_error: '❌ Connection error: ',
+            toast_login_required: 'Please log in.',
+            toast_upgrade_required: 'Upgrade your plan to use this feature.',
+            err_empty: 'Please fill in both Email and User ID!',
+            err_invalid: 'Email or User ID is incorrect!',
+            err_network: 'Cannot connect to server.',
+            err_client_empty: 'Please enter the partner name.',
+            err_no_file: 'No file selected.',
+            err_upload_init: 'Cannot get Signed URL',
+            err_upload_fail: 'Upload to Cloud Storage failed',
+            err_process_fail: 'Upload failed! AI is processing minutes.',
+            err_mic_permission: 'Cannot access Microphone or Tab Audio. Please grant permission.',
+            status_connecting: 'Initializing connection...',
+            status_uploading: 'Uploading file to Cloud...',
+            status_processing: 'AI is analyzing the meeting...',
+            recording_saved: 'Recording completed!',
+            select_language: 'Select language',
+            // ===== MINUTES LANGUAGE =====
+            language_mode_label: 'Language mode',
+            lang_mode_auto: 'Original language',
+            lang_mode_translate: 'Translate to',
+            lang_mode_bilingual: 'Bilingual',
+            target_lang_label: 'Target language',
+            lang_en: '🇬🇧 English',
+            lang_vi: '🇻🇳 Vietnamese',
+            lang_id: '🇮🇩 Indonesian',
+            lang_ms: '🇲🇾 Malay',
+            lang_tl: '🇵🇭 Filipino',
+            lang_th: '🇹🇭 Thai',
+            lang_km: '🇰🇭 Khmer',
+            lang_lo: '🇱🇦 Lao',
+            lang_my: '🇲🇲 Burmese',
+            lang_zh: '🇨🇳 Chinese',
+            lang_ja: '🇯🇵 Japanese',
+            lang_ko: '🇰🇷 Korean',
+            lang_hi: '🇮🇳 Hindi',
+            lang_es: '🇪🇸 Spanish',
+            lang_fr: '🇫🇷 French',
+            lang_de: '🇩🇪 German',
+            lang_it: '🇮🇹 Italian',
+            lang_pt: '🇵🇹 Portuguese',
+            lang_ru: '🇷🇺 Russian',
+            lang_ar: '🇸🇦 Arabic',
+            lang_tr: '🇹🇷 Turkish',
+        }
+    };
+
+    let currentLang = localStorage.getItem('popminutes_lang') || 'vi';
+    let lastErrorKey = null;
+
+    function t(key) {
+        return translations[currentLang]?.[key] || key;
+    }
+
+    // ========================================================================
+    //  QUẢN LÝ NGÔN NGỮ GIAO DIỆN
+    // ========================================================================
+    const loginToggle = document.getElementById('loginLangToggleBtn');
+    const loginMenu = document.getElementById('loginLangMenu');
+    const loginItems = document.querySelectorAll('#loginLangMenu .lang-menu-item');
+
+    const dashToggle = document.getElementById('dashLangToggleBtn');
+    const dashMenu = document.getElementById('dashLangMenu');
+    const dashItems = document.querySelectorAll('#dashLangMenu .lang-menu-item');
+
+    const loginFlag = document.getElementById('loginLangFlag');
+    const dashFlag = document.getElementById('dashLangFlag');
+
+    function updateFlagIcons(lang) {
+        const flag = lang === 'vi' ? '🇻🇳' : '🇬🇧';
+        if (loginFlag) loginFlag.textContent = flag;
+        if (dashFlag) dashFlag.textContent = flag;
+    }
+
+    function updateLangTooltip(lang) {
+        const title = t('select_language');
+        if (loginToggle) loginToggle.title = title;
+        if (dashToggle) dashToggle.title = title;
+    }
+
+    function closeAllMenus() {
+        if (loginMenu) loginMenu.classList.remove('active');
+        if (dashMenu) dashMenu.classList.remove('active');
+    }
+
+    if (loginToggle && loginMenu) {
+        loginToggle.addEventListener('click', function(e) {
+            e.stopPropagation();
+            if (dashMenu) dashMenu.classList.remove('active');
+            loginMenu.classList.toggle('active');
+        });
+    }
+
+    if (dashToggle && dashMenu) {
+        dashToggle.addEventListener('click', function(e) {
+            e.stopPropagation();
+            if (loginMenu) loginMenu.classList.remove('active');
+            dashMenu.classList.toggle('active');
+        });
+    }
+
+    document.addEventListener('click', function(e) {
+        const isLogin = loginToggle && (loginToggle.contains(e.target) || (loginMenu && loginMenu.contains(e.target)));
+        const isDash = dashToggle && (dashToggle.contains(e.target) || (dashMenu && dashMenu.contains(e.target)));
+        if (!isLogin && !isDash) {
+            closeAllMenus();
+        }
+    });
+
+    function handleLangSelect(lang) {
+        applyLanguage(lang);
+        closeAllMenus();
+        loginItems.forEach(i => i.classList.toggle('active-lang', i.dataset.lang === lang));
+        dashItems.forEach(i => i.classList.toggle('active-lang', i.dataset.lang === lang));
+        updateFlagIcons(lang);
+        updateLangTooltip(lang);
+    }
+
+    loginItems.forEach(item => {
+        item.addEventListener('click', function() {
+            handleLangSelect(this.dataset.lang);
+        });
+    });
+
+    dashItems.forEach(item => {
+        item.addEventListener('click', function() {
+            handleLangSelect(this.dataset.lang);
+        });
+    });
+
+    function applyLanguage(lang) {
+        currentLang = lang;
+        localStorage.setItem('popminutes_lang', lang);
+
+        document.querySelectorAll('[data-i18n]').forEach(el => {
+            const key = el.getAttribute('data-i18n');
+            const translation = t(key);
+            if (translation !== undefined) {
+                if (el.innerHTML.includes('<')) {
+                    el.innerHTML = translation;
+                } else {
+                    el.textContent = translation;
+                }
+            }
+        });
+
+        document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+            const key = el.getAttribute('data-i18n-placeholder');
+            const translation = t(key);
+            if (translation !== undefined) {
+                el.placeholder = translation;
+            }
+        });
+
+        const idMap = {
+            'login-title': 'login_title',
+            'login-sub': 'login_sub',
+            'login-heading': 'login_heading',
+            'login-desc': 'login_desc',
+            'email-label': 'email_label',
+            'userid-label': 'userid_label',
+            'login-btn-text': 'login_btn',
+            'greeting-label': 'greeting',
+            'customer-label': 'customer_label',
+            'hours-unit-label': 'hours_unit',
+            'package-label': 'package_label',
+            'expiry-label': 'expiry_label',
+            'tools-title': 'tools_title',
+            'cafe-btn': 'cafe_btn',
+            'cafe-sub': 'cafe_sub',
+            'ai-btn': 'ai_btn',
+            'ai-sub': 'ai_sub',
+            'history-title': 'history_title',
+            'checkin-btn': 'checkin_btn',
+            'checkin-sub': 'checkin_sub',
+            'minutes-btn': 'minutes_btn',
+            'minutes-sub': 'minutes_sub',
+            'modal-title': 'modal_title',
+            'creator-label': 'creator_label',
+            'client-label': 'client_label',
+            'client-placeholder': 'client_placeholder',
+            'client-tip': 'client_tip',
+            'email-label-modal': 'email_label_modal',
+            'add-cc-btn': 'add_cc_btn',
+            'file-panel-title': 'file_panel_title',
+            'upload-btn-label': 'upload_btn',
+            'record-btn-label': 'record_btn',
+            'file-tip': 'file_tip',
+            'consent-text': 'consent_text',
+            'start-btn': 'start_btn',
+            'history-title-modal': 'history_title_modal',
+            'history-empty': 'history_empty',
+            'history-loading': 'history_loading',
+            'expedite-btn': 'expedite_btn',
+        };
+        for (let id in idMap) {
+            const el = document.getElementById(id);
+            if (el && t(idMap[id]) !== undefined) {
+                if (id === 'file-tip') {
+                    el.innerHTML = t(idMap[id]);
+                } else {
+                    el.textContent = t(idMap[id]);
+                }
+            }
+        }
+
+        const toggleCcBtn = document.getElementById('toggleCcBtn');
+        if (toggleCcBtn) {
+            const isHidden = document.getElementById('ccFields').classList.contains('hidden');
+            const label = isHidden ? t('add_cc_btn') : t('hide_cc_btn');
+            const icon = isHidden ? 'fa-circle-plus' : 'fa-circle-minus';
+            toggleCcBtn.innerHTML = `<i class="fa-solid ${icon}"></i> ${label}`;
+        }
+
+        const recordBtn = document.getElementById('recordBtn');
+        const recordLabel = document.getElementById('recordLabel');
+        if (recordBtn && recordLabel) {
+            const isRecording = recordBtn.classList.contains('recording');
+            recordLabel.textContent = isRecording ? t('stop_record_btn') : t('record_btn');
+        }
+
+        const fileInput = document.getElementById('fileInput');
+        if (!fileInput.files.length && !selectedFileBlob) {
+            document.getElementById('fileStatusLabel').textContent = t('upload_btn');
+        } else if (selectedFileBlob) {
+            document.getElementById('fileStatusLabel').textContent = t('change_file_btn');
+        }
+
+        const errorMsg = document.getElementById('error-message');
+        if (errorMsg && !errorMsg.classList.contains('hidden') && lastErrorKey) {
+            errorMsg.textContent = t(lastErrorKey);
+        }
+
+        // Cập nhật nội dung các dropdown ngôn ngữ
+        const targetLangSelect = document.getElementById('outputTargetLang');
+        if (targetLangSelect) {
+            const options = targetLangSelect.options;
+            for (let i = 0; i < options.length; i++) {
+                const key = options[i].getAttribute('data-i18n');
+                if (key) {
+                    options[i].textContent = t(key);
+                }
+            }
+        }
+
+        updateDashboardDynamicText();
+        updateFlagIcons(lang);
+        updateLangTooltip(lang);
+    }
+
+    function updateDashboardDynamicText() {
+        const packageDisplay = document.getElementById('package-display');
+        const expiryDisplay = document.getElementById('expiry-display');
+        const salesNameDisplay = document.getElementById('salesNameDisplay');
+        if (packageDisplay && (packageDisplay.textContent === 'Chưa xác định' || packageDisplay.textContent === 'Not defined')) {
+            packageDisplay.textContent = t('undefined_package');
+        }
+        if (expiryDisplay && (expiryDisplay.textContent === '--' || expiryDisplay.textContent === '--')) {
+            expiryDisplay.textContent = t('undefined_expiry');
+        }
+        if (salesNameDisplay && (salesNameDisplay.value === 'Tài khoản Dùng thử' || salesNameDisplay.value === 'Trial Account')) {
+            salesNameDisplay.value = t('trial_account');
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        applyLanguage(currentLang);
+        loginItems.forEach(item => {
+            item.classList.toggle('active-lang', item.dataset.lang === currentLang);
+        });
+        dashItems.forEach(item => {
+            item.classList.toggle('active-lang', item.dataset.lang === currentLang);
+        });
+        updateFlagIcons(currentLang);
+        updateLangTooltip(currentLang);
+        // Khởi tạo trạng thái language target
+        toggleLanguageTarget();
+        // Khôi phục lựa chọn ngôn ngữ đã lưu
+        const savedLang = localStorage.getItem('popminutes_output_target') || 'vi';
+        document.getElementById('outputTargetLang').value = savedLang;
+        const savedMode = localStorage.getItem('popminutes_output_mode') || 'auto';
+        document.getElementById('outputMode').value = savedMode;
+        toggleLanguageTarget();
+    });
+
+    // ========================================================================
+    //  CẤU HÌNH API
+    // ========================================================================
+    const CLOUD_FUNCTION_URL = "https://asia-southeast1-gen-lang-client-0303222519.cloudfunctions.net/get-upload-url";
+    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxQ8HeKwVuV4g1yMDFgAkkStAOW2nuN0VwSk2WJiZ75FcXGXvlayQmHeH8O0Bq2ZH42/exec";
+    const AUTH_STORAGE_KEY = "popminutes_auth";
+    const SESSION_DAYS = 90;
+
+    let currentEmail = "",
+        currentSalesName = "",
+        currentCompanyName = "";
+
+    // ========================================================================
+    //  ĐĂNG NHẬP
+    // ========================================================================
+    async function handleLogin() {
+        const emailInput = document.getElementById('emailInput').value.trim();
+        const userIdInput = document.getElementById('userIdInput').value.trim();
+        const errorMsg = document.getElementById('error-message');
+        if (!emailInput || !userIdInput) {
+            errorMsg.textContent = t('err_empty');
+            errorMsg.classList.remove('hidden');
+            lastErrorKey = 'err_empty';
+            return;
+        }
+        document.getElementById('login-text').style.display = 'none';
+        document.getElementById('login-loader').style.display = 'block';
+        errorMsg.classList.add('hidden');
+        lastErrorKey = null;
+
+        try {
+            const loginUrl = `${CLOUD_FUNCTION_URL}?action=authenticateSales&email=${encodeURIComponent(emailInput)}&userId=${encodeURIComponent(userIdInput)}`;
+            const response = await fetch(loginUrl);
+            const result = await response.json();
+            if (result.status === 200 && result.authenticated) {
+                currentEmail = emailInput;
+                currentSalesName = result.sales.name;
+                currentCompanyName = result.enterprise.name;
+                saveAuthInfo(result);
+
+                document.getElementById('login-screen').classList.add('hidden');
+                document.getElementById('dashboard-screen').classList.remove('hidden');
+
+                document.getElementById('user-name-display').textContent = currentSalesName;
+                document.getElementById('company-name-display').textContent = currentCompanyName;
+                document.getElementById('remaining-hours-display').textContent = result.enterprise.remainingHours;
+                document.getElementById('package-display').textContent = result.enterprise.packageId || t('undefined_package');
+                document.getElementById('expiry-display').textContent = result.enterprise.expiryDate || t('undefined_expiry');
+            } else {
+                errorMsg.textContent = t('err_invalid');
+                errorMsg.classList.remove('hidden');
+                lastErrorKey = 'err_invalid';
+            }
+        } catch (e) {
+            errorMsg.innerHTML = `<i class='fa-solid fa-triangle-exclamation'></i> ${t('err_network')}`;
+            errorMsg.classList.remove('hidden');
+            lastErrorKey = 'err_network';
+        } finally {
+            document.getElementById('login-text').style.display = '';
+            document.getElementById('login-loader').style.display = 'none';
+        }
+    }
+
+    function handleLogout() {
+        localStorage.removeItem(AUTH_STORAGE_KEY);
+        currentEmail = "";
+        currentSalesName = "";
+        currentCompanyName = "";
+        document.getElementById('emailInput').value = "";
+        document.getElementById('userIdInput').value = "";
+        document.getElementById('user-name-display').textContent = "";
+        document.getElementById('company-name-display').textContent = "";
+        document.getElementById('remaining-hours-display').textContent = "--";
+        document.getElementById('package-display').textContent = t('undefined_package');
+        document.getElementById('expiry-display').textContent = t('undefined_expiry');
+        document.getElementById('dashboard-screen').classList.add('hidden');
+        document.getElementById('login-screen').classList.remove('hidden');
+        closeModal();
+        const errorMsg = document.getElementById('error-message');
+        errorMsg.classList.add('hidden');
+        lastErrorKey = null;
+    }
+
+    function updateModalSalesInfo() {
+        document.getElementById('salesNameDisplay').value = currentSalesName || t('trial_account');
+        document.getElementById('salesEmailDisplay').value = currentEmail || "";
+    }
+
+    // ========================================================================
+    //  LOGIC UPLOAD & GHI ÂM TỔNG HỢP (ĐÃ SỬA LỖI - BỔ SUNG resume)
+    // ========================================================================
+    let selectedFileBlob = null;
+    let mediaRecorder = null;
+    let recordedChunks = [];
+    let isRecording = false;
+    let activeAudioContext = null;
+    let combinedStreamTracks = [];
+
+    const modal = document.getElementById('recorderModal');
+    const openBtn = document.getElementById('openRecorderBtn');
+    const uploadBtn = document.getElementById('uploadRecordBtn');
+    const closeModalBtn = document.getElementById('closeModalBtn');
+    const audioPlayback = document.getElementById('audioPlayback');
+    const recordStatusDiv = document.getElementById('recordStatus');
+    const fileInput = document.getElementById('fileInput');
+    const fileStatusLabel = document.getElementById('fileStatusLabel');
+    const recordBtn = document.getElementById('recordBtn');
+    const recordLabel = document.getElementById('recordLabel');
+
+    // ===== HÀM HIỂN THỊ/ẨN CÁC TRƯỜNG NGÔN NGỮ =====
+    function toggleLanguageTarget() {
+        const mode = document.getElementById('outputMode').value;
+        const targetDiv = document.getElementById('targetLangDiv');
+        const sourceDiv = document.getElementById('sourceLangDiv');
+        const targetLabel = document.getElementById('targetLabel');
+
+        if (mode === 'auto') {
+            targetDiv.style.display = 'none';
+            sourceDiv.style.display = 'none';
+        } else if (mode === 'translate') {
+            targetDiv.style.display = 'block';
+            sourceDiv.style.display = 'none';
+            targetLabel.textContent = t('target_lang_label') || 'Ngôn ngữ đích';
+        } else if (mode === 'bilingual') {
+            targetDiv.style.display = 'block';
+            sourceDiv.style.display = 'block';
+            targetLabel.textContent = 'Ngôn ngữ 2:';
+        }
+    }
+
+    function updateUploadButton() {
+        uploadBtn.disabled = !selectedFileBlob;
+    }
+
+    function handleFileSelected(file) {
+        selectedFileBlob = file;
+        audioPlayback.src = URL.createObjectURL(file);
+        audioPlayback.classList.remove('hidden');
+        uploadBtn.disabled = false;
+        recordStatusDiv.innerText = '';
+        const shortName = file.name.length > 25 ? file.name.substring(0,22)+'...' : file.name;
+        document.getElementById('fileStatus').innerHTML =
+            `<i class="fa-solid fa-file-audio"></i> ${shortName} (${(file.size/(1024*1024)).toFixed(2)}MB)`;
+        fileStatusLabel.textContent = t('change_file_btn');
+    }
+
+    function resetRecorder() {
+        if (mediaRecorder && isRecording) {
+            mediaRecorder.stop();
+            isRecording = false;
+        }
+        stopAllTracks();
+        selectedFileBlob = null;
+        audioPlayback.classList.add('hidden');
+        uploadBtn.disabled = true;
+        recordStatusDiv.innerHTML = '';
+        fileInput.value = '';
+        document.getElementById('fileStatus').innerHTML = '';
+        fileStatusLabel.textContent = t('upload_btn');
+        document.getElementById('clientNameInput').value = '';
+        const ccFields = document.getElementById('ccFields');
+        if (ccFields && !ccFields.classList.contains('hidden')) {
+            ccFields.classList.add('hidden');
+            const toggle = document.getElementById('toggleCcBtn');
+            if (toggle) toggle.innerHTML = `<i class="fa-solid fa-circle-plus"></i> ${t('add_cc_btn')}`;
+        }
+        if (document.getElementById('ccEmail1')) document.getElementById('ccEmail1').value = '';
+        if (document.getElementById('ccEmail2')) document.getElementById('ccEmail2').value = '';
+        recordBtn.classList.remove('recording');
+        recordLabel.textContent = t('record_btn');
+        recordBtn.querySelector('i').className = 'fa-solid fa-microphone';
+        // Reset source language display to default
+        document.getElementById('sourceLangDisplay').value = 'Ngôn ngữ gốc';
+    }
+
+    // Hàm dừng tất cả track và đóng AudioContext
+    function stopAllTracks() {
+        combinedStreamTracks.forEach(track => track.stop());
+        combinedStreamTracks = [];
+        if (activeAudioContext && activeAudioContext.state !== 'closed') {
+            activeAudioContext.close();
+            activeAudioContext = null;
+        }
+    }
+
+    fileInput.addEventListener('change', e => {
+        if (e.target.files.length > 0) {
+            const file = e.target.files[0];
+            handleFileSelected(file);
+        } else {
+            resetRecorder();
+        }
+    });
+
+    // ======== XỬ LÝ NÚT GHI ÂM (ĐÃ SỬA - CÓ resume VÀ THÔNG BÁO) ========
+    recordBtn.addEventListener('click', async function() {
+        // Nếu đang ghi -> dừng
+        if (isRecording) {
+            if (mediaRecorder) {
+                mediaRecorder.stop();
+            }
+            isRecording = false;
+            this.classList.remove('recording');
+            recordLabel.textContent = t('record_btn');
+            this.querySelector('i').className = 'fa-solid fa-microphone';
+            recordStatusDiv.innerHTML = '';
+            // Đóng AudioContext ngay lập tức
+            stopAllTracks();
+            return;
+        }
+
+        try {
+            // 1. Lấy micro
+            const micStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+            let displayStream = null;
+            try {
+                displayStream = await navigator.mediaDevices.getDisplayMedia({
+                    video: true,
+                    audio: { suppressLocalAudioPlayback: false }
+                });
+            } catch (tabErr) {
+                console.warn("Không hỗ trợ chia sẻ màn hình/tab. Chỉ ghi âm Micro.", tabErr);
+                recordStatusDiv.innerHTML = `<span style="color:var(--muted)">⚠️ Chỉ ghi âm micro (không có âm thanh tab)</span>`;
+                // Vẫn tiếp tục với micro
+            }
+
+            // 2. Tạo AudioContext và kết nối
+            activeAudioContext = new (window.AudioContext || window.webkitAudioContext)();
+            const destination = activeAudioContext.createMediaStreamDestination();
+
+            const micSource = activeAudioContext.createMediaStreamSource(micStream);
+            micSource.connect(destination);
+            combinedStreamTracks.push(...micStream.getTracks());
+
+            if (displayStream) {
+                combinedStreamTracks.push(...displayStream.getTracks());
+                if (displayStream.getAudioTracks().length > 0) {
+                    const displaySource = activeAudioContext.createMediaStreamSource(displayStream);
+                    displaySource.connect(destination);
+                } else {
+                    recordStatusDiv.innerHTML = `<span style="color:var(--muted)">ℹ️ Tab được chọn không có âm thanh</span>`;
+                }
+                // Nếu video track kết thúc (người dùng tắt tab), tự động dừng ghi
+                const videoTrack = displayStream.getVideoTracks()[0];
+                if (videoTrack) {
+                    videoTrack.onended = () => {
+                        if (isRecording && mediaRecorder) {
+                            recordBtn.click(); // tự động dừng
+                        }
+                    };
+                }
+            }
+
+            // *** QUAN TRỌNG: resume AudioContext ***
+            await activeAudioContext.resume();
+
+            // 3. Tạo MediaRecorder
+            recordedChunks = [];
+            const mimeType = MediaRecorder.isTypeSupported('audio/webm;codecs=opus') ? 'audio/webm;codecs=opus' : 'audio/webm';
+            mediaRecorder = new MediaRecorder(destination.stream, { mimeType });
+
+            mediaRecorder.ondataavailable = (event) => {
+                if (event.data.size > 0) {
+                    recordedChunks.push(event.data);
+                }
+            };
+
+            mediaRecorder.onstop = () => {
+                const audioBlob = new Blob(recordedChunks, { type: 'audio/webm' });
+                const fileName = `recording_${new Date().toISOString().slice(0,19).replace(/:/g, '-')}.webm`;
+                const audioFile = new File([audioBlob], fileName, { type: 'audio/webm' });
+                handleFileSelected(audioFile);
+                recordStatusDiv.innerHTML = `<span style="color:var(--success)">${t('recording_saved')}</span>`;
+                // Dọn dẹp
+                stopAllTracks();
+                recordLabel.textContent = t('record_btn');
+                recordBtn.querySelector('i').className = 'fa-solid fa-microphone';
+                recordBtn.classList.remove('recording');
+            };
+
+            mediaRecorder.start();
+            isRecording = true;
+            this.classList.add('recording');
+            recordLabel.textContent = t('stop_record_btn');
+            this.querySelector('i').className = 'fa-solid fa-stop';
+            recordStatusDiv.innerHTML = `<span class="status-loading"><i class="fa-solid fa-spinner fa-spin"></i> ${t('recording_status')}</span>`;
+
+        } catch (err) {
+            console.error('Lỗi khi khởi chạy Microphone/Tab Audio:', err);
+            recordStatusDiv.innerHTML = `<span style="color:var(--danger)">${t('err_mic_permission')}</span>`;
+            stopAllTracks();
+            this.classList.remove('recording');
+            recordLabel.textContent = t('record_btn');
+            this.querySelector('i').className = 'fa-solid fa-microphone';
+            isRecording = false;
+        }
+    });
+
+    openBtn.addEventListener('click', () => {
+        if (!currentEmail) {
+            alert(t('toast_login_required'));
+            return;
+        }
+        updateModalSalesInfo();
+        modal.classList.add('flex');
+        resetRecorder();
+        const savedMode = localStorage.getItem('popminutes_output_mode') || 'auto';
+        const savedTarget = localStorage.getItem('popminutes_output_target') || 'vi';
+        document.getElementById('outputMode').value = savedMode;
+        document.getElementById('outputTargetLang').value = savedTarget;
+        toggleLanguageTarget();
+        document.getElementById('sourceLangDisplay').value = 'Ngôn ngữ gốc';
+    });
+
+    function closeModal() {
+        modal.classList.remove('flex');
+        resetRecorder();
+    }
+    closeModalBtn.addEventListener('click', closeModal);
+
+    uploadBtn.addEventListener('click', uploadAudio);
+
+    let isUploading = false;
+
+    async function uploadAudio() {
+        if (isUploading) return;
+        let blobToUpload = selectedFileBlob;
+        if (!blobToUpload) {
+            recordStatusDiv.innerHTML = `<span style="color:var(--danger)">${t('err_no_file')}</span>`;
+            return;
+        }
+
+        const clientName = document.getElementById('clientNameInput').value.trim();
+        if (!clientName) {
+            recordStatusDiv.innerHTML = `<span style="color:var(--danger)">${t('err_client_empty')}</span>`;
+            return;
+        }
+
+        const ccEmail1 = document.getElementById('ccEmail1') ? document.getElementById('ccEmail1').value.trim() : '';
+        const ccEmail2 = document.getElementById('ccEmail2') ? document.getElementById('ccEmail2').value.trim() : '';
+
+        const outputMode = document.getElementById('outputMode').value;
+        const outputTargetLang = document.getElementById('outputTargetLang').value;
+        localStorage.setItem('popminutes_output_mode', outputMode);
+        localStorage.setItem('popminutes_output_target', outputTargetLang);
+
+        isUploading = true;
+        uploadBtn.disabled = true;
+        recordStatusDiv.innerHTML = `<span class="status-loading"><i class="fa-solid fa-spinner fa-spin"></i> ${t('status_connecting')}</span>`;
+
+        try {
+            const getUrlResponse = await fetch('https://asia-southeast1-gen-lang-client-0303222519.cloudfunctions.net/get-upload-url', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    action: 'getSignedUrl',
+                    filename: blobToUpload.name || 'recording.webm',
+                    contentType: blobToUpload.type || 'audio/webm'
+                })
+            });
+            const urlResult = await getUrlResponse.json();
+            if (urlResult.status !== 200) throw new Error(t('err_upload_init'));
+
+            const { uploadUrl, filePath } = urlResult;
+
+            recordStatusDiv.innerHTML = `<span class="status-loading"><i class="fa-solid fa-spinner fa-spin"></i> ${t('status_uploading')}</span>`;
+            const uploadResponse = await fetch(uploadUrl, {
+                method: 'PUT',
+                headers: { 'Content-Type': blobToUpload.type || 'audio/webm' },
+                body: blobToUpload
+            });
+            if (!uploadResponse.ok) throw new Error(t('err_upload_fail'));
+
+            recordStatusDiv.innerHTML = `<span class="status-loading"><i class="fa-solid fa-spinner fa-spin"></i> ${t('status_processing')}</span>`;
+
+            const processResponse = await fetch('https://asia-southeast1-gen-lang-client-0303222519.cloudfunctions.net/get-upload-url', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    action: 'processAudio',
+                    salesEmail: currentEmail,
+                    salesName: currentSalesName,
+                    companyName: currentCompanyName,
+                    clientName: clientName,
+                    filePath: filePath,
+                    clientEmail: ccEmail1,
+                    managerEmail: ccEmail2,
+                    outputMode: outputMode,
+                    outputTargetLang: outputTargetLang
+                })
+            });
+            const processResult = await processResponse.json();
+
+            if (processResult.status === 200) {
+                recordStatusDiv.innerHTML = `<div style="color:#065F46; font-weight:600;">${t('toast_upload_success')}</div>`;
+                setTimeout(() => closeModal(), 3000);
+            } else {
+                throw new Error(processResult.message || t('err_process_fail'));
+            }
+
+        } catch (err) {
+            console.error('Upload error:', err);
+            recordStatusDiv.innerHTML = `<span style="color:var(--danger)">❌ ${err.message}</span>`;
+            uploadBtn.disabled = false;
+        } finally {
+            isUploading = false;
+        }
+    }
+
+    const toggleCcBtn = document.getElementById('toggleCcBtn');
+    const ccFields = document.getElementById('ccFields');
+    if (toggleCcBtn && ccFields) {
+        toggleCcBtn.addEventListener('click', () => {
+            const isHidden = ccFields.classList.contains('hidden');
+            if (isHidden) {
+                ccFields.classList.remove('hidden');
+                toggleCcBtn.innerHTML = `<i class="fa-solid fa-circle-minus"></i> ${t('hide_cc_btn')}`;
+            } else {
+                ccFields.classList.add('hidden');
+                toggleCcBtn.innerHTML = `<i class="fa-solid fa-circle-plus"></i> ${t('add_cc_btn')}`;
+            }
+        });
+    }
+
+    document.getElementById('checkinBtn').addEventListener('click', () => alert(t('toast_upgrade_required')));
+    document.getElementById('qrCheckinBtn').addEventListener('click', () => alert(t('toast_upgrade_required')));
+
+    // ========================================================================
+    //  LƯU THÔNG TIN ĐĂNG NHẬP & AUTO LOGIN
+    // ========================================================================
+    function saveAuthInfo(data) {
+        const authData = {
+            email: currentEmail,
+            salesId: data.sales.id,
+            salesName: data.sales.name,
+            companyName: data.enterprise.name,
+            remainingHours: data.enterprise.remainingHours,
+            packageId: data.enterprise.packageId,
+            expiryDate: data.enterprise.expiryDate,
+            timestamp: Date.now()
+        };
+        localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(authData));
+    }
+
+    async function tryAutoLogin() {
+        const stored = localStorage.getItem(AUTH_STORAGE_KEY);
+        if (!stored) return false;
+        try {
+            const auth = JSON.parse(stored);
+            const age = Date.now() - auth.timestamp;
+            const maxAge = SESSION_DAYS * 24 * 60 * 60 * 1000;
+            if (age > maxAge) { localStorage.removeItem(AUTH_STORAGE_KEY); return false; }
+            const loginUrl = `${CLOUD_FUNCTION_URL}?action=authenticateSales&email=${encodeURIComponent(auth.email)}&userId=${encodeURIComponent(auth.salesId)}`;
+            const response = await fetch(loginUrl);
+            const result = await response.json();
+            if (result.status === 200 && result.authenticated) {
+                currentEmail = auth.email;
+                currentSalesName = result.sales.name;
+                currentCompanyName = result.enterprise.name;
+                document.getElementById('login-screen').classList.add('hidden');
+                document.getElementById('dashboard-screen').classList.remove('hidden');
+                document.getElementById('user-name-display').textContent = currentSalesName;
+                document.getElementById('company-name-display').textContent = currentCompanyName;
+                document.getElementById('remaining-hours-display').textContent = result.enterprise.remainingHours;
+                document.getElementById('package-display').textContent = result.enterprise.packageId || t('undefined_package');
+                document.getElementById('expiry-display').textContent = result.enterprise.expiryDate || t('undefined_expiry');
+                saveAuthInfo(result);
+                return true;
+            } else {
+                localStorage.removeItem(AUTH_STORAGE_KEY);
+                return false;
+            }
+        } catch (e) {
+            console.error(e);
+            localStorage.removeItem(AUTH_STORAGE_KEY);
+            return false;
+        }
+    }
+
+    // ========================================================================
+    //  LỊCH SỬ
+    // ========================================================================
+    function showToast(message, isSuccess = true) {
+        let oldToast = document.getElementById('customToast');
+        if (oldToast) oldToast.remove();
+
+        const toast = document.createElement('div');
+        toast.id = 'customToast';
+        toast.style.cssText = `
+            position: fixed; bottom: 30px; left: 50%;
+            transform: translateX(-50%) translateY(20px);
+            background-color: ${isSuccess ? 'rgba(27,43,122,0.95)' : 'rgba(239,68,68,0.95)'};
+            color: white; padding: 12px 24px; border-radius: 60px;
+            font-size: 14px; font-weight: 600; font-family: 'Plus Jakarta Sans', sans-serif;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.15); z-index: 100000;
+            display: flex; align-items: center; gap: 10px;
+            backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,0.2);
+            transition: opacity 0.3s ease, transform 0.3s ease;
+            opacity: 0; pointer-events: none; white-space: normal;
+            text-align: center; line-height: 1.4; max-width: 90vw;
+        `;
+        const icon = document.createElement('i');
+        icon.className = isSuccess ? 'fa-regular fa-circle-check' : 'fa-regular fa-circle-xmark';
+        icon.style.fontSize = '18px';
+        icon.style.marginRight = '4px';
+        const textSpan = document.createElement('span');
+        textSpan.textContent = message;
+        toast.appendChild(icon);
+        toast.appendChild(textSpan);
+        document.body.appendChild(toast);
+        setTimeout(() => { toast.style.opacity = '1'; toast.style.transform = 'translateX(-50%) translateY(0)'; }, 10);
+        setTimeout(() => {
+            toast.style.opacity = '0';
+            toast.style.transform = 'translateX(-50%) translateY(20px)';
+            setTimeout(() => { if (toast.parentNode) toast.parentNode.removeChild(toast); }, 300);
+        }, 3500);
+    }
+
+    async function loadHistory() {
+        const historyListDiv = document.getElementById('historyList');
+        historyListDiv.innerHTML = `<p>${t('history_loading')}</p>`;
+        try {
+            const formData = new URLSearchParams();
+            formData.append('action', 'getUserHistory');
+            formData.append('salesEmail', currentEmail);
+            const response = await fetch(APPS_SCRIPT_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: formData.toString()
+            });
+            const history = await response.json();
+            if (!history.length) {
+                historyListDiv.innerHTML = `<p>${t('history_empty')}</p>`;
+                return;
+            }
+            let html = '';
+            history.forEach(record => {
+                let statusClass = '';
+                if (record.status === 'Done') statusClass = 'status-Done';
+                else if (record.status === 'Processing') statusClass = 'status-Processing';
+                else statusClass = 'status-Uploaded';
+                const clientName = escapeHtml(record.clientName || t('customer_label'));
+                const createdAt = record.createdAt || 'N/A';
+                const statusText = record.status || 'Chưa rõ';
+                const expediteLabel = t('expedite_btn');
+                const canExpedite = record.canExpedite ? `<button class="expedite-btn" data-record-id="${escapeHtml(record.recordId)}">${expediteLabel}</button>` : '';
+                html += `
+                    <div class="history-item">
+                        <div class="history-info"><strong>${clientName}</strong> - ${createdAt}</div>
+                        <div class="history-actions">
+                            <span class="status-badge ${statusClass}">${statusText}</span>
+                            ${canExpedite}
+                        </div>
+                    </div>
+                `;
+            });
+            historyListDiv.innerHTML = html;
+            document.querySelectorAll('.expedite-btn').forEach(btn => {
+                btn.addEventListener('click', async () => {
+                    const recordId = btn.getAttribute('data-record-id');
+                    await requestExpedite(recordId);
+                });
+            });
+        } catch (err) {
+            console.error(err);
+            historyListDiv.innerHTML = `<p>${t('history_empty')}</p>`;
+        }
+    }
+
+    async function requestExpedite(recordId) {
+        const modalElem = document.getElementById('historyModal');
+        modalElem.style.display = 'none';
+        modalElem.classList.remove('active');
+        try {
+            const formData = new URLSearchParams();
+            formData.append('action', 'expedite');
+            formData.append('recordId', recordId);
+            formData.append('salesEmail', currentEmail);
+            const response = await fetch(APPS_SCRIPT_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: formData.toString()
+            });
+            const result = await response.json();
+            if (result.status === 200) {
+                showToast(t('toast_expedite_sent'), true);
+            } else {
+                showToast(t('toast_expedite_fail'), false);
+            }
+        } catch (err) {
+            console.error(err);
+            showToast(t('toast_network_error') + err.message, false);
+        }
+    }
+
+    function escapeHtml(str) {
+        if (!str) return '';
+        return str.replace(/[&<>]/g, function(m) {
+            if (m === '&') return '&amp;';
+            if (m === '<') return '&lt;';
+            if (m === '>') return '&gt;';
+            return m;
+        });
+    }
+
+    const historyModal = document.getElementById('historyModal');
+    const historyBtn = document.getElementById('historyBtn');
+    const closeHistoryBtn = document.getElementById('closeHistoryBtn');
+
+    function openHistoryModal() {
+        if (!currentEmail) {
+            showToast(t('toast_login_required'), false);
+            return;
+        }
+        loadHistory().catch(err => console.error(err));
+        historyModal.style.display = 'flex';
+        historyModal.classList.add('active');
+    }
+
+    function closeHistoryModal() {
+        historyModal.style.display = 'none';
+        historyModal.classList.remove('active');
+    }
+    if (historyBtn) historyBtn.addEventListener('click', openHistoryModal);
+    if (closeHistoryBtn) closeHistoryBtn.addEventListener('click', closeHistoryModal);
+    window.addEventListener('click', (e) => {
+        if (e.target === historyModal) closeHistoryModal();
+    });
+
+    // ========================================================================
+    //  PWA – REGISTER SERVICE WORKER
+    // ========================================================================
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('/PopMinutes-PWA/sw-v2.js')
+                .then(reg => console.log('PopMinutes PWA đã kích hoạt thành công tại: ', reg.scope))
+                .catch(err => console.log('Kích hoạt PWA thất bại: ', err));
+        });
+    }
+
+    let deferredPrompt;
+    const btnInstall = document.getElementById('btnInstall');
+    window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        deferredPrompt = e;
+        if (btnInstall) btnInstall.style.display = 'block';
+    });
+    if (btnInstall) {
+        btnInstall.addEventListener('click', async () => {
+            if (!deferredPrompt) return;
+            deferredPrompt.prompt();
+            const { outcome } = await deferredPrompt.userChoice;
+            console.log(`User response to install prompt: ${outcome}`);
+            deferredPrompt = null;
+            btnInstall.style.display = 'none';
+        });
+    }
+    window.addEventListener('appinstalled', () => {
+        console.log('PopMinutes PWA đã được cài đặt thành công!');
+        if (btnInstall) btnInstall.style.display = 'none';
+    });
+
+    // ========================================================================
+    //  KHỞI CHẠY AUTO LOGIN KHI TRANG LOAD
+    // ========================================================================
+    window.addEventListener('DOMContentLoaded', async () => {
+        await tryAutoLogin();
+        applyLanguage(currentLang);
+        loginItems.forEach(item => {
+            item.classList.toggle('active-lang', item.dataset.lang === currentLang);
+        });
+        dashItems.forEach(item => {
+            item.classList.toggle('active-lang', item.dataset.lang === currentLang);
+        });
+        if (document.getElementById('fileInput').files.length > 0) {
+            document.getElementById('fileStatusLabel').textContent = t('change_file_btn');
+        }
+        updateDashboardDynamicText();
+        updateUploadButton();
+        updateFlagIcons(currentLang);
+        updateLangTooltip(currentLang);
+        const savedMode = localStorage.getItem('popminutes_output_mode') || 'auto';
+        const savedTarget = localStorage.getItem('popminutes_output_target') || 'vi';
+        document.getElementById('outputMode').value = savedMode;
+        document.getElementById('outputTargetLang').value = savedTarget;
+        toggleLanguageTarget();
+    });
+</script>
+</body>
+</html>
