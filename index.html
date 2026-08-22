@@ -1928,89 +1928,91 @@
     let isUploading = false;
 
     async function uploadAudio() {
-        if (isUploading) return;
-        let blobToUpload = selectedFileBlob;
-        if (!blobToUpload) {
-            recordStatusDiv.innerHTML = `<span style="color:var(--danger)">${t('err_no_file')}</span>`;
-            return;
-        }
-
-        const clientName = document.getElementById('clientNameInput').value.trim();
-        if (!clientName) {
-            recordStatusDiv.innerHTML = `<span style="color:var(--danger)">${t('err_client_empty')}</span>`;
-            return;
-        }
-
-        const ccEmail1 = document.getElementById('ccEmail1') ? document.getElementById('ccEmail1').value.trim() : '';
-        const ccEmail2 = document.getElementById('ccEmail2') ? document.getElementById('ccEmail2').value.trim() : '';
-
-        const outputMode = document.getElementById('outputMode').value;
-        const outputTargetLang = document.getElementById('outputTargetLang').value;
-        localStorage.setItem('popminutes_output_mode', outputMode);
-        localStorage.setItem('popminutes_output_target', outputTargetLang);
-
-        isUploading = true;
-        uploadBtn.disabled = true;
-        recordStatusDiv.innerHTML = `<span class="status-loading"><i class="fa-solid fa-spinner fa-spin"></i> ${t('status_connecting')}</span>`;
-
-        try {
-            const getUrlResponse = await fetch('https://asia-southeast1-gen-lang-client-0303222519.cloudfunctions.net/get-upload-url', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    action: 'getSignedUrl',
-                    filename: blobToUpload.name || 'recording.webm',
-                    contentType: blobToUpload.type || 'audio/webm'
-                })
-            });
-            const urlResult = await getUrlResponse.json();
-            if (urlResult.status !== 200) throw new Error(t('err_upload_init'));
-
-            const { uploadUrl, filePath } = urlResult;
-
-            recordStatusDiv.innerHTML = `<span class="status-loading"><i class="fa-solid fa-spinner fa-spin"></i> ${t('status_uploading')}</span>`;
-            const uploadResponse = await fetch(uploadUrl, {
-                method: 'PUT',
-                headers: { 'Content-Type': blobToUpload.type || 'audio/webm' },
-                body: blobToUpload
-            });
-            if (!uploadResponse.ok) throw new Error(t('err_upload_fail'));
-
-            recordStatusDiv.innerHTML = `<span class="status-loading"><i class="fa-solid fa-spinner fa-spin"></i> ${t('status_processing')}</span>`;
-
-            const processResponse = await fetch('https://asia-southeast1-gen-lang-client-0303222519.cloudfunctions.net/get-upload-url', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    action: 'processAudio',
-                    salesEmail: currentEmail,
-                    salesName: currentSalesName,
-                    companyName: currentCompanyName,
-                    clientName: clientName,
-                    filePath: filePath,
-                    clientEmail: ccEmail1,
-                    managerEmail: ccEmail2,
-                    outputMode: outputMode,
-                    outputTargetLang: outputTargetLang
-                })
-            });
-            const processResult = await processResponse.json();
-
-            if (processResult.status === 200) {
-                recordStatusDiv.innerHTML = `<div style="color:#065F46; font-weight:600;">${t('toast_upload_success')}</div>`;
-                setTimeout(() => closeModal(), 3000);
-            } else {
-                throw new Error(processResult.message || t('err_process_fail'));
-            }
-
-        } catch (err) {
-            console.error('Upload error:', err);
-            recordStatusDiv.innerHTML = `<span style="color:var(--danger)">❌ ${err.message}</span>`;
-            uploadBtn.disabled = false;
-        } finally {
-            isUploading = false;
-        }
+    if (isUploading) return;
+    let blobToUpload = selectedFileBlob;
+    if (!blobToUpload) {
+        recordStatusDiv.innerHTML = `<span style="color:var(--danger)">${t('err_no_file')}</span>`;
+        return;
     }
+
+    const clientName = document.getElementById('clientNameInput').value.trim();
+    if (!clientName) {
+        recordStatusDiv.innerHTML = `<span style="color:var(--danger)">${t('err_client_empty')}</span>`;
+        return;
+    }
+
+    const ccEmail1 = document.getElementById('ccEmail1') ? document.getElementById('ccEmail1').value.trim() : '';
+    const ccEmail2 = document.getElementById('ccEmail2') ? document.getElementById('ccEmail2').value.trim() : '';
+
+    const outputMode = document.getElementById('outputMode').value;
+    const outputTargetLang = document.getElementById('outputTargetLang').value;
+    localStorage.setItem('popminutes_output_mode', outputMode);
+    localStorage.setItem('popminutes_output_target', outputTargetLang);
+
+    isUploading = true;
+    uploadBtn.disabled = true;
+    recordStatusDiv.innerHTML = `<span class="status-loading"><i class="fa-solid fa-spinner fa-spin"></i> ${t('status_connecting')}</span>`;
+
+    try {
+        // ✅ SỬA: Gọi Cloud Run mới thay vì Cloud Function cũ
+        const getUrlResponse = await fetch(CLOUD_FUNCTION_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                action: 'getSignedUrl',
+                filename: blobToUpload.name || 'recording.webm',
+                contentType: blobToUpload.type || 'audio/webm'
+            })
+        });
+        const urlResult = await getUrlResponse.json();
+        if (urlResult.status !== 200) throw new Error(t('err_upload_init'));
+
+        const { uploadUrl, filePath } = urlResult;
+
+        recordStatusDiv.innerHTML = `<span class="status-loading"><i class="fa-solid fa-spinner fa-spin"></i> ${t('status_uploading')}</span>`;
+        const uploadResponse = await fetch(uploadUrl, {
+            method: 'PUT',
+            headers: { 'Content-Type': blobToUpload.type || 'audio/webm' },
+            body: blobToUpload
+        });
+        if (!uploadResponse.ok) throw new Error(t('err_upload_fail'));
+
+        recordStatusDiv.innerHTML = `<span class="status-loading"><i class="fa-solid fa-spinner fa-spin"></i> ${t('status_processing')}</span>`;
+
+        // ✅ SỬA: Gọi Cloud Run mới thay vì Cloud Function cũ
+        const processResponse = await fetch(CLOUD_FUNCTION_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                action: 'processAudio',
+                salesEmail: currentEmail,
+                salesName: currentSalesName,
+                companyName: currentCompanyName,
+                clientName: clientName,
+                filePath: filePath,
+                clientEmail: ccEmail1,
+                managerEmail: ccEmail2,
+                outputMode: outputMode,
+                outputTargetLang: outputTargetLang
+            })
+        });
+        const processResult = await processResponse.json();
+
+        if (processResult.status === 200) {
+            recordStatusDiv.innerHTML = `<div style="color:#065F46; font-weight:600;">${t('toast_upload_success')}</div>`;
+            setTimeout(() => closeModal(), 3000);
+        } else {
+            throw new Error(processResult.message || t('err_process_fail'));
+        }
+
+    } catch (err) {
+        console.error('Upload error:', err);
+        recordStatusDiv.innerHTML = `<span style="color:var(--danger)">❌ ${err.message}</span>`;
+        uploadBtn.disabled = false;
+    } finally {
+        isUploading = false;
+    }
+}
 
     const toggleCcBtn = document.getElementById('toggleCcBtn');
     const ccFields = document.getElementById('ccFields');
