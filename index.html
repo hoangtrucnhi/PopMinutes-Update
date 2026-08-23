@@ -1637,8 +1637,8 @@
             unsupported_platform: 'Không hỗ trợ kết nối cho nền tảng này',
             delete_confirm_msg: 'Bạn có chắc muốn xóa nhiệm vụ này?',
             task_deleted_toast: 'Đã xóa nhiệm vụ',
-            connect_toast: '✅ Đã kết nối ',
-            disconnect_toast: '🔴 Đã ngắt kết nối ',
+            connect_toast: 'Đã kết nối ',
+            disconnect_toast: 'Đã ngắt kết nối ',
             events_feature_alert: '📅 Tính năng Sự kiện sẽ được phát triển sau!',
             status_unknown: 'Chưa rõ',
             target_lang2_label: 'Ngôn ngữ 2:',
@@ -1777,8 +1777,8 @@
             unsupported_platform: 'Connection not supported for this platform',
             delete_confirm_msg: 'Are you sure you want to delete this task?',
             task_deleted_toast: 'Task deleted',
-            connect_toast: '✅ Connected ',
-            disconnect_toast: '🔴 Disconnected ',
+            connect_toast: 'Connected ',
+            disconnect_toast: 'Disconnected ',
             events_feature_alert: '📅 The Events feature is coming soon!',
             status_unknown: 'Unknown',
             target_lang2_label: 'Language 2:',
@@ -2704,7 +2704,7 @@
             saveTasksToStorage();
             renderTasks();
             closeEditTaskModal();
-            showToast('✅ ' + t('task_updated_toast'), true);
+            showToast(t('task_updated_toast'), true);
         }
     }
 
@@ -2773,9 +2773,9 @@
             tasks.confirmed.push(task);
             saveTasksToStorage();
             renderTasks();
-            showToast('✅ ' + t('task_confirmed_toast') + task.title, true);
+            showToast('t('task_confirmed_toast') + task.title, true);
         } catch (error) {
-            showToast('❌ ' + t('task_create_error') + error.message, false);
+            showToast('t('task_create_error') + error.message, false);
         }
     }
 
