@@ -1437,7 +1437,7 @@
     <div id="settingsModal" class="modal-overlay settings-modal">
         <div class="modal-box settings-container">
             <div class="modal-header">
-                <h2 class="modal-title">⚙️ Kết nối ứng dụng</h2>
+                <h2 class="modal-title">Kết nối ứng dụng</h2>
                 <button class="modal-close" id="closeSettingsBtn"><i class="fa-solid fa-xmark"></i></button>
             </div>
             <div id="settingsList">
@@ -2623,7 +2623,7 @@
             saveTasksToStorage();
             renderTasks();
             closeEditTaskModal();
-            showToast('✅ Đã cập nhật nhiệm vụ', true);
+            showToast('Đã cập nhật nhiệm vụ', true);
         }
     }
 
@@ -2692,7 +2692,7 @@
             tasks.confirmed.push(task);
             saveTasksToStorage();
             renderTasks();
-            showToast('✅ Đã xác nhận nhiệm vụ: ' + task.title, true);
+            showToast('Đã xác nhận nhiệm vụ: ' + task.title, true);
         } catch (error) {
             showToast('❌ Lỗi tạo task: ' + error.message, false);
         }
