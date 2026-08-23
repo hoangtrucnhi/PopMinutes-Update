@@ -1596,6 +1596,8 @@
             task_modal_title: 'Quản lý nhiệm vụ',
             task_tab_suggested: 'Đề xuất',
             task_tab_confirmed: 'Đã xác nhận',
+            task_empty_suggested: 'Chưa có đề xuất nào từ AI.',
+            task_empty_confirmed: 'Chưa có nhiệm vụ nào đã xác nhận.',
             edit_task_title: 'Chỉnh sửa nhiệm vụ',
             edit_task_placeholder: 'Nhập tiêu đề mới...',
             edit_task_save: 'Lưu',
@@ -1722,6 +1724,8 @@
             task_modal_title: 'Task Management',
             task_tab_suggested: 'Suggested',
             task_tab_confirmed: 'Confirmed',
+            task_empty_suggested: 'No suggestions from AI yet.',
+            task_empty_confirmed: 'No confirmed tasks yet.',
             edit_task_title: 'Edit Task',
             edit_task_placeholder: 'Enter new title...',
             edit_task_save: 'Save',
@@ -2405,6 +2409,7 @@
     }
 
     function connectPlatform(platform) {
+        console.log('connectPlatform called for', platform);
         if (platform === 'google') {
             connections.google = true;
         } else if (platform === 'trello') {
@@ -2415,6 +2420,7 @@
     }
 
     function disconnectPlatform(platform) {
+        console.log('disconnectPlatform called for', platform);
         if (platform === 'google') {
             connections.google = false;
         } else if (platform === 'trello') {
@@ -2471,7 +2477,7 @@
     function renderSuggestedTasks() {
         const container = document.getElementById('suggestedTaskList');
         if (tasks.suggested.length === 0) {
-            container.innerHTML = `<div class="task-empty">${t('task_empty_suggested') || 'Chưa có đề xuất nào từ AI.'}</div>`;
+            container.innerHTML = `<div class="task-empty">${t('task_empty_suggested')}</div>`;
             return;
         }
         let html = '';
@@ -2521,7 +2527,7 @@
     function renderConfirmedTasks() {
         const container = document.getElementById('confirmedTaskList');
         if (tasks.confirmed.length === 0) {
-            container.innerHTML = `<div class="task-empty">${t('task_empty_confirmed') || 'Chưa có nhiệm vụ nào đã xác nhận.'}</div>`;
+            container.innerHTML = `<div class="task-empty">${t('task_empty_confirmed')}</div>`;
             return;
         }
         let html = '';
@@ -2745,21 +2751,29 @@
         if (e.target === settingsModal) closeSettingsModal();
     });
 
-    document.getElementById('settingsGoogleBtn').addEventListener('click', function() {
-        if (connections.google) {
-            disconnectPlatform('google');
-        } else {
-            connectPlatform('google');
+    // Gán sự kiện cho các nút kết nối/ngắt kết nối trong modal settings
+    function setupSettingsButtons() {
+        const googleBtn = document.getElementById('settingsGoogleBtn');
+        const trelloBtn = document.getElementById('settingsTrelloBtn');
+        if (googleBtn) {
+            googleBtn.addEventListener('click', function() {
+                if (connections.google) {
+                    disconnectPlatform('google');
+                } else {
+                    connectPlatform('google');
+                }
+            });
         }
-    });
-
-    document.getElementById('settingsTrelloBtn').addEventListener('click', function() {
-        if (connections.trello) {
-            disconnectPlatform('trello');
-        } else {
-            connectPlatform('trello');
+        if (trelloBtn) {
+            trelloBtn.addEventListener('click', function() {
+                if (connections.trello) {
+                    disconnectPlatform('trello');
+                } else {
+                    connectPlatform('trello');
+                }
+            });
         }
-    });
+    }
 
     // ========================================================================
     //  LỊCH SỬ
@@ -2978,6 +2992,8 @@
         updateUploadButton();
         updateFlagIcons(currentLang);
         updateLangTooltip(currentLang);
+        // Gán sự kiện cho các nút settings sau khi DOM ready
+        setupSettingsButtons();
     });
 </script>
 </body>
