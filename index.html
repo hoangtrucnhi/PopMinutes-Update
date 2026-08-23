@@ -21,7 +21,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
 
     <style>
-        /* ========== TOÀN BỘ STYLE ========== */
+        /* ========== TOÀN BỘ STYLE (giữ nguyên) ========== */
         *,
         *::before,
         *::after {
@@ -76,7 +76,6 @@
             padding-bottom: 300px;
         }
 
-        /* ===== Nút ngôn ngữ hình tròn ===== */
         .lang-btn {
             width: 44px;
             height: 44px;
@@ -100,8 +99,6 @@
         .lang-btn:active {
             transform: scale(0.95);
         }
-
-        /* ===== Menu ngôn ngữ popup ===== */
         .lang-menu {
             position: absolute;
             top: 52px;
@@ -136,8 +133,6 @@
             background: var(--navy-pale);
             color: var(--navy);
         }
-
-        /* ===== Nút ngôn ngữ trên login ===== */
         .login-lang-wrapper {
             position: absolute;
             top: 16px;
@@ -148,7 +143,6 @@
             right: 0;
             top: 52px;
         }
-
         .loader {
             width: 20px;
             height: 20px;
@@ -560,7 +554,6 @@
             transform: scale(0.9);
         }
 
-        /* Các phần tử trong modal */
         .fields-stack {
             display: flex;
             flex-direction: column;
@@ -1400,19 +1393,19 @@
     <div id="taskModal" class="modal-overlay task-modal">
         <div class="modal-box">
             <div class="modal-header">
-                <h2 class="modal-title">Quản lý nhiệm vụ</h2>
+                <h2 class="modal-title" id="taskModalTitle" data-i18n="task_modal_title">Quản lý nhiệm vụ</h2>
                 <button class="modal-close" id="closeTaskModalBtn"><i class="fa-solid fa-xmark"></i></button>
             </div>
 
             <div class="task-tabs">
-                <button class="task-tab active" data-tab="suggested">Đề xuất <span class="badge" id="suggestedCount">0</span></button>
-                <button class="task-tab" data-tab="confirmed">Đã xác nhận <span class="badge" id="confirmedCount">0</span></button>
+                <button class="task-tab active" data-tab="suggested" id="taskTabSuggested" data-i18n="task_tab_suggested">Đề xuất <span class="badge" id="suggestedCount">0</span></button>
+                <button class="task-tab" data-tab="confirmed" id="taskTabConfirmed" data-i18n="task_tab_confirmed">Đã xác nhận <span class="badge" id="confirmedCount">0</span></button>
             </div>
 
-            <div id="taskTabSuggested" class="task-tab-content active">
+            <div id="taskTabSuggestedContent" class="task-tab-content active">
                 <div class="task-list" id="suggestedTaskList"></div>
             </div>
-            <div id="taskTabConfirmed" class="task-tab-content">
+            <div id="taskTabConfirmedContent" class="task-tab-content">
                 <div class="task-list" id="confirmedTaskList"></div>
             </div>
         </div>
@@ -1422,13 +1415,13 @@
     <div id="editTaskModal" class="modal-overlay edit-task-modal">
         <div class="modal-box">
             <div class="modal-header">
-                <h2 class="modal-title">Chỉnh sửa nhiệm vụ</h2>
+                <h2 class="modal-title" id="editTaskModalTitle" data-i18n="edit_task_title">Chỉnh sửa nhiệm vụ</h2>
                 <button class="modal-close" id="closeEditTaskBtn"><i class="fa-solid fa-xmark"></i></button>
             </div>
-            <input type="text" id="editTaskInput" placeholder="Nhập tiêu đề mới..." />
+            <input type="text" id="editTaskInput" data-i18n-placeholder="edit_task_placeholder" placeholder="Nhập tiêu đề mới..." />
             <div class="edit-actions">
-                <button class="cancel-edit" id="cancelEditTaskBtn">Hủy</button>
-                <button class="save-edit" id="saveEditTaskBtn">Lưu</button>
+                <button class="cancel-edit" id="cancelEditTaskBtn" data-i18n="edit_task_cancel">Hủy</button>
+                <button class="save-edit" id="saveEditTaskBtn" data-i18n="edit_task_save">Lưu</button>
             </div>
         </div>
     </div>
@@ -1437,23 +1430,23 @@
     <div id="settingsModal" class="modal-overlay settings-modal">
         <div class="modal-box settings-container">
             <div class="modal-header">
-                <h2 class="modal-title">⚙️ Kết nối ứng dụng</h2>
+                <h2 class="modal-title" id="settingsModalTitle" data-i18n="settings_modal_title">Kết nối ứng dụng</h2>
                 <button class="modal-close" id="closeSettingsBtn"><i class="fa-solid fa-xmark"></i></button>
             </div>
             <div id="settingsList">
                 <div class="settings-item">
                     <div class="info">
                         <i class="fa-brands fa-google"></i>
-                        <span class="name">Google Tasks & Calendar</span>
+                        <span class="name" id="settingsGoogleName" data-i18n="google_connect">Google Tasks & Calendar</span>
                     </div>
-                    <button class="settings-btn connect" id="settingsGoogleBtn">Kết nối</button>
+                    <button class="settings-btn connect" id="settingsGoogleBtn" data-i18n="connect_btn">Kết nối</button>
                 </div>
                 <div class="settings-item">
                     <div class="info">
                         <i class="fa-brands fa-trello"></i>
-                        <span class="name">Trello</span>
+                        <span class="name" id="settingsTrelloName" data-i18n="trello_connect">Trello</span>
                     </div>
-                    <button class="settings-btn connect" id="settingsTrelloBtn">Kết nối</button>
+                    <button class="settings-btn connect" id="settingsTrelloBtn" data-i18n="connect_btn">Kết nối</button>
                 </div>
             </div>
         </div>
@@ -1463,7 +1456,7 @@
     <div id="historyModal" class="modal-overlay history-modal">
         <div class="modal-box">
             <div class="history-header">
-                <h3 data-i18n="history_title_modal">Lịch sử xử lý</h3>
+                <h3 id="historyModalTitle" data-i18n="history_title_modal">Lịch sử xử lý</h3>
                 <button class="close-history" id="closeHistoryBtn">&times;</button>
             </div>
             <div id="historyList">
@@ -1592,6 +1585,31 @@
             lang_ru: '🇷🇺 Русский',
             lang_ar: '🇸🇦 العربية',
             lang_tr: '🇹🇷 Türkçe',
+            // ===== BỔ SUNG DỊCH CHO TASK, SETTINGS, TOAST =====
+            task_modal_title: 'Quản lý nhiệm vụ',
+            task_tab_suggested: 'Đề xuất',
+            task_tab_confirmed: 'Đã xác nhận',
+            task_empty_suggested: 'Chưa có đề xuất nào từ AI.',
+            task_empty_confirmed: 'Chưa có nhiệm vụ nào đã xác nhận.',
+            edit_task_title: 'Chỉnh sửa nhiệm vụ',
+            edit_task_placeholder: 'Nhập tiêu đề mới...',
+            edit_task_save: 'Lưu',
+            edit_task_cancel: 'Hủy',
+            edit_task_empty_error: '⚠️ Tiêu đề không được để trống',
+            task_updated: 'Đã cập nhật nhiệm vụ',
+            task_confirmed: 'Đã xác nhận nhiệm vụ: ',
+            task_deleted: '🗑️ Đã xóa nhiệm vụ',
+            task_connect_unsupported: '⚠️ Không hỗ trợ kết nối cho nền tảng này',
+            settings_modal_title: 'Kết nối ứng dụng',
+            connect_platform_success: 'Đã kết nối {platform}',
+            connect_platform_disconnect: 'Đã ngắt kết nối {platform}',
+            events_coming_soon: '📅 Tính năng Sự kiện sẽ được phát triển sau!',
+            delete_confirm: 'Bạn có chắc muốn xóa nhiệm vụ này?',
+            confirm_btn: 'Xác nhận',
+            edit_btn: 'Sửa',
+            delete_btn: 'Xóa',
+            description_placeholder: 'Mô tả',
+            assignee_placeholder: 'Người phụ trách',
         },
         en: {
             login_title: 'Smart Meeting Minutes AI',
@@ -1701,14 +1719,45 @@
             lang_ru: '🇷🇺 Russian',
             lang_ar: '🇸🇦 Arabic',
             lang_tr: '🇹🇷 Turkish',
+            // ===== BỔ SUNG DỊCH CHO TASK, SETTINGS, TOAST =====
+            task_modal_title: 'Task Management',
+            task_tab_suggested: 'Suggested',
+            task_tab_confirmed: 'Confirmed',
+            task_empty_suggested: 'No suggestions from AI yet.',
+            task_empty_confirmed: 'No confirmed tasks yet.',
+            edit_task_title: 'Edit Task',
+            edit_task_placeholder: 'Enter new title...',
+            edit_task_save: 'Save',
+            edit_task_cancel: 'Cancel',
+            edit_task_empty_error: '⚠️ Title cannot be empty',
+            task_updated: 'Task updated',
+            task_confirmed: 'Task confirmed: ',
+            task_deleted: '🗑️ Task deleted',
+            task_connect_unsupported: '⚠️ Connection not supported for this platform',
+            settings_modal_title: 'Connect Apps',
+            connect_platform_success: 'Connected to {platform}',
+            connect_platform_disconnect: 'Disconnected from {platform}',
+            events_coming_soon: '📅 Events feature coming soon!',
+            delete_confirm: 'Are you sure you want to delete this task?',
+            confirm_btn: 'Confirm',
+            edit_btn: 'Edit',
+            delete_btn: 'Delete',
+            description_placeholder: 'Description',
+            assignee_placeholder: 'Assignee',
         }
     };
 
     let currentLang = localStorage.getItem('popminutes_lang') || 'vi';
     let lastErrorKey = null;
 
-    function t(key) {
-        return translations[currentLang]?.[key] || key;
+    function t(key, params) {
+        let text = translations[currentLang]?.[key] || key;
+        if (params && typeof params === 'object') {
+            for (let k in params) {
+                text = text.replace(`{${k}}`, params[k]);
+            }
+        }
+        return text;
     }
 
     // ========================================================================
@@ -1811,107 +1860,28 @@
             }
         });
 
-        const idMap = {
-            'login-title': 'login_title',
-            'login-sub': 'login_sub',
-            'login-heading': 'login_heading',
-            'login-desc': 'login_desc',
-            'email-label': 'email_label',
-            'userid-label': 'userid_label',
-            'login-btn-text': 'login_btn',
-            'greeting-label': 'greeting',
-            'customer-label': 'customer_label',
-            'hours-unit-label': 'hours_unit',
-            'package-label': 'package_label',
-            'expiry-label': 'expiry_label',
-            'tools-title': 'tools_title',
-            'cafe-btn': 'cafe_btn',
-            'cafe-sub': 'cafe_sub',
-            'ai-btn': 'ai_btn',
-            'ai-sub': 'ai_sub',
-            'tasks-btn': 'tasks_btn',
-            'tasks-sub': 'tasks_sub',
-            'events-btn': 'events_btn',
-            'events-sub': 'events_sub',
-            'history-title': 'history_title',
-            'checkin-btn': 'checkin_btn',
-            'checkin-sub': 'checkin_sub',
-            'minutes-btn': 'minutes_btn',
-            'minutes-sub': 'minutes_sub',
-            'settings-title': 'settings_title',
-            'settings-btn': 'settings_btn',
-            'settings-sub': 'settings_sub',
-            'modal-title': 'modal_title',
-            'creator-label': 'creator_label',
-            'client-label': 'client_label',
-            'client-placeholder': 'client_placeholder',
-            'client-tip': 'client_tip',
-            'email-label-modal': 'email_label_modal',
-            'add-cc-btn': 'add_cc_btn',
-            'file-panel-title': 'file_panel_title',
-            'upload-btn-label': 'upload_btn',
-            'record-btn-label': 'record_btn',
-            'file-tip': 'file_tip',
-            'consent-text': 'consent_text',
-            'start-btn': 'start_btn',
-            'history-title-modal': 'history_title_modal',
-            'history-empty': 'history_empty',
-            'history-loading': 'history_loading',
-            'expedite-btn': 'expedite_btn',
-        };
-        for (let id in idMap) {
-            const el = document.getElementById(id);
-            if (el && t(idMap[id]) !== undefined) {
-                if (id === 'file-tip') {
-                    el.innerHTML = t(idMap[id]);
-                } else {
-                    el.textContent = t(idMap[id]);
-                }
-            }
+        // Cập nhật task tabs (giữ badge)
+        const suggestedTab = document.getElementById('taskTabSuggested');
+        const confirmedTab = document.getElementById('taskTabConfirmed');
+        if (suggestedTab) {
+            const badge = suggestedTab.querySelector('.badge');
+            const text = t('task_tab_suggested');
+            suggestedTab.innerHTML = text + (badge ? ` <span class="badge">${badge.textContent}</span>` : '');
+        }
+        if (confirmedTab) {
+            const badge = confirmedTab.querySelector('.badge');
+            const text = t('task_tab_confirmed');
+            confirmedTab.innerHTML = text + (badge ? ` <span class="badge">${badge.textContent}</span>` : '');
         }
 
-        const toggleCcBtn = document.getElementById('toggleCcBtn');
-        if (toggleCcBtn) {
-            const isHidden = document.getElementById('ccFields').classList.contains('hidden');
-            const label = isHidden ? t('add_cc_btn') : t('hide_cc_btn');
-            const icon = isHidden ? 'fa-circle-plus' : 'fa-circle-minus';
-            toggleCcBtn.innerHTML = `<i class="fa-solid ${icon}"></i> ${label}`;
-        }
+        // Cập nhật settings buttons (connect/disconnect)
+        updateSettingsUI();
 
-        const recordBtn = document.getElementById('recordBtn');
-        const recordLabel = document.getElementById('recordLabel');
-        if (recordBtn && recordLabel) {
-            const isRecording = recordBtn.classList.contains('recording');
-            recordLabel.textContent = isRecording ? t('stop_record_btn') : t('record_btn');
-        }
-
-        const fileInput = document.getElementById('fileInput');
-        if (!fileInput.files.length && !selectedFileBlob) {
-            document.getElementById('fileStatusLabel').textContent = t('upload_btn');
-        } else if (selectedFileBlob) {
-            document.getElementById('fileStatusLabel').textContent = t('change_file_btn');
-        }
-
-        const errorMsg = document.getElementById('error-message');
-        if (errorMsg && !errorMsg.classList.contains('hidden') && lastErrorKey) {
-            errorMsg.textContent = t(lastErrorKey);
-        }
-
-        const targetLangSelect = document.getElementById('outputTargetLang');
-        if (targetLangSelect) {
-            const options = targetLangSelect.options;
-            for (let i = 0; i < options.length; i++) {
-                const key = options[i].getAttribute('data-i18n');
-                if (key) {
-                    options[i].textContent = t(key);
-                }
-            }
-        }
-
+        // Cập nhật các phần tử khác
         updateDashboardDynamicText();
         updateFlagIcons(lang);
         updateLangTooltip(lang);
-        updateSettingsUI();
+        renderTasks();
     }
 
     function updateDashboardDynamicText() {
@@ -1942,7 +1912,7 @@
         currentCompanyName = "";
 
     // ========================================================================
-    //  ĐĂNG NHẬP
+    //  ĐĂNG NHẬP (giữ nguyên logic)
     // ========================================================================
     async function handleLogin() {
         const emailInput = document.getElementById('emailInput').value.trim();
@@ -2071,7 +2041,7 @@
     }
 
     // ========================================================================
-    //  LOGIC RECORDER
+    //  LOGIC RECORDER (giữ nguyên)
     // ========================================================================
     let selectedFileBlob = null;
     let mediaRecorder = null;
@@ -2448,7 +2418,7 @@
             connections.trello = true;
         }
         updateSettingsUI();
-        showToast(`✅ Đã kết nối ${platform}`, true);
+        showToast(t('connect_platform_success', { platform: platform }), true);
     }
 
     function disconnectPlatform(platform) {
@@ -2458,7 +2428,7 @@
             connections.trello = false;
         }
         updateSettingsUI();
-        showToast(`🔴 Đã ngắt kết nối ${platform}`, false);
+        showToast(t('connect_platform_disconnect', { platform: platform }), false);
     }
 
     // ========================================================================
@@ -2508,7 +2478,7 @@
     function renderSuggestedTasks() {
         const container = document.getElementById('suggestedTaskList');
         if (tasks.suggested.length === 0) {
-            container.innerHTML = `<div class="task-empty">Chưa có đề xuất nào từ AI.</div>`;
+            container.innerHTML = `<div class="task-empty">${t('task_empty_suggested')}</div>`;
             return;
         }
         let html = '';
@@ -2527,26 +2497,26 @@
                             </div>
                         </div>
                         <div class="task-actions">
-                            <button class="edit-btn" onclick="editTask('${task.id}')" title="Sửa"><i class="fa-regular fa-pen-to-square"></i></button>
+                            <button class="edit-btn" onclick="editTask('${task.id}')" title="${t('edit_btn')}"><i class="fa-regular fa-pen-to-square"></i></button>
                             ${connected 
-                                ? `<button class="confirm-btn" onclick="confirmTask('${task.id}')" title="Xác nhận"><i class="fa-regular fa-circle-check"></i></button>`
-                                : `<button class="connect-btn" onclick="handleConnectForTask('${task.id}')" title="Kết nối tài khoản">🔗 Kết nối</button>`
+                                ? `<button class="confirm-btn" onclick="confirmTask('${task.id}')" title="${t('confirm_btn')}"><i class="fa-regular fa-circle-check"></i></button>`
+                                : `<button class="connect-btn" onclick="handleConnectForTask('${task.id}')" title="${t('connect_btn')}">🔗 ${t('connect_btn')}</button>`
                             }
                         </div>
                     </div>
                     <div class="task-edit-form ${isEditing ? 'active' : ''}">
-                        <input type="text" id="edit_title_${task.id}" value="${task.title}" placeholder="Tiêu đề">
-                        <input type="text" id="edit_desc_${task.id}" value="${task.description || ''}" placeholder="Mô tả">
+                        <input type="text" id="edit_title_${task.id}" value="${task.title}" placeholder="${t('edit_task_placeholder')}">
+                        <input type="text" id="edit_desc_${task.id}" value="${task.description || ''}" placeholder="${t('description_placeholder')}">
                         <input type="date" id="edit_due_${task.id}" value="${task.due || ''}">
-                        <input type="text" id="edit_assignee_${task.id}" value="${task.assignee || ''}" placeholder="Người phụ trách">
+                        <input type="text" id="edit_assignee_${task.id}" value="${task.assignee || ''}" placeholder="${t('assignee_placeholder')}">
                         <select id="edit_platform_${task.id}">
                             <option value="Google Tasks" ${task.platform === 'Google Tasks' ? 'selected' : ''}>Google Tasks</option>
                             <option value="Google Calendar" ${task.platform === 'Google Calendar' ? 'selected' : ''}>Google Calendar</option>
                             <option value="Trello" ${task.platform === 'Trello' ? 'selected' : ''}>Trello</option>
                         </select>
                         <div class="edit-actions">
-                            <button class="save-edit" onclick="saveEditTask('${task.id}')">Lưu</button>
-                            <button class="cancel-edit" onclick="cancelEditTask()">Hủy</button>
+                            <button class="save-edit" onclick="saveEditTask('${task.id}')">${t('edit_task_save')}</button>
+                            <button class="cancel-edit" onclick="cancelEditTask()">${t('edit_task_cancel')}</button>
                         </div>
                     </div>
                 </div>
@@ -2558,7 +2528,7 @@
     function renderConfirmedTasks() {
         const container = document.getElementById('confirmedTaskList');
         if (tasks.confirmed.length === 0) {
-            container.innerHTML = `<div class="task-empty">Chưa có nhiệm vụ nào đã xác nhận.</div>`;
+            container.innerHTML = `<div class="task-empty">${t('task_empty_confirmed')}</div>`;
             return;
         }
         let html = '';
@@ -2575,8 +2545,8 @@
                             </div>
                         </div>
                         <div class="task-actions">
-                            <button class="edit-btn" onclick="openEditTaskModal('${task.id}')" title="Sửa"><i class="fa-regular fa-pen-to-square"></i></button>
-                            <button class="delete-btn" onclick="deleteConfirmedTask('${task.id}')" title="Xóa"><i class="fa-regular fa-trash-can"></i></button>
+                            <button class="edit-btn" onclick="openEditTaskModal('${task.id}')" title="${t('edit_btn')}"><i class="fa-regular fa-pen-to-square"></i></button>
+                            <button class="delete-btn" onclick="deleteConfirmedTask('${task.id}')" title="${t('delete_btn')}"><i class="fa-regular fa-trash-can"></i></button>
                         </div>
                     </div>
                 </div>
@@ -2586,7 +2556,7 @@
     }
 
     // ========================================================================
-    //  EDIT TASK MODAL (mini)
+    //  EDIT TASK MODAL
     // ========================================================================
     let editingConfirmedTaskId = null;
     const editTaskModal = document.getElementById('editTaskModal');
@@ -2614,7 +2584,7 @@
     function saveEditedTask() {
         const newTitle = editTaskInput.value.trim();
         if (!newTitle) {
-            showToast('⚠️ Tiêu đề không được để trống', false);
+            showToast(t('edit_task_empty_error'), false);
             return;
         }
         const task = tasks.confirmed.find(t => t.id === editingConfirmedTaskId);
@@ -2623,7 +2593,7 @@
             saveTasksToStorage();
             renderTasks();
             closeEditTaskModal();
-            showToast('✅ Đã cập nhật nhiệm vụ', true);
+            showToast(t('task_updated'), true);
         }
     }
 
@@ -2692,9 +2662,9 @@
             tasks.confirmed.push(task);
             saveTasksToStorage();
             renderTasks();
-            showToast('✅ Đã xác nhận nhiệm vụ: ' + task.title, true);
+            showToast(t('task_confirmed') + task.title, true);
         } catch (error) {
-            showToast('❌ Lỗi tạo task: ' + error.message, false);
+            showToast('❌ ' + error.message, false);
         }
     }
 
@@ -2708,16 +2678,16 @@
         if (key) {
             openSettingsModal();
         } else {
-            showToast('⚠️ Không hỗ trợ kết nối cho nền tảng này', false);
+            showToast(t('task_connect_unsupported'), false);
         }
     }
 
     function deleteConfirmedTask(id) {
-        if (confirm('Bạn có chắc muốn xóa nhiệm vụ này?')) {
+        if (confirm(t('delete_confirm'))) {
             tasks.confirmed = tasks.confirmed.filter(t => t.id !== id);
             saveTasksToStorage();
             renderTasks();
-            showToast('🗑️ Đã xóa nhiệm vụ', false);
+            showToast(t('task_deleted'), false);
         }
     }
 
@@ -2751,8 +2721,8 @@
             this.classList.add('active');
             const tabName = this.dataset.tab;
             currentTab = tabName;
-            document.getElementById('taskTabSuggested').classList.toggle('active', tabName === 'suggested');
-            document.getElementById('taskTabConfirmed').classList.toggle('active', tabName === 'confirmed');
+            document.getElementById('taskTabSuggestedContent').classList.toggle('active', tabName === 'suggested');
+            document.getElementById('taskTabConfirmedContent').classList.toggle('active', tabName === 'confirmed');
         });
     });
 
@@ -2951,7 +2921,7 @@
     //  SỰ KIỆN
     // ========================================================================
     document.getElementById('eventsBtn').addEventListener('click', function() {
-        alert('📅 Tính năng Sự kiện sẽ được phát triển sau!');
+        alert(t('events_coming_soon'));
     });
 
     // ========================================================================
