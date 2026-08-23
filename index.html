@@ -2609,9 +2609,10 @@
                         </div>
                         <div class="task-actions">
                             <button class="edit-btn" onclick="editTask('${task.id}')" title="${t('edit_tooltip')}"><i class="fa-regular fa-pen-to-square"></i></button>
-                            ${connected 
-                                ? `<button class="confirm-btn" onclick="confirmTask('${task.id}')" title="${t('confirm_tooltip')}"><i class="fa-regular fa-circle-check"></i></button>`
-                                : `<button class="connect-btn" onclick="handleConnectForTask('${task.id}')" title="${t('connect_task_btn')}">🔗 ${t('connect_task_btn')}</button>`
+                            <button class="confirm-btn" onclick="confirmTask('${task.id}')" title="${t('confirm_tooltip')}"><i class="fa-regular fa-circle-check"></i></button>
+                            ${!connected 
+                                ? `<button class="connect-btn" onclick="handleConnectForTask('${task.id}')" title="${t('connect_task_btn')}" style="font-size:12px; padding:4px 10px; border-radius:20px;">🔗 ${t('connect_task_btn')}</button>`
+                                : ''
                             }
                         </div>
                     </div>
@@ -2760,12 +2761,6 @@
         const taskIndex = tasks.suggested.findIndex(t => t.id === id);
         if (taskIndex === -1) return;
         const task = tasks.suggested[taskIndex];
-
-        if (!isConnected(task.platform)) {
-            showToast(t('toast_connect_required').replace('%s', task.platform), false);
-            openSettingsModal();
-            return;
-        }
 
         try {
             tasks.suggested.splice(taskIndex, 1);
