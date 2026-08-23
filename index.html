@@ -1779,7 +1779,7 @@
             task_deleted_toast: 'Task deleted',
             connect_toast: 'Connected ',
             disconnect_toast: 'Disconnected ',
-            events_feature_alert: '📅 The Events feature is coming soon!',
+            events_feature_alert: 'The Events feature is coming soon!',
             status_unknown: 'Unknown',
             target_lang2_label: 'Language 2:',
         }
@@ -2798,7 +2798,7 @@
             tasks.confirmed = tasks.confirmed.filter(t => t.id !== id);
             saveTasksToStorage();
             renderTasks();
-            showToast('🗑️ ' + t('task_deleted_toast'), false);
+            showToast('' + t('task_deleted_toast'), false);
         }
     }
 
