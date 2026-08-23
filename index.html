@@ -73,7 +73,7 @@
             overflow-x: hidden;
             box-shadow: var(--shadow-lg);
             margin: 0 auto;
-            padding-bottom: 300px; /* Quan trọng: tạo khoảng trống để cuộn xuống hết */
+            padding-bottom: 120px; /* Quan trọng: tạo khoảng trống để cuộn xuống hết */
         }
 
         /* ===== Nút ngôn ngữ hình tròn ===== */
@@ -889,35 +889,96 @@
             cursor: pointer;
         }
 
-        /* ===== TASK MODAL STYLES ===== */
+        /* ===== TASK MODAL STYLES - ĐỒNG BỘ VỚI RECORDER MODAL ===== */
         .task-modal {
             position: fixed;
             inset: 0;
-            background: rgba(0,0,0,0.6);
+            background: rgba(15,23,42,0.65);
+            backdrop-filter: blur(8px);
             display: none;
-            align-items: center;
+            align-items: flex-end;
             justify-content: center;
             z-index: 10001;
         }
         .task-modal.active {
-            display: flex !important;
+            display: flex;
+            animation: fadeIn 0.2s ease-out;
+        }
+        .task-sheet {
+            background: var(--surface);
+            border-radius: 32px 32px 0 0;
+            width: 100%;
+            max-width: 100%;
+            max-height: 92vh;
+            overflow-y: auto;
+            padding: 0 0 calc(36px + env(safe-area-inset-bottom));
+            animation: slideUp 0.35s cubic-bezier(0.2,0.8,0.2,1);
+            box-shadow: 0 -12px 48px rgba(0,0,0,0.15);
+        }
+        @media (min-width: 640px) {
+            .task-sheet {
+                max-width: 500px;
+                border-radius: 32px;
+                margin: 0 auto;
+            }
+        }
+        .task-handle {
+            display: flex;
+            justify-content: center;
+            padding: 12px 0 8px;
+            position: sticky;
+            top: 0;
+            background: var(--surface);
+            z-index: 10;
+            border-radius: 32px 32px 0 0;
+        }
+        .task-handle-bar {
+            width: 48px;
+            height: 5px;
+            background: #CBD5E1;
+            border-radius: 99px;
         }
         .task-container {
-            background: white;
-            width: 92%;
-            max-width: 600px;
-            max-height: 85vh;
-            border-radius: 24px;
-            overflow-y: auto;
-            padding: 20px 20px 28px;
-            box-shadow: 0 20px 35px -8px rgba(0,0,0,0.3);
+            padding: 0 20px 20px;
         }
+        .task-header-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0 16px;
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 25px;
+            background: var(--surface);
+            z-index: 9;
+        }
+        .task-header-bar h2 {
+            font-size: 18px;
+            font-weight: 800;
+            color: var(--text);
+            letter-spacing: -0.3px;
+        }
+        .task-modal .modal-close {
+            background: #F1F5F9;
+            border: none;
+            border-radius: 50%;
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            cursor: pointer;
+            color: var(--muted);
+        }
+        .task-modal .modal-close:hover {
+            background: #E2E8F0;
+        }
+
         .task-tabs {
             display: flex;
             gap: 8px;
-            border-bottom: 2px solid var(--border);
-            margin-bottom: 20px;
-            padding-bottom: 8px;
+            margin: 16px 0 20px;
         }
         .task-tab {
             padding: 8px 18px;
@@ -950,7 +1011,7 @@
             gap: 12px;
         }
         .task-item {
-            background: var(--surface);
+            background: var(--white);
             border-radius: 16px;
             padding: 14px 16px;
             border: 1px solid var(--border);
@@ -1059,33 +1120,6 @@
         }
         .task-tab-content.active {
             display: block;
-        }
-        .task-modal .modal-close {
-            background: #F1F5F9;
-            border: none;
-            border-radius: 50%;
-            width: 36px;
-            height: 36px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 18px;
-            cursor: pointer;
-            color: var(--muted);
-        }
-        .task-modal .modal-close:hover {
-            background: #E2E8F0;
-        }
-        .task-modal .task-header-bar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 16px;
-        }
-        .task-modal .task-header-bar h2 {
-            font-size: 20px;
-            font-weight: 800;
-            color: var(--text);
         }
 
         /* ===== SETTINGS MODAL ===== */
@@ -1472,24 +1506,27 @@
         </div>
     </div>
 
-    <!-- ========== TASK MODAL ========== -->
+    <!-- ========== TASK MODAL - BOTTOM SHEET ========== -->
     <div id="taskModal" class="task-modal">
-        <div class="task-container">
-            <div class="task-header-bar">
-                <h2>📋 Quản lý nhiệm vụ</h2>
-                <button class="modal-close" id="closeTaskModalBtn"><i class="fa-solid fa-xmark"></i></button>
-            </div>
+        <div class="task-sheet">
+            <div class="task-handle"><div class="task-handle-bar"></div></div>
+            <div class="task-container">
+                <div class="task-header-bar">
+                    <h2>Quản lý nhiệm vụ</h2> <!-- Đã bỏ icon 📋 -->
+                    <button class="modal-close" id="closeTaskModalBtn"><i class="fa-solid fa-xmark"></i></button>
+                </div>
 
-            <div class="task-tabs">
-                <button class="task-tab active" data-tab="suggested">Đề xuất <span class="badge" id="suggestedCount">0</span></button>
-                <button class="task-tab" data-tab="confirmed">Đã xác nhận <span class="badge" id="confirmedCount">0</span></button>
-            </div>
+                <div class="task-tabs">
+                    <button class="task-tab active" data-tab="suggested">Đề xuất <span class="badge" id="suggestedCount">0</span></button>
+                    <button class="task-tab" data-tab="confirmed">Đã xác nhận <span class="badge" id="confirmedCount">0</span></button>
+                </div>
 
-            <div id="taskTabSuggested" class="task-tab-content active">
-                <div class="task-list" id="suggestedTaskList"></div>
-            </div>
-            <div id="taskTabConfirmed" class="task-tab-content">
-                <div class="task-list" id="confirmedTaskList"></div>
+                <div id="taskTabSuggested" class="task-tab-content active">
+                    <div class="task-list" id="suggestedTaskList"></div>
+                </div>
+                <div id="taskTabConfirmed" class="task-tab-content">
+                    <div class="task-list" id="confirmedTaskList"></div>
+                </div>
             </div>
         </div>
     </div>
