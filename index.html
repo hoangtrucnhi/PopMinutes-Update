@@ -990,6 +990,15 @@
         .task-item .task-actions .confirm-btn:hover { background: #D1FAE5; }
         .task-item .task-actions .delete-btn { color: var(--danger); }
         .task-item .task-actions .delete-btn:hover { background: var(--danger-pale); }
+        .task-item .task-actions .connect-btn { 
+            color: white; 
+            background: var(--navy); 
+            border-radius: 20px; 
+            padding: 4px 14px; 
+            font-size: 12px; 
+            font-weight: 600;
+        }
+        .task-item .task-actions .connect-btn:hover { background: var(--navy-deep); }
         .task-item .task-edit-form {
             display: none;
             flex-direction: column;
@@ -1070,6 +1079,97 @@
             font-size: 20px;
             font-weight: 800;
             color: var(--text);
+        }
+
+        /* ===== INTEGRATION MODAL ===== */
+        .integration-modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.6);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 10002;
+        }
+        .integration-modal.active {
+            display: flex !important;
+        }
+        .integration-container {
+            background: white;
+            width: 92%;
+            max-width: 450px;
+            border-radius: 24px;
+            padding: 24px;
+            box-shadow: 0 20px 35px -8px rgba(0,0,0,0.3);
+        }
+        .integration-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .integration-header h2 {
+            font-size: 20px;
+            font-weight: 800;
+            color: var(--text);
+        }
+        .integration-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 0;
+            border-bottom: 1px solid var(--border);
+        }
+        .integration-item:last-child {
+            border-bottom: none;
+        }
+        .integration-item .info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .integration-item .info i {
+            font-size: 24px;
+            color: var(--navy);
+        }
+        .integration-item .info .name {
+            font-weight: 600;
+        }
+        .integration-item .info .status {
+            font-size: 13px;
+            color: var(--muted);
+        }
+        .integration-item .info .status.connected {
+            color: var(--success);
+        }
+        .integration-btn {
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 13px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .integration-btn.connect {
+            background: var(--navy);
+            color: white;
+        }
+        .integration-btn.connect:hover {
+            background: var(--navy-deep);
+        }
+        .integration-btn.disconnect {
+            background: var(--danger-pale);
+            color: var(--danger);
+        }
+        .integration-btn.disconnect:hover {
+            background: #FEE2E2;
+        }
+        .connected-status {
+            color: var(--success);
+        }
+        .not-connected-status {
+            color: var(--muted);
         }
     </style>
 </head>
@@ -1223,6 +1323,27 @@
                 </button>
             </div>
         </div>
+
+        <!-- ========== TÍCH HỢP ========== -->
+        <div class="dash-section">
+            <div class="section-title" data-i18n="integration_title">Tích hợp</div>
+            <div class="feature-grid">
+                <button class="feature-card" id="googleConnectBtn">
+                    <div class="feature-icon navy"><i class="fa-brands fa-google"></i></div>
+                    <div>
+                        <div class="feature-label" data-i18n="google_connect">Google</div>
+                        <div class="feature-sub" id="googleStatus" data-i18n="not_connected">Chưa kết nối</div>
+                    </div>
+                </button>
+                <button class="feature-card" id="trelloConnectBtn">
+                    <div class="feature-icon navy"><i class="fa-brands fa-trello"></i></div>
+                    <div>
+                        <div class="feature-label" data-i18n="trello_connect">Trello</div>
+                        <div class="feature-sub" id="trelloStatus" data-i18n="not_connected">Chưa kết nối</div>
+                    </div>
+                </button>
+            </div>
+        </div>
     </div>
 
     <!-- ========== RECORDER MODAL ========== -->
@@ -1368,6 +1489,40 @@
         </div>
     </div>
 
+    <!-- ========== INTEGRATION MODAL ========== -->
+    <div id="integrationModal" class="integration-modal">
+        <div class="integration-container">
+            <div class="integration-header">
+                <h2>🔗 Quản lý kết nối</h2>
+                <button class="modal-close" id="closeIntegrationBtn"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div id="integrationList">
+                <!-- Google -->
+                <div class="integration-item">
+                    <div class="info">
+                        <i class="fa-brands fa-google"></i>
+                        <div>
+                            <div class="name">Google Tasks & Calendar</div>
+                            <div class="status" id="intGoogleStatus">Chưa kết nối</div>
+                        </div>
+                    </div>
+                    <button class="integration-btn connect" id="intGoogleBtn">Kết nối</button>
+                </div>
+                <!-- Trello -->
+                <div class="integration-item">
+                    <div class="info">
+                        <i class="fa-brands fa-trello"></i>
+                        <div>
+                            <div class="name">Trello</div>
+                            <div class="status" id="intTrelloStatus">Chưa kết nối</div>
+                        </div>
+                    </div>
+                    <button class="integration-btn connect" id="intTrelloBtn">Kết nối</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- ========== HISTORY MODAL ========== -->
     <div id="historyModal" class="history-modal">
         <div class="history-container">
@@ -1425,6 +1580,13 @@
             checkin_sub: 'Địa điểm sử dụng',
             minutes_btn: 'Biên bản',
             minutes_sub: 'Lịch sử xử lý',
+            integration_title: 'Tích hợp',
+            google_connect: 'Google',
+            trello_connect: 'Trello',
+            not_connected: 'Chưa kết nối',
+            connected: 'Đã kết nối',
+            connect_btn: 'Kết nối',
+            disconnect_btn: 'Ngắt kết nối',
             modal_title: 'Khởi tạo biên bản họp AI',
             creator_label: 'Người tạo',
             client_label: 'Đối tác / Khách của bạn',
@@ -1453,6 +1615,7 @@
             toast_network_error: '❌ Lỗi kết nối: ',
             toast_login_required: 'Vui lòng đăng nhập.',
             toast_upgrade_required: 'Nâng cấp gói để sử dụng tính năng.',
+            toast_connect_required: 'Vui lòng kết nối tài khoản %s trước khi tạo task.',
             err_empty: 'Vui lòng nhập đầy đủ Email và User ID!',
             err_invalid: 'Email hoặc User ID không đúng!',
             err_network: 'Không thể kết nối tới máy chủ.',
@@ -1526,6 +1689,13 @@
             checkin_sub: 'Location usage',
             minutes_btn: 'Minutes',
             minutes_sub: 'Processing history',
+            integration_title: 'Integration',
+            google_connect: 'Google',
+            trello_connect: 'Trello',
+            not_connected: 'Not connected',
+            connected: 'Connected',
+            connect_btn: 'Connect',
+            disconnect_btn: 'Disconnect',
             modal_title: 'Initialize AI Meeting Minutes',
             creator_label: 'Creator',
             client_label: 'Partner / Your Client',
@@ -1554,6 +1724,7 @@
             toast_network_error: '❌ Connection error: ',
             toast_login_required: 'Please log in.',
             toast_upgrade_required: 'Upgrade your plan to use this feature.',
+            toast_connect_required: 'Please connect your %s account before creating task.',
             err_empty: 'Please fill in both Email and User ID!',
             err_invalid: 'Email or User ID is incorrect!',
             err_network: 'Cannot connect to server.',
@@ -1731,6 +1902,9 @@
             'checkin-sub': 'checkin_sub',
             'minutes-btn': 'minutes_btn',
             'minutes-sub': 'minutes_sub',
+            'integration-title': 'integration_title',
+            'google-connect': 'google_connect',
+            'trello-connect': 'trello_connect',
             'modal-title': 'modal_title',
             'creator-label': 'creator_label',
             'client-label': 'client_label',
@@ -1801,6 +1975,8 @@
         updateDashboardDynamicText();
         updateFlagIcons(lang);
         updateLangTooltip(lang);
+        // Cập nhật trạng thái kết nối hiển thị
+        updateConnectionUI();
     }
 
     function updateDashboardDynamicText() {
@@ -1817,27 +1993,6 @@
             salesNameDisplay.value = t('trial_account');
         }
     }
-
-    document.addEventListener('DOMContentLoaded', function() {
-        applyLanguage(currentLang);
-        loginItems.forEach(item => {
-            item.classList.toggle('active-lang', item.dataset.lang === currentLang);
-        });
-        dashItems.forEach(item => {
-            item.classList.toggle('active-lang', item.dataset.lang === currentLang);
-        });
-        updateFlagIcons(currentLang);
-        updateLangTooltip(currentLang);
-        toggleLanguageTarget();
-        const savedLang = localStorage.getItem('popminutes_output_target') || 'vi';
-        document.getElementById('outputTargetLang').value = savedLang;
-        const savedMode = localStorage.getItem('popminutes_output_mode') || 'auto';
-        document.getElementById('outputMode').value = savedMode;
-        toggleLanguageTarget();
-        initTaskData();
-        renderTasks();
-        tryAutoLogin();
-    });
 
     // ========================================================================
     //  CẤU HÌNH API
@@ -1904,6 +2059,8 @@
 
     function handleLogout() {
         localStorage.removeItem(AUTH_STORAGE_KEY);
+        localStorage.removeItem('popminutes_connections');
+        localStorage.removeItem('tasks_data');
         currentEmail = "";
         currentSalesName = "";
         currentCompanyName = "";
@@ -1920,6 +2077,9 @@
         const errorMsg = document.getElementById('error-message');
         errorMsg.classList.add('hidden');
         lastErrorKey = null;
+        // Reset connections
+        connections = { google: false, trello: false };
+        updateConnectionUI();
     }
 
     function updateModalSalesInfo() {
@@ -1927,8 +2087,57 @@
         document.getElementById('salesEmailDisplay').value = currentEmail || "";
     }
 
+    function saveAuthInfo(data) {
+        const authData = {
+            email: currentEmail,
+            salesId: data.sales.id,
+            salesName: data.sales.name,
+            companyName: data.enterprise.name,
+            remainingHours: data.enterprise.remainingHours,
+            packageId: data.enterprise.packageId,
+            expiryDate: data.enterprise.expiryDate,
+            timestamp: Date.now()
+        };
+        localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(authData));
+    }
+
+    async function tryAutoLogin() {
+        const stored = localStorage.getItem(AUTH_STORAGE_KEY);
+        if (!stored) return false;
+        try {
+            const auth = JSON.parse(stored);
+            const age = Date.now() - auth.timestamp;
+            const maxAge = SESSION_DAYS * 24 * 60 * 60 * 1000;
+            if (age > maxAge) { localStorage.removeItem(AUTH_STORAGE_KEY); return false; }
+            const loginUrl = `${CLOUD_FUNCTION_URL}?action=authenticateSales&email=${encodeURIComponent(auth.email)}&userId=${encodeURIComponent(auth.salesId)}`;
+            const response = await fetch(loginUrl);
+            const result = await response.json();
+            if (result.status === 200 && result.authenticated) {
+                currentEmail = auth.email;
+                currentSalesName = result.sales.name;
+                currentCompanyName = result.enterprise.name;
+                document.getElementById('login-screen').classList.add('hidden');
+                document.getElementById('dashboard-screen').classList.remove('hidden');
+                document.getElementById('user-name-display').textContent = currentSalesName;
+                document.getElementById('company-name-display').textContent = currentCompanyName;
+                document.getElementById('remaining-hours-display').textContent = result.enterprise.remainingHours;
+                document.getElementById('package-display').textContent = result.enterprise.packageId || t('undefined_package');
+                document.getElementById('expiry-display').textContent = result.enterprise.expiryDate || t('undefined_expiry');
+                saveAuthInfo(result);
+                return true;
+            } else {
+                localStorage.removeItem(AUTH_STORAGE_KEY);
+                return false;
+            }
+        } catch (e) {
+            console.error(e);
+            localStorage.removeItem(AUTH_STORAGE_KEY);
+            return false;
+        }
+    }
+
     // ========================================================================
-    //  LOGIC RECORDER
+    //  LOGIC RECORDER (đã giữ nguyên từ bản trước)
     // ========================================================================
     let selectedFileBlob = null;
     let mediaRecorder = null;
@@ -2254,56 +2463,400 @@
     document.getElementById('qrCheckinBtn').addEventListener('click', () => alert(t('toast_upgrade_required')));
 
     // ========================================================================
-    //  LƯU THÔNG TIN ĐĂNG NHẬP & AUTO LOGIN
+    //  QUẢN LÝ TRẠNG THÁI KẾT NỐI
     // ========================================================================
-    function saveAuthInfo(data) {
-        const authData = {
-            email: currentEmail,
-            salesId: data.sales.id,
-            salesName: data.sales.name,
-            companyName: data.enterprise.name,
-            remainingHours: data.enterprise.remainingHours,
-            packageId: data.enterprise.packageId,
-            expiryDate: data.enterprise.expiryDate,
-            timestamp: Date.now()
-        };
-        localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(authData));
+    let connections = {
+        google: false,
+        trello: false
+    };
+
+    function loadConnectionStatus() {
+        const saved = localStorage.getItem('popminutes_connections');
+        if (saved) {
+            try {
+                connections = JSON.parse(saved);
+            } catch (e) {}
+        }
+        updateConnectionUI();
     }
 
-    async function tryAutoLogin() {
-        const stored = localStorage.getItem(AUTH_STORAGE_KEY);
-        if (!stored) return false;
-        try {
-            const auth = JSON.parse(stored);
-            const age = Date.now() - auth.timestamp;
-            const maxAge = SESSION_DAYS * 24 * 60 * 60 * 1000;
-            if (age > maxAge) { localStorage.removeItem(AUTH_STORAGE_KEY); return false; }
-            const loginUrl = `${CLOUD_FUNCTION_URL}?action=authenticateSales&email=${encodeURIComponent(auth.email)}&userId=${encodeURIComponent(auth.salesId)}`;
-            const response = await fetch(loginUrl);
-            const result = await response.json();
-            if (result.status === 200 && result.authenticated) {
-                currentEmail = auth.email;
-                currentSalesName = result.sales.name;
-                currentCompanyName = result.enterprise.name;
-                document.getElementById('login-screen').classList.add('hidden');
-                document.getElementById('dashboard-screen').classList.remove('hidden');
-                document.getElementById('user-name-display').textContent = currentSalesName;
-                document.getElementById('company-name-display').textContent = currentCompanyName;
-                document.getElementById('remaining-hours-display').textContent = result.enterprise.remainingHours;
-                document.getElementById('package-display').textContent = result.enterprise.packageId || t('undefined_package');
-                document.getElementById('expiry-display').textContent = result.enterprise.expiryDate || t('undefined_expiry');
-                saveAuthInfo(result);
-                return true;
-            } else {
-                localStorage.removeItem(AUTH_STORAGE_KEY);
-                return false;
-            }
-        } catch (e) {
-            console.error(e);
-            localStorage.removeItem(AUTH_STORAGE_KEY);
-            return false;
+    function saveConnectionStatus() {
+        localStorage.setItem('popminutes_connections', JSON.stringify(connections));
+    }
+
+    function updateConnectionUI() {
+        // Cập nhật card tích hợp
+        const googleStatus = document.getElementById('googleStatus');
+        const trelloStatus = document.getElementById('trelloStatus');
+        if (googleStatus) {
+            googleStatus.textContent = connections.google ? t('connected') : t('not_connected');
+            googleStatus.style.color = connections.google ? 'var(--success)' : 'var(--muted)';
+        }
+        if (trelloStatus) {
+            trelloStatus.textContent = connections.trello ? t('connected') : t('not_connected');
+            trelloStatus.style.color = connections.trello ? 'var(--success)' : 'var(--muted)';
+        }
+
+        // Cập nhật modal tích hợp
+        const intGoogleStatus = document.getElementById('intGoogleStatus');
+        const intGoogleBtn = document.getElementById('intGoogleBtn');
+        const intTrelloStatus = document.getElementById('intTrelloStatus');
+        const intTrelloBtn = document.getElementById('intTrelloBtn');
+
+        if (intGoogleStatus) {
+            intGoogleStatus.textContent = connections.google ? t('connected') : t('not_connected');
+            intGoogleStatus.className = 'status' + (connections.google ? ' connected' : '');
+        }
+        if (intGoogleBtn) {
+            intGoogleBtn.textContent = connections.google ? t('disconnect_btn') : t('connect_btn');
+            intGoogleBtn.className = 'integration-btn ' + (connections.google ? 'disconnect' : 'connect');
+        }
+        if (intTrelloStatus) {
+            intTrelloStatus.textContent = connections.trello ? t('connected') : t('not_connected');
+            intTrelloStatus.className = 'status' + (connections.trello ? ' connected' : '');
+        }
+        if (intTrelloBtn) {
+            intTrelloBtn.textContent = connections.trello ? t('disconnect_btn') : t('connect_btn');
+            intTrelloBtn.className = 'integration-btn ' + (connections.trello ? 'disconnect' : 'connect');
+        }
+
+        saveConnectionStatus();
+        // Cập nhật lại task list nếu đang mở
+        renderTasks();
+    }
+
+    function isConnected(platform) {
+        if (platform === 'Google Tasks' || platform === 'Google Calendar') return connections.google;
+        if (platform === 'Trello') return connections.trello;
+        return false;
+    }
+
+    function connectPlatform(platform) {
+        // Gọi backend để lấy OAuth URL và chuyển hướng
+        // Ví dụ:
+        // window.location.href = `${CLOUD_FUNCTION_URL}/auth/${platform}`;
+        // Sau khi OAuth thành công, backend redirect về frontend với token, frontend cập nhật trạng thái.
+        // Ở đây tạm thời mô phỏng kết nối thành công.
+        if (platform === 'google') {
+            connections.google = true;
+        } else if (platform === 'trello') {
+            connections.trello = true;
+        }
+        updateConnectionUI();
+        showToast(`✅ Đã kết nối ${platform}`, true);
+    }
+
+    function disconnectPlatform(platform) {
+        if (platform === 'google') {
+            connections.google = false;
+        } else if (platform === 'trello') {
+            connections.trello = false;
+        }
+        updateConnectionUI();
+        showToast(`🔴 Đã ngắt kết nối ${platform}`, false);
+    }
+
+    // ========================================================================
+    //  TASK MANAGER
+    // ========================================================================
+    let tasks = {
+        suggested: [
+            { id: 't1', title: 'Gửi báo giá cho khách hàng A', description: 'Báo giá chi tiết dịch vụ', due: '2024-11-01', assignee: 'Sales', platform: 'Google Tasks' },
+            { id: 't2', title: 'Họp review dự án tuần tới', description: 'Thảo luận tiến độ', due: '2024-10-28', assignee: 'Team', platform: 'Google Calendar' },
+            { id: 't3', title: 'Tạo card Trello cho tính năng X', description: 'Phát triển tính năng mới', due: '2024-11-05', assignee: 'Dev', platform: 'Trello' }
+        ],
+        confirmed: [
+            { id: 'c1', title: 'Chuẩn bị slide thuyết trình', description: 'Slide cho buổi họp khách hàng', due: '2024-10-25', assignee: 'Sales', platform: 'Google Tasks' }
+        ]
+    };
+    let editingTaskId = null;
+    let currentTab = 'suggested';
+
+    function initTaskData() {
+        if (localStorage.getItem('tasks_data')) {
+            try {
+                const saved = JSON.parse(localStorage.getItem('tasks_data'));
+                if (saved.suggested && saved.confirmed) {
+                    tasks = saved;
+                }
+            } catch (e) {}
+        }
+        updateBadgeCounts();
+    }
+
+    function saveTasksToStorage() {
+        localStorage.setItem('tasks_data', JSON.stringify(tasks));
+        updateBadgeCounts();
+    }
+
+    function updateBadgeCounts() {
+        document.getElementById('suggestedCount').textContent = tasks.suggested.length;
+        document.getElementById('confirmedCount').textContent = tasks.confirmed.length;
+    }
+
+    function renderTasks() {
+        renderSuggestedTasks();
+        renderConfirmedTasks();
+        updateBadgeCounts();
+    }
+
+    function renderSuggestedTasks() {
+        const container = document.getElementById('suggestedTaskList');
+        if (tasks.suggested.length === 0) {
+            container.innerHTML = `<div class="task-empty">Chưa có đề xuất nào từ AI.</div>`;
+            return;
+        }
+        let html = '';
+        tasks.suggested.forEach(task => {
+            const isEditing = (editingTaskId === task.id);
+            const connected = isConnected(task.platform);
+            html += `
+                <div class="task-item" data-id="${task.id}">
+                    <div class="task-header">
+                        <div>
+                            <div class="task-title">${task.title}</div>
+                            <div class="task-meta">
+                                <span><i class="fa-regular fa-calendar"></i> ${task.due || 'Không có hạn'}</span>
+                                <span><i class="fa-regular fa-user"></i> ${task.assignee || 'Chưa phân công'}</span>
+                                <span><i class="fa-regular fa-folder"></i> ${task.platform || 'Google Tasks'}</span>
+                            </div>
+                        </div>
+                        <div class="task-actions">
+                            <button class="edit-btn" onclick="editTask('${task.id}')" title="Sửa"><i class="fa-regular fa-pen-to-square"></i></button>
+                            ${connected 
+                                ? `<button class="confirm-btn" onclick="confirmTask('${task.id}')" title="Xác nhận"><i class="fa-regular fa-circle-check"></i></button>`
+                                : `<button class="connect-btn" onclick="handleConnectForTask('${task.id}')" title="Kết nối tài khoản">🔗 Kết nối</button>`
+                            }
+                        </div>
+                    </div>
+                    <div class="task-edit-form ${isEditing ? 'active' : ''}">
+                        <input type="text" id="edit_title_${task.id}" value="${task.title}" placeholder="Tiêu đề">
+                        <input type="text" id="edit_desc_${task.id}" value="${task.description || ''}" placeholder="Mô tả">
+                        <input type="date" id="edit_due_${task.id}" value="${task.due || ''}">
+                        <input type="text" id="edit_assignee_${task.id}" value="${task.assignee || ''}" placeholder="Người phụ trách">
+                        <select id="edit_platform_${task.id}">
+                            <option value="Google Tasks" ${task.platform === 'Google Tasks' ? 'selected' : ''}>Google Tasks</option>
+                            <option value="Google Calendar" ${task.platform === 'Google Calendar' ? 'selected' : ''}>Google Calendar</option>
+                            <option value="Trello" ${task.platform === 'Trello' ? 'selected' : ''}>Trello</option>
+                        </select>
+                        <div class="edit-actions">
+                            <button class="save-edit" onclick="saveEditTask('${task.id}')">Lưu</button>
+                            <button class="cancel-edit" onclick="cancelEditTask()">Hủy</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+        container.innerHTML = html;
+    }
+
+    function renderConfirmedTasks() {
+        const container = document.getElementById('confirmedTaskList');
+        if (tasks.confirmed.length === 0) {
+            container.innerHTML = `<div class="task-empty">Chưa có nhiệm vụ nào đã xác nhận.</div>`;
+            return;
+        }
+        let html = '';
+        tasks.confirmed.forEach(task => {
+            html += `
+                <div class="task-item">
+                    <div class="task-header">
+                        <div>
+                            <div class="task-title">${task.title}</div>
+                            <div class="task-meta">
+                                <span><i class="fa-regular fa-calendar"></i> ${task.due || 'Không có hạn'}</span>
+                                <span><i class="fa-regular fa-user"></i> ${task.assignee || 'Chưa phân công'}</span>
+                                <span><i class="fa-regular fa-folder"></i> ${task.platform || 'Google Tasks'}</span>
+                            </div>
+                        </div>
+                        <div class="task-actions">
+                            <button class="edit-btn" onclick="editConfirmedTask('${task.id}')" title="Sửa"><i class="fa-regular fa-pen-to-square"></i></button>
+                            <button class="delete-btn" onclick="deleteConfirmedTask('${task.id}')" title="Xóa"><i class="fa-regular fa-trash-can"></i></button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+        container.innerHTML = html;
+    }
+
+    function editTask(id) {
+        if (editingTaskId === id) {
+            editingTaskId = null;
+        } else {
+            editingTaskId = id;
+        }
+        renderTasks();
+    }
+
+    function saveEditTask(id) {
+        const title = document.getElementById(`edit_title_${id}`).value.trim();
+        const desc = document.getElementById(`edit_desc_${id}`).value.trim();
+        const due = document.getElementById(`edit_due_${id}`).value;
+        const assignee = document.getElementById(`edit_assignee_${id}`).value.trim();
+        const platform = document.getElementById(`edit_platform_${id}`).value;
+
+        const task = tasks.suggested.find(t => t.id === id);
+        if (task) {
+            task.title = title || task.title;
+            task.description = desc || task.description;
+            task.due = due || task.due;
+            task.assignee = assignee || task.assignee;
+            task.platform = platform || task.platform;
+            saveTasksToStorage();
+            editingTaskId = null;
+            renderTasks();
         }
     }
+
+    function cancelEditTask() {
+        editingTaskId = null;
+        renderTasks();
+    }
+
+    async function confirmTask(id) {
+        const taskIndex = tasks.suggested.findIndex(t => t.id === id);
+        if (taskIndex === -1) return;
+        const task = tasks.suggested[taskIndex];
+
+        if (!isConnected(task.platform)) {
+            showToast(t('toast_connect_required').replace('%s', task.platform), false);
+            openIntegrationModal();
+            return;
+        }
+
+        try {
+            // Giả lập gọi API
+            // const response = await fetch(`${CLOUD_FUNCTION_URL}/api/confirm`, {...});
+            // const result = await response.json();
+            // if (result.success) {
+                tasks.suggested.splice(taskIndex, 1);
+                task.id = 'c_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6);
+                tasks.confirmed.push(task);
+                saveTasksToStorage();
+                renderTasks();
+                showToast('✅ Đã xác nhận nhiệm vụ: ' + task.title, true);
+            // }
+        } catch (error) {
+            showToast('❌ Lỗi tạo task: ' + error.message, false);
+        }
+    }
+
+    function handleConnectForTask(taskId) {
+        const task = tasks.suggested.find(t => t.id === taskId);
+        if (!task) return;
+        const platform = task.platform;
+        let key = '';
+        if (platform === 'Google Tasks' || platform === 'Google Calendar') key = 'google';
+        else if (platform === 'Trello') key = 'trello';
+        if (key) {
+            openIntegrationModal();
+        } else {
+            showToast('⚠️ Không hỗ trợ kết nối cho nền tảng này', false);
+        }
+    }
+
+    function editConfirmedTask(id) {
+        const task = tasks.confirmed.find(t => t.id === id);
+        if (task) {
+            const newTitle = prompt('Sửa tiêu đề:', task.title);
+            if (newTitle !== null && newTitle.trim() !== '') {
+                task.title = newTitle.trim();
+                saveTasksToStorage();
+                renderTasks();
+                showToast('✅ Đã cập nhật nhiệm vụ', true);
+            }
+        }
+    }
+
+    function deleteConfirmedTask(id) {
+        if (confirm('Bạn có chắc muốn xóa nhiệm vụ này?')) {
+            tasks.confirmed = tasks.confirmed.filter(t => t.id !== id);
+            saveTasksToStorage();
+            renderTasks();
+            showToast('🗑️ Đã xóa nhiệm vụ', false);
+        }
+    }
+
+    // ========================================================================
+    //  MODAL TASK
+    // ========================================================================
+    const taskModal = document.getElementById('taskModal');
+    const closeTaskModalBtn = document.getElementById('closeTaskModalBtn');
+
+    document.getElementById('tasksBtn').addEventListener('click', function() {
+        if (!currentEmail) {
+            alert(t('toast_login_required'));
+            return;
+        }
+        taskModal.classList.add('active');
+        renderTasks();
+    });
+
+    function closeTaskModal() {
+        taskModal.classList.remove('active');
+    }
+
+    closeTaskModalBtn.addEventListener('click', closeTaskModal);
+    taskModal.addEventListener('click', function(e) {
+        if (e.target === taskModal) closeTaskModal();
+    });
+
+    document.querySelectorAll('.task-tab').forEach(tab => {
+        tab.addEventListener('click', function() {
+            document.querySelectorAll('.task-tab').forEach(t => t.classList.remove('active'));
+            this.classList.add('active');
+            const tabName = this.dataset.tab;
+            currentTab = tabName;
+            document.getElementById('taskTabSuggested').classList.toggle('active', tabName === 'suggested');
+            document.getElementById('taskTabConfirmed').classList.toggle('active', tabName === 'confirmed');
+        });
+    });
+
+    // ========================================================================
+    //  MODAL TÍCH HỢP
+    // ========================================================================
+    const integrationModal = document.getElementById('integrationModal');
+    const closeIntegrationBtn = document.getElementById('closeIntegrationBtn');
+
+    function openIntegrationModal() {
+        if (!currentEmail) {
+            alert(t('toast_login_required'));
+            return;
+        }
+        loadConnectionStatus();
+        integrationModal.classList.add('active');
+    }
+
+    function closeIntegrationModal() {
+        integrationModal.classList.remove('active');
+    }
+
+    document.getElementById('googleConnectBtn').addEventListener('click', openIntegrationModal);
+    document.getElementById('trelloConnectBtn').addEventListener('click', openIntegrationModal);
+
+    closeIntegrationBtn.addEventListener('click', closeIntegrationModal);
+    integrationModal.addEventListener('click', function(e) {
+        if (e.target === integrationModal) closeIntegrationModal();
+    });
+
+    document.getElementById('intGoogleBtn').addEventListener('click', function() {
+        if (connections.google) {
+            disconnectPlatform('google');
+        } else {
+            connectPlatform('google');
+        }
+        updateConnectionUI();
+    });
+
+    document.getElementById('intTrelloBtn').addEventListener('click', function() {
+        if (connections.trello) {
+            disconnectPlatform('trello');
+        } else {
+            connectPlatform('trello');
+        }
+        updateConnectionUI();
+    });
 
     // ========================================================================
     //  LỊCH SỬ
@@ -2456,231 +3009,7 @@
     });
 
     // ========================================================================
-    //  TASK MANAGER
-    // ========================================================================
-    let tasks = {
-        suggested: [
-            { id: 't1', title: 'Gửi báo giá cho khách hàng A', description: 'Báo giá chi tiết dịch vụ', due: '2024-11-01', assignee: 'Sales', platform: 'Google Tasks' },
-            { id: 't2', title: 'Họp review dự án tuần tới', description: 'Thảo luận tiến độ', due: '2024-10-28', assignee: 'Team', platform: 'Google Calendar' },
-            { id: 't3', title: 'Tạo card Trello cho tính năng X', description: 'Phát triển tính năng mới', due: '2024-11-05', assignee: 'Dev', platform: 'Trello' }
-        ],
-        confirmed: [
-            { id: 'c1', title: 'Chuẩn bị slide thuyết trình', description: 'Slide cho buổi họp khách hàng', due: '2024-10-25', assignee: 'Sales', platform: 'Google Tasks' }
-        ]
-    };
-    let editingTaskId = null;
-    let currentTab = 'suggested';
-
-    function initTaskData() {
-        if (localStorage.getItem('tasks_data')) {
-            try {
-                const saved = JSON.parse(localStorage.getItem('tasks_data'));
-                if (saved.suggested && saved.confirmed) {
-                    tasks = saved;
-                }
-            } catch (e) {}
-        }
-        updateBadgeCounts();
-    }
-
-    function saveTasksToStorage() {
-        localStorage.setItem('tasks_data', JSON.stringify(tasks));
-        updateBadgeCounts();
-    }
-
-    function updateBadgeCounts() {
-        document.getElementById('suggestedCount').textContent = tasks.suggested.length;
-        document.getElementById('confirmedCount').textContent = tasks.confirmed.length;
-    }
-
-    function renderTasks() {
-        renderSuggestedTasks();
-        renderConfirmedTasks();
-        updateBadgeCounts();
-    }
-
-    function renderSuggestedTasks() {
-        const container = document.getElementById('suggestedTaskList');
-        if (tasks.suggested.length === 0) {
-            container.innerHTML = `<div class="task-empty">Chưa có đề xuất nào từ AI.</div>`;
-            return;
-        }
-        let html = '';
-        tasks.suggested.forEach(task => {
-            const isEditing = (editingTaskId === task.id);
-            html += `
-                <div class="task-item" data-id="${task.id}">
-                    <div class="task-header">
-                        <div>
-                            <div class="task-title">${task.title}</div>
-                            <div class="task-meta">
-                                <span><i class="fa-regular fa-calendar"></i> ${task.due || 'Không có hạn'}</span>
-                                <span><i class="fa-regular fa-user"></i> ${task.assignee || 'Chưa phân công'}</span>
-                                <span><i class="fa-regular fa-folder"></i> ${task.platform || 'Google Tasks'}</span>
-                            </div>
-                        </div>
-                        <div class="task-actions">
-                            <button class="edit-btn" onclick="editTask('${task.id}')" title="Sửa"><i class="fa-regular fa-pen-to-square"></i></button>
-                            <button class="confirm-btn" onclick="confirmTask('${task.id}')" title="Xác nhận"><i class="fa-regular fa-circle-check"></i></button>
-                        </div>
-                    </div>
-                    <div class="task-edit-form ${isEditing ? 'active' : ''}">
-                        <input type="text" id="edit_title_${task.id}" value="${task.title}" placeholder="Tiêu đề">
-                        <input type="text" id="edit_desc_${task.id}" value="${task.description || ''}" placeholder="Mô tả">
-                        <input type="date" id="edit_due_${task.id}" value="${task.due || ''}">
-                        <input type="text" id="edit_assignee_${task.id}" value="${task.assignee || ''}" placeholder="Người phụ trách">
-                        <select id="edit_platform_${task.id}">
-                            <option value="Google Tasks" ${task.platform === 'Google Tasks' ? 'selected' : ''}>Google Tasks</option>
-                            <option value="Google Calendar" ${task.platform === 'Google Calendar' ? 'selected' : ''}>Google Calendar</option>
-                            <option value="Trello" ${task.platform === 'Trello' ? 'selected' : ''}>Trello</option>
-                        </select>
-                        <div class="edit-actions">
-                            <button class="save-edit" onclick="saveEditTask('${task.id}')">Lưu</button>
-                            <button class="cancel-edit" onclick="cancelEditTask()">Hủy</button>
-                        </div>
-                    </div>
-                </div>
-            `;
-        });
-        container.innerHTML = html;
-    }
-
-    function renderConfirmedTasks() {
-        const container = document.getElementById('confirmedTaskList');
-        if (tasks.confirmed.length === 0) {
-            container.innerHTML = `<div class="task-empty">Chưa có nhiệm vụ nào đã xác nhận.</div>`;
-            return;
-        }
-        let html = '';
-        tasks.confirmed.forEach(task => {
-            html += `
-                <div class="task-item">
-                    <div class="task-header">
-                        <div>
-                            <div class="task-title">${task.title}</div>
-                            <div class="task-meta">
-                                <span><i class="fa-regular fa-calendar"></i> ${task.due || 'Không có hạn'}</span>
-                                <span><i class="fa-regular fa-user"></i> ${task.assignee || 'Chưa phân công'}</span>
-                                <span><i class="fa-regular fa-folder"></i> ${task.platform || 'Google Tasks'}</span>
-                            </div>
-                        </div>
-                        <div class="task-actions">
-                            <button class="edit-btn" onclick="editConfirmedTask('${task.id}')" title="Sửa"><i class="fa-regular fa-pen-to-square"></i></button>
-                            <button class="delete-btn" onclick="deleteConfirmedTask('${task.id}')" title="Xóa"><i class="fa-regular fa-trash-can"></i></button>
-                        </div>
-                    </div>
-                </div>
-            `;
-        });
-        container.innerHTML = html;
-    }
-
-    function editTask(id) {
-        if (editingTaskId === id) {
-            editingTaskId = null;
-        } else {
-            editingTaskId = id;
-        }
-        renderTasks();
-    }
-
-    function saveEditTask(id) {
-        const title = document.getElementById(`edit_title_${id}`).value.trim();
-        const desc = document.getElementById(`edit_desc_${id}`).value.trim();
-        const due = document.getElementById(`edit_due_${id}`).value;
-        const assignee = document.getElementById(`edit_assignee_${id}`).value.trim();
-        const platform = document.getElementById(`edit_platform_${id}`).value;
-
-        const task = tasks.suggested.find(t => t.id === id);
-        if (task) {
-            task.title = title || task.title;
-            task.description = desc || task.description;
-            task.due = due || task.due;
-            task.assignee = assignee || task.assignee;
-            task.platform = platform || task.platform;
-            saveTasksToStorage();
-            editingTaskId = null;
-            renderTasks();
-        }
-    }
-
-    function cancelEditTask() {
-        editingTaskId = null;
-        renderTasks();
-    }
-
-    function confirmTask(id) {
-        const taskIndex = tasks.suggested.findIndex(t => t.id === id);
-        if (taskIndex !== -1) {
-            const task = tasks.suggested.splice(taskIndex, 1)[0];
-            task.id = 'c_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6);
-            tasks.confirmed.push(task);
-            saveTasksToStorage();
-            editingTaskId = null;
-            renderTasks();
-            showToast('✅ Đã xác nhận nhiệm vụ: ' + task.title, true);
-        }
-    }
-
-    function editConfirmedTask(id) {
-        const task = tasks.confirmed.find(t => t.id === id);
-        if (task) {
-            const newTitle = prompt('Sửa tiêu đề:', task.title);
-            if (newTitle !== null && newTitle.trim() !== '') {
-                task.title = newTitle.trim();
-                saveTasksToStorage();
-                renderTasks();
-                showToast('✅ Đã cập nhật nhiệm vụ', true);
-            }
-        }
-    }
-
-    function deleteConfirmedTask(id) {
-        if (confirm('Bạn có chắc muốn xóa nhiệm vụ này?')) {
-            tasks.confirmed = tasks.confirmed.filter(t => t.id !== id);
-            saveTasksToStorage();
-            renderTasks();
-            showToast('🗑️ Đã xóa nhiệm vụ', false);
-        }
-    }
-
-    // ========================================================================
-    //  MODAL TASK
-    // ========================================================================
-    const taskModal = document.getElementById('taskModal');
-    const closeTaskModalBtn = document.getElementById('closeTaskModalBtn');
-
-    document.getElementById('tasksBtn').addEventListener('click', function() {
-        if (!currentEmail) {
-            alert(t('toast_login_required'));
-            return;
-        }
-        taskModal.classList.add('active');
-        renderTasks();
-    });
-
-    function closeTaskModal() {
-        taskModal.classList.remove('active');
-    }
-
-    closeTaskModalBtn.addEventListener('click', closeTaskModal);
-    taskModal.addEventListener('click', function(e) {
-        if (e.target === taskModal) closeTaskModal();
-    });
-
-    document.querySelectorAll('.task-tab').forEach(tab => {
-        tab.addEventListener('click', function() {
-            document.querySelectorAll('.task-tab').forEach(t => t.classList.remove('active'));
-            this.classList.add('active');
-            const tabName = this.dataset.tab;
-            currentTab = tabName;
-            document.getElementById('taskTabSuggested').classList.toggle('active', tabName === 'suggested');
-            document.getElementById('taskTabConfirmed').classList.toggle('active', tabName === 'confirmed');
-        });
-    });
-
-    // ========================================================================
-    //  SỰ KIỆN CHO CARD SỰ KIỆN
+    //  SỰ KIỆN
     // ========================================================================
     document.getElementById('eventsBtn').addEventListener('click', function() {
         alert('📅 Tính năng Sự kiện sẽ được phát triển sau!');
@@ -2720,9 +3049,9 @@
     });
 
     // ========================================================================
-    //  KHỞI CHẠY AUTO LOGIN KHI TRANG LOAD
+    //  KHỞI CHẠY
     // ========================================================================
-    window.addEventListener('DOMContentLoaded', async () => {
+    document.addEventListener('DOMContentLoaded', async function() {
         await tryAutoLogin();
         applyLanguage(currentLang);
         loginItems.forEach(item => {
@@ -2731,6 +3060,17 @@
         dashItems.forEach(item => {
             item.classList.toggle('active-lang', item.dataset.lang === currentLang);
         });
+        updateFlagIcons(currentLang);
+        updateLangTooltip(currentLang);
+        toggleLanguageTarget();
+        const savedLang = localStorage.getItem('popminutes_output_target') || 'vi';
+        document.getElementById('outputTargetLang').value = savedLang;
+        const savedMode = localStorage.getItem('popminutes_output_mode') || 'auto';
+        document.getElementById('outputMode').value = savedMode;
+        toggleLanguageTarget();
+        loadConnectionStatus();
+        initTaskData();
+        renderTasks();
         if (document.getElementById('fileInput').files.length > 0) {
             document.getElementById('fileStatusLabel').textContent = t('change_file_btn');
         }
@@ -2738,13 +3078,6 @@
         updateUploadButton();
         updateFlagIcons(currentLang);
         updateLangTooltip(currentLang);
-        const savedMode = localStorage.getItem('popminutes_output_mode') || 'auto';
-        const savedTarget = localStorage.getItem('popminutes_output_target') || 'vi';
-        document.getElementById('outputMode').value = savedMode;
-        document.getElementById('outputTargetLang').value = savedTarget;
-        toggleLanguageTarget();
-        initTaskData();
-        renderTasks();
     });
 </script>
 </body>
