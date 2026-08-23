@@ -1081,8 +1081,8 @@
             color: var(--text);
         }
 
-        /* ===== INTEGRATION MODAL ===== */
-        .integration-modal {
+        /* ===== INTEGRATION (SETTINGS) MODAL ===== */
+        .settings-modal {
             position: fixed;
             inset: 0;
             background: rgba(0,0,0,0.6);
@@ -1091,58 +1091,60 @@
             justify-content: center;
             z-index: 10002;
         }
-        .integration-modal.active {
+        .settings-modal.active {
             display: flex !important;
         }
-        .integration-container {
+        .settings-container {
             background: white;
             width: 92%;
             max-width: 450px;
             border-radius: 24px;
             padding: 24px;
             box-shadow: 0 20px 35px -8px rgba(0,0,0,0.3);
+            max-height: 90vh;
+            overflow-y: auto;
         }
-        .integration-header {
+        .settings-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
             margin-bottom: 20px;
         }
-        .integration-header h2 {
+        .settings-header h2 {
             font-size: 20px;
             font-weight: 800;
             color: var(--text);
         }
-        .integration-item {
+        .settings-item {
             display: flex;
             justify-content: space-between;
             align-items: center;
             padding: 16px 0;
             border-bottom: 1px solid var(--border);
         }
-        .integration-item:last-child {
+        .settings-item:last-child {
             border-bottom: none;
         }
-        .integration-item .info {
+        .settings-item .info {
             display: flex;
             align-items: center;
             gap: 12px;
         }
-        .integration-item .info i {
+        .settings-item .info i {
             font-size: 24px;
             color: var(--navy);
         }
-        .integration-item .info .name {
+        .settings-item .info .name {
             font-weight: 600;
         }
-        .integration-item .info .status {
+        .settings-item .info .status {
             font-size: 13px;
             color: var(--muted);
         }
-        .integration-item .info .status.connected {
+        .settings-item .info .status.connected {
             color: var(--success);
         }
-        .integration-btn {
+        .settings-btn {
             padding: 6px 16px;
             border-radius: 20px;
             font-weight: 600;
@@ -1151,25 +1153,19 @@
             cursor: pointer;
             transition: all 0.2s;
         }
-        .integration-btn.connect {
+        .settings-btn.connect {
             background: var(--navy);
             color: white;
         }
-        .integration-btn.connect:hover {
+        .settings-btn.connect:hover {
             background: var(--navy-deep);
         }
-        .integration-btn.disconnect {
+        .settings-btn.disconnect {
             background: var(--danger-pale);
             color: var(--danger);
         }
-        .integration-btn.disconnect:hover {
+        .settings-btn.disconnect:hover {
             background: #FEE2E2;
-        }
-        .connected-status {
-            color: var(--success);
-        }
-        .not-connected-status {
-            color: var(--muted);
         }
     </style>
 </head>
@@ -1324,24 +1320,19 @@
             </div>
         </div>
 
-        <!-- ========== TÍCH HỢP ========== -->
+        <!-- ========== CÀI ĐẶT (THAY CHO TÍCH HỢP) ========== -->
         <div class="dash-section">
-            <div class="section-title" data-i18n="integration_title">Tích hợp</div>
-            <div class="feature-grid">
-                <button class="feature-card" id="googleConnectBtn">
-                    <div class="feature-icon navy"><i class="fa-brands fa-google"></i></div>
+            <div class="section-title" data-i18n="settings_title">Cài đặt</div>
+            <div class="feature-grid" style="grid-template-columns: 1fr 1fr;">
+                <!-- Chỉ có 1 card duy nhất: Cài đặt (Tích hợp) -->
+                <button class="feature-card" id="settingsBtn" style="grid-column: 1 / -1;">
+                    <div class="feature-icon navy"><i class="fa-solid fa-gear"></i></div>
                     <div>
-                        <div class="feature-label" data-i18n="google_connect">Google</div>
-                        <div class="feature-sub" id="googleStatus" data-i18n="not_connected">Chưa kết nối</div>
+                        <div class="feature-label" data-i18n="settings_btn">Kết nối ứng dụng</div>
+                        <div class="feature-sub" data-i18n="settings_sub">Quản lý tài khoản Google, Trello</div>
                     </div>
                 </button>
-                <button class="feature-card" id="trelloConnectBtn">
-                    <div class="feature-icon navy"><i class="fa-brands fa-trello"></i></div>
-                    <div>
-                        <div class="feature-label" data-i18n="trello_connect">Trello</div>
-                        <div class="feature-sub" id="trelloStatus" data-i18n="not_connected">Chưa kết nối</div>
-                    </div>
-                </button>
+                <!-- Để trống ô còn lại hoặc có thể thêm card khác sau -->
             </div>
         </div>
     </div>
@@ -1489,35 +1480,35 @@
         </div>
     </div>
 
-    <!-- ========== INTEGRATION MODAL ========== -->
-    <div id="integrationModal" class="integration-modal">
-        <div class="integration-container">
-            <div class="integration-header">
-                <h2>🔗 Quản lý kết nối</h2>
-                <button class="modal-close" id="closeIntegrationBtn"><i class="fa-solid fa-xmark"></i></button>
+    <!-- ========== SETTINGS (INTEGRATION) MODAL ========== -->
+    <div id="settingsModal" class="settings-modal">
+        <div class="settings-container">
+            <div class="settings-header">
+                <h2>⚙️ Kết nối ứng dụng</h2>
+                <button class="modal-close" id="closeSettingsBtn"><i class="fa-solid fa-xmark"></i></button>
             </div>
-            <div id="integrationList">
+            <div id="settingsList">
                 <!-- Google -->
-                <div class="integration-item">
+                <div class="settings-item">
                     <div class="info">
                         <i class="fa-brands fa-google"></i>
                         <div>
                             <div class="name">Google Tasks & Calendar</div>
-                            <div class="status" id="intGoogleStatus">Chưa kết nối</div>
+                            <div class="status" id="settingsGoogleStatus">Chưa kết nối</div>
                         </div>
                     </div>
-                    <button class="integration-btn connect" id="intGoogleBtn">Kết nối</button>
+                    <button class="settings-btn connect" id="settingsGoogleBtn">Kết nối</button>
                 </div>
                 <!-- Trello -->
-                <div class="integration-item">
+                <div class="settings-item">
                     <div class="info">
                         <i class="fa-brands fa-trello"></i>
                         <div>
                             <div class="name">Trello</div>
-                            <div class="status" id="intTrelloStatus">Chưa kết nối</div>
+                            <div class="status" id="settingsTrelloStatus">Chưa kết nối</div>
                         </div>
                     </div>
-                    <button class="integration-btn connect" id="intTrelloBtn">Kết nối</button>
+                    <button class="settings-btn connect" id="settingsTrelloBtn">Kết nối</button>
                 </div>
             </div>
         </div>
@@ -1580,8 +1571,10 @@
             checkin_sub: 'Địa điểm sử dụng',
             minutes_btn: 'Biên bản',
             minutes_sub: 'Lịch sử xử lý',
-            integration_title: 'Tích hợp',
-            google_connect: 'Google',
+            settings_title: 'Cài đặt',
+            settings_btn: 'Kết nối ứng dụng',
+            settings_sub: 'Quản lý tài khoản Google, Trello',
+            google_connect: 'Google Tasks & Calendar',
             trello_connect: 'Trello',
             not_connected: 'Chưa kết nối',
             connected: 'Đã kết nối',
@@ -1689,8 +1682,10 @@
             checkin_sub: 'Location usage',
             minutes_btn: 'Minutes',
             minutes_sub: 'Processing history',
-            integration_title: 'Integration',
-            google_connect: 'Google',
+            settings_title: 'Settings',
+            settings_btn: 'Connect apps',
+            settings_sub: 'Manage Google, Trello accounts',
+            google_connect: 'Google Tasks & Calendar',
             trello_connect: 'Trello',
             not_connected: 'Not connected',
             connected: 'Connected',
@@ -1776,7 +1771,7 @@
     }
 
     // ========================================================================
-    //  QUẢN LÝ NGÔN NGỮ GIAO DIỆN
+    //  QUẢN LÝ NGÔN NGỮ GIAO DIỆN (giữ nguyên)
     // ========================================================================
     const loginToggle = document.getElementById('loginLangToggleBtn');
     const loginMenu = document.getElementById('loginLangMenu');
@@ -1902,9 +1897,9 @@
             'checkin-sub': 'checkin_sub',
             'minutes-btn': 'minutes_btn',
             'minutes-sub': 'minutes_sub',
-            'integration-title': 'integration_title',
-            'google-connect': 'google_connect',
-            'trello-connect': 'trello_connect',
+            'settings-title': 'settings_title',
+            'settings-btn': 'settings_btn',
+            'settings-sub': 'settings_sub',
             'modal-title': 'modal_title',
             'creator-label': 'creator_label',
             'client-label': 'client_label',
@@ -1975,8 +1970,7 @@
         updateDashboardDynamicText();
         updateFlagIcons(lang);
         updateLangTooltip(lang);
-        // Cập nhật trạng thái kết nối hiển thị
-        updateConnectionUI();
+        updateSettingsUI();
     }
 
     function updateDashboardDynamicText() {
@@ -2007,7 +2001,7 @@
         currentCompanyName = "";
 
     // ========================================================================
-    //  ĐĂNG NHẬP
+    //  ĐĂNG NHẬP (giữ nguyên)
     // ========================================================================
     async function handleLogin() {
         const emailInput = document.getElementById('emailInput').value.trim();
@@ -2077,9 +2071,8 @@
         const errorMsg = document.getElementById('error-message');
         errorMsg.classList.add('hidden');
         lastErrorKey = null;
-        // Reset connections
         connections = { google: false, trello: false };
-        updateConnectionUI();
+        updateSettingsUI();
     }
 
     function updateModalSalesInfo() {
@@ -2137,7 +2130,7 @@
     }
 
     // ========================================================================
-    //  LOGIC RECORDER (đã giữ nguyên từ bản trước)
+    //  LOGIC RECORDER (giữ nguyên)
     // ========================================================================
     let selectedFileBlob = null;
     let mediaRecorder = null;
@@ -2463,7 +2456,7 @@
     document.getElementById('qrCheckinBtn').addEventListener('click', () => alert(t('toast_upgrade_required')));
 
     // ========================================================================
-    //  QUẢN LÝ TRẠNG THÁI KẾT NỐI
+    //  QUẢN LÝ TRẠNG THÁI KẾT NỐI (CHO CÀI ĐẶT)
     // ========================================================================
     let connections = {
         google: false,
@@ -2477,47 +2470,35 @@
                 connections = JSON.parse(saved);
             } catch (e) {}
         }
-        updateConnectionUI();
+        updateSettingsUI();
     }
 
     function saveConnectionStatus() {
         localStorage.setItem('popminutes_connections', JSON.stringify(connections));
     }
 
-    function updateConnectionUI() {
-        // Cập nhật card tích hợp
-        const googleStatus = document.getElementById('googleStatus');
-        const trelloStatus = document.getElementById('trelloStatus');
-        if (googleStatus) {
-            googleStatus.textContent = connections.google ? t('connected') : t('not_connected');
-            googleStatus.style.color = connections.google ? 'var(--success)' : 'var(--muted)';
-        }
-        if (trelloStatus) {
-            trelloStatus.textContent = connections.trello ? t('connected') : t('not_connected');
-            trelloStatus.style.color = connections.trello ? 'var(--success)' : 'var(--muted)';
-        }
+    function updateSettingsUI() {
+        // Cập nhật modal cài đặt
+        const settingsGoogleStatus = document.getElementById('settingsGoogleStatus');
+        const settingsGoogleBtn = document.getElementById('settingsGoogleBtn');
+        const settingsTrelloStatus = document.getElementById('settingsTrelloStatus');
+        const settingsTrelloBtn = document.getElementById('settingsTrelloBtn');
 
-        // Cập nhật modal tích hợp
-        const intGoogleStatus = document.getElementById('intGoogleStatus');
-        const intGoogleBtn = document.getElementById('intGoogleBtn');
-        const intTrelloStatus = document.getElementById('intTrelloStatus');
-        const intTrelloBtn = document.getElementById('intTrelloBtn');
-
-        if (intGoogleStatus) {
-            intGoogleStatus.textContent = connections.google ? t('connected') : t('not_connected');
-            intGoogleStatus.className = 'status' + (connections.google ? ' connected' : '');
+        if (settingsGoogleStatus) {
+            settingsGoogleStatus.textContent = connections.google ? t('connected') : t('not_connected');
+            settingsGoogleStatus.className = 'status' + (connections.google ? ' connected' : '');
         }
-        if (intGoogleBtn) {
-            intGoogleBtn.textContent = connections.google ? t('disconnect_btn') : t('connect_btn');
-            intGoogleBtn.className = 'integration-btn ' + (connections.google ? 'disconnect' : 'connect');
+        if (settingsGoogleBtn) {
+            settingsGoogleBtn.textContent = connections.google ? t('disconnect_btn') : t('connect_btn');
+            settingsGoogleBtn.className = 'settings-btn ' + (connections.google ? 'disconnect' : 'connect');
         }
-        if (intTrelloStatus) {
-            intTrelloStatus.textContent = connections.trello ? t('connected') : t('not_connected');
-            intTrelloStatus.className = 'status' + (connections.trello ? ' connected' : '');
+        if (settingsTrelloStatus) {
+            settingsTrelloStatus.textContent = connections.trello ? t('connected') : t('not_connected');
+            settingsTrelloStatus.className = 'status' + (connections.trello ? ' connected' : '');
         }
-        if (intTrelloBtn) {
-            intTrelloBtn.textContent = connections.trello ? t('disconnect_btn') : t('connect_btn');
-            intTrelloBtn.className = 'integration-btn ' + (connections.trello ? 'disconnect' : 'connect');
+        if (settingsTrelloBtn) {
+            settingsTrelloBtn.textContent = connections.trello ? t('disconnect_btn') : t('connect_btn');
+            settingsTrelloBtn.className = 'settings-btn ' + (connections.trello ? 'disconnect' : 'connect');
         }
 
         saveConnectionStatus();
@@ -2542,7 +2523,7 @@
         } else if (platform === 'trello') {
             connections.trello = true;
         }
-        updateConnectionUI();
+        updateSettingsUI();
         showToast(`✅ Đã kết nối ${platform}`, true);
     }
 
@@ -2552,7 +2533,7 @@
         } else if (platform === 'trello') {
             connections.trello = false;
         }
-        updateConnectionUI();
+        updateSettingsUI();
         showToast(`🔴 Đã ngắt kết nối ${platform}`, false);
     }
 
@@ -2721,22 +2702,18 @@
 
         if (!isConnected(task.platform)) {
             showToast(t('toast_connect_required').replace('%s', task.platform), false);
-            openIntegrationModal();
+            openSettingsModal();
             return;
         }
 
         try {
             // Giả lập gọi API
-            // const response = await fetch(`${CLOUD_FUNCTION_URL}/api/confirm`, {...});
-            // const result = await response.json();
-            // if (result.success) {
-                tasks.suggested.splice(taskIndex, 1);
-                task.id = 'c_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6);
-                tasks.confirmed.push(task);
-                saveTasksToStorage();
-                renderTasks();
-                showToast('✅ Đã xác nhận nhiệm vụ: ' + task.title, true);
-            // }
+            tasks.suggested.splice(taskIndex, 1);
+            task.id = 'c_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6);
+            tasks.confirmed.push(task);
+            saveTasksToStorage();
+            renderTasks();
+            showToast('✅ Đã xác nhận nhiệm vụ: ' + task.title, true);
         } catch (error) {
             showToast('❌ Lỗi tạo task: ' + error.message, false);
         }
@@ -2750,7 +2727,7 @@
         if (platform === 'Google Tasks' || platform === 'Google Calendar') key = 'google';
         else if (platform === 'Trello') key = 'trello';
         if (key) {
-            openIntegrationModal();
+            openSettingsModal();
         } else {
             showToast('⚠️ Không hỗ trợ kết nối cho nền tảng này', false);
         }
@@ -2814,48 +2791,47 @@
     });
 
     // ========================================================================
-    //  MODAL TÍCH HỢP
+    //  MODAL CÀI ĐẶT (SETTINGS)
     // ========================================================================
-    const integrationModal = document.getElementById('integrationModal');
-    const closeIntegrationBtn = document.getElementById('closeIntegrationBtn');
+    const settingsModal = document.getElementById('settingsModal');
+    const closeSettingsBtn = document.getElementById('closeSettingsBtn');
 
-    function openIntegrationModal() {
+    function openSettingsModal() {
         if (!currentEmail) {
             alert(t('toast_login_required'));
             return;
         }
         loadConnectionStatus();
-        integrationModal.classList.add('active');
+        settingsModal.classList.add('active');
     }
 
-    function closeIntegrationModal() {
-        integrationModal.classList.remove('active');
+    function closeSettingsModal() {
+        settingsModal.classList.remove('active');
     }
 
-    document.getElementById('googleConnectBtn').addEventListener('click', openIntegrationModal);
-    document.getElementById('trelloConnectBtn').addEventListener('click', openIntegrationModal);
+    document.getElementById('settingsBtn').addEventListener('click', openSettingsModal);
 
-    closeIntegrationBtn.addEventListener('click', closeIntegrationModal);
-    integrationModal.addEventListener('click', function(e) {
-        if (e.target === integrationModal) closeIntegrationModal();
+    closeSettingsBtn.addEventListener('click', closeSettingsModal);
+    settingsModal.addEventListener('click', function(e) {
+        if (e.target === settingsModal) closeSettingsModal();
     });
 
-    document.getElementById('intGoogleBtn').addEventListener('click', function() {
+    document.getElementById('settingsGoogleBtn').addEventListener('click', function() {
         if (connections.google) {
             disconnectPlatform('google');
         } else {
             connectPlatform('google');
         }
-        updateConnectionUI();
+        updateSettingsUI();
     });
 
-    document.getElementById('intTrelloBtn').addEventListener('click', function() {
+    document.getElementById('settingsTrelloBtn').addEventListener('click', function() {
         if (connections.trello) {
             disconnectPlatform('trello');
         } else {
             connectPlatform('trello');
         }
-        updateConnectionUI();
+        updateSettingsUI();
     });
 
     // ========================================================================
