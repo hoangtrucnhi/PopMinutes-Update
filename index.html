@@ -2414,9 +2414,9 @@
     }
 
     function connectPlatform(platform) {
-        if (platform === 'Google') {
+        if (platform === 'google') {
             connections.google = true;
-        } else if (platform === 'Trello') {
+        } else if (platform === 'trello') {
             connections.trello = true;
         }
         updateSettingsUI();
@@ -2424,9 +2424,9 @@
     }
 
     function disconnectPlatform(platform) {
-        if (platform === 'Google') {
+        if (platform === 'google') {
             connections.google = false;
-        } else if (platform === 'Trello') {
+        } else if (platform === 'trello') {
             connections.trello = false;
         }
         updateSettingsUI();
