@@ -271,13 +271,6 @@
             transition: all 0.2s ease;
             box-shadow: var(--shadow-sm);
         }
-        select.modal-input {
-            color-scheme: light;
-        }
-        select.modal-input option {
-            background: var(--white);
-            color: var(--text);
-        }
         .modal-input:focus {
             border-color: var(--navy-light);
             box-shadow: 0 0 0 4px rgba(45,63,166,0.1);
@@ -864,15 +857,6 @@
             font-size: 13px;
             font-family: inherit;
             outline: none;
-            background: var(--white);
-            color: var(--text);
-        }
-        .task-item .task-edit-form select {
-            color-scheme: light;
-        }
-        .task-item .task-edit-form select option {
-            background: var(--white);
-            color: var(--text);
         }
         .task-item .task-edit-form input:focus,
         .task-item .task-edit-form select:focus {
@@ -916,9 +900,9 @@
         .settings-item {
             display: flex;
             flex-wrap: wrap;
-            justify-content: space-between;
             align-items: center;
-            gap: 10px 16px;
+            justify-content: space-between;
+            gap: 12px;
             padding: 16px 0;
             border-bottom: 1px solid var(--border);
         }
@@ -929,6 +913,7 @@
             display: flex;
             align-items: center;
             gap: 12px;
+            flex: 1 1 auto;
             min-width: 0;
         }
         .settings-item .info i {
@@ -941,6 +926,8 @@
         .settings-item .info .name {
             font-weight: 600;
             white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
         .settings-btn {
             padding: 6px 16px;
@@ -952,9 +939,6 @@
             transition: all 0.2s;
             white-space: nowrap;
             flex-shrink: 0;
-            min-width: 104px;
-            text-align: center;
-            margin-left: auto;
         }
         .settings-btn.connect {
             background: var(--navy);
@@ -969,6 +953,18 @@
         }
         .settings-btn.disconnect:hover {
             background: #FEE2E2;
+        }
+        /* Khi màn hình hẹp, nếu xuống hàng, button căn phải */
+        @media (max-width: 480px) {
+            .settings-item {
+                flex-wrap: wrap;
+            }
+            .settings-item .info {
+                flex: 1 1 100%;
+            }
+            .settings-btn {
+                margin-left: auto;
+            }
         }
 
         /* ===== EDIT TASK MODAL (mini) ===== */
