@@ -54,6 +54,8 @@
         }
         html, body {
             height: 100%;
+            margin: 0;
+            padding: 0;
         }
         body {
             font-family: 'Plus Jakarta Sans', sans-serif;
@@ -71,7 +73,7 @@
             overflow-x: hidden;
             box-shadow: var(--shadow-lg);
             margin: 0 auto;
-            padding-bottom: 40px; /* thêm padding để cuộn xuống hết */
+            padding-bottom: 120px; /* Quan trọng: tạo khoảng trống để cuộn xuống hết */
         }
 
         /* ===== Nút ngôn ngữ hình tròn ===== */
@@ -1337,7 +1339,7 @@
                         <div class="feature-sub" data-i18n="settings_sub">Quản lý tài khoản Google, Trello</div>
                     </div>
                 </button>
-                <!-- Card trống để giữ layout 2 cột (có thể dùng cho tính năng khác sau) -->
+                <!-- Card trống giữ layout -->
                 <div class="feature-card" style="opacity:0; cursor:default; pointer-events:none; border-color:transparent; box-shadow:none;">
                     <div class="feature-icon navy"><i class="fa-regular fa-circle"></i></div>
                     <div>
@@ -2490,7 +2492,6 @@
     }
 
     function updateSettingsUI() {
-        // Cập nhật modal cài đặt
         const settingsGoogleStatus = document.getElementById('settingsGoogleStatus');
         const settingsGoogleBtn = document.getElementById('settingsGoogleBtn');
         const settingsTrelloStatus = document.getElementById('settingsTrelloStatus');
@@ -2514,7 +2515,6 @@
         }
 
         saveConnectionStatus();
-        // Cập nhật lại task list nếu đang mở
         renderTasks();
     }
 
