@@ -73,7 +73,7 @@
             overflow-x: hidden;
             box-shadow: var(--shadow-lg);
             margin: 0 auto;
-            padding-bottom: 300px; /* Tăng padding để cuộn xuống hết */
+            padding-bottom: 300px;
         }
 
         /* ===== Nút ngôn ngữ hình tròn ===== */
@@ -489,18 +489,18 @@
             font-weight: 500;
         }
 
-        /* ===== RECORDER MODAL ===== */
-        #recorderModal {
+        /* ===== CÁC MODAL - ĐỀU CĂN GIỮA ===== */
+        .modal-overlay {
             position: fixed;
             inset: 0;
             background: rgba(15,23,42,0.65);
             backdrop-filter: blur(8px);
             display: none;
-            align-items: flex-end;
+            align-items: center;
             justify-content: center;
             z-index: 100;
         }
-        #recorderModal.flex {
+        .modal-overlay.active {
             display: flex;
             animation: fadeIn 0.2s ease-out;
         }
@@ -508,56 +508,42 @@
             from { opacity: 0; }
             to { opacity: 1; }
         }
-        .modal-sheet {
+
+        .modal-box {
             background: var(--surface);
-            border-radius: 32px 32px 0 0;
+            border-radius: var(--radius-xl);
             width: 100%;
-            max-width: 100%;
-            max-height: 92vh;
+            max-width: 500px;
+            max-height: 90vh;
             overflow-y: auto;
-            padding: 0 0 calc(36px + env(safe-area-inset-bottom));
-            animation: slideUp 0.35s cubic-bezier(0.2,0.8,0.2,1);
-            box-shadow: 0 -12px 48px rgba(0,0,0,0.15);
-        }
-        @media (min-width: 640px) {
-            .modal-sheet {
-                max-width: 500px;
-                border-radius: 32px;
-                margin: 0 auto;
-            }
+            padding: 24px 24px 32px;
+            box-shadow: 0 20px 48px rgba(0,0,0,0.25);
+            animation: slideUp 0.3s cubic-bezier(0.2,0.8,0.2,1);
         }
         @keyframes slideUp {
-            from { transform: translateY(100%); }
-            to { transform: translateY(0); }
+            from { transform: translateY(30px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
         }
-        .modal-handle {
-            display: flex;
-            justify-content: center;
-            padding: 12px 0 8px;
-            position: sticky;
-            top: 0;
-            background: var(--surface);
-            z-index: 10;
-            border-radius: 32px 32px 0 0;
+
+        /* Riêng modal ghi âm (recorder) giữ nguyên bottom sheet? 
+           Theo yêu cầu "tất cả căn giữa", ta sẽ căn giữa cả recorder.
+           Nhưng nếu muốn giữ bottom sheet cho recorder, có thể comment.
+           Ở đây tôi căn giữa tất cả. */
+        .recorder-modal .modal-box {
+            max-width: 500px;
+            border-radius: var(--radius-xl);
         }
-        .modal-handle-bar {
-            width: 48px;
-            height: 5px;
-            background: #CBD5E1;
-            border-radius: 99px;
-        }
+
+        /* Điều chỉnh header của modal */
         .modal-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 12px 28px 24px;
+            padding-bottom: 16px;
             border-bottom: 1px solid var(--border);
-            position: sticky;
-            top: 25px;
-            background: var(--surface);
-            z-index: 9;
+            margin-bottom: 20px;
         }
-        .modal-title {
+        .modal-header .modal-title {
             font-size: 18px;
             font-weight: 800;
             color: var(--text);
@@ -575,14 +561,16 @@
             font-size: 16px;
             color: var(--muted);
             cursor: pointer;
+            transition: background 0.15s;
+        }
+        .modal-close:hover {
+            background: #E2E8F0;
         }
         .modal-close:active {
             transform: scale(0.9);
-            background: #E2E8F0;
         }
-        .modal-body {
-            padding: 28px 28px 0;
-        }
+
+        /* Các phần tử trong modal */
         .fields-stack {
             display: flex;
             flex-direction: column;
@@ -609,10 +597,6 @@
             display: flex;
             align-items: center;
             gap: 8px;
-        }
-        .timer-badge,
-        #waveformCanvas {
-            display: none !important;
         }
         .dual-controls {
             display: flex;
@@ -763,218 +747,15 @@
             margin-top: 16px;
             color: var(--success);
         }
-        @media (max-width: 640px) {
-            .app { max-width: 100%; }
-            .hero-card { margin-left: 16px; margin-right: 16px; }
-            .dash-section { padding-left: 16px; padding-right: 16px; }
+        .timer-badge,
+        #waveformCanvas {
+            display: none !important;
         }
-        .history-modal {
-            position: fixed;
-            inset: 0;
-            background: rgba(0,0,0,0.6);
-            display: none;
-            align-items: center;
-            justify-content: center;
-            z-index: 10000;
-        }
-        .history-modal.active {
-            display: flex !important;
-        }
-        .history-container {
-            background: white;
-            width: 90%;
-            max-width: 500px;
-            max-height: 80vh;
-            border-radius: 24px;
-            overflow-y: auto;
+
+        /* ===== TASK MODAL (căn giữa, không bottom sheet) ===== */
+        .task-modal .modal-box {
             padding: 20px;
-            position: relative;
-            box-shadow: 0 20px 35px -8px rgba(0,0,0,0.3);
         }
-        .history-item {
-            border-bottom: 1px solid #eee;
-            padding: 12px 0;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 12px;
-            flex-wrap: wrap;
-        }
-        .history-item:last-child {
-            border-bottom: none;
-        }
-        .history-info {
-            flex: 2;
-            font-size: 14px;
-            font-weight: 500;
-        }
-        .history-actions {
-            display: flex;
-            gap: 8px;
-            align-items: center;
-        }
-        .status-badge {
-            display: inline-block;
-            padding: 4px 8px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: bold;
-            white-space: nowrap;
-        }
-        .status-Done { background: #10B981; color: white; }
-        .status-Processing { background: #F59E0B; color: white; }
-        .status-Uploaded { background: #3B82F6; color: white; }
-        .expedite-btn {
-            background: #EF4444;
-            color: white;
-            border: none;
-            padding: 6px 12px;
-            border-radius: 20px;
-            font-size: 12px;
-            cursor: pointer;
-            white-space: nowrap;
-        }
-        .expedite-btn:disabled {
-            background: #ccc;
-            cursor: not-allowed;
-        }
-        .history-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 16px;
-        }
-        .close-history {
-            background: none;
-            border: none;
-            font-size: 24px;
-            cursor: pointer;
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .close-history:hover { background: #f0f0f0; }
-        .consent-disclaimer {
-            font-size: 14px;
-            font-weight: 400;
-            font-style: italic;
-            color: #1E293B;
-            text-align: center;
-            line-height: 1.7;
-            margin: 24px 0 18px;
-            padding: 14px 18px;
-            background: #F8FAFC;
-            border-radius: 10px;
-            border: 1px solid #CBD5E1;
-            box-shadow: none;
-            transition: all 0.2s ease;
-        }
-        .consent-disclaimer i {
-            color: var(--muted);
-            font-size: 16px;
-            margin-right: 8px;
-        }
-        .consent-disclaimer strong {
-            font-weight: 400;
-            color: inherit;
-            font-style: italic;
-        }
-        #fileStatusLabel {
-            pointer-events: none;
-        }
-        label.file-pick-btn {
-            cursor: pointer;
-        }
-
-        /* ===== TASK MODAL - ĐỒNG BỘ VỚI RECORDER MODAL ===== */
-        .task-modal {
-            position: fixed;
-            inset: 0;
-            background: rgba(15,23,42,0.65);
-            backdrop-filter: blur(8px);
-            display: none;
-            align-items: flex-end;
-            justify-content: center;
-            z-index: 10001;
-        }
-        .task-modal.active {
-            display: flex;
-            animation: fadeIn 0.2s ease-out;
-        }
-        .task-sheet {
-            background: var(--surface);
-            border-radius: 32px 32px 0 0;
-            width: 100%;
-            max-width: 100%;
-            max-height: 92vh;
-            overflow-y: auto;
-            padding: 0 0 calc(36px + env(safe-area-inset-bottom));
-            animation: slideUp 0.35s cubic-bezier(0.2,0.8,0.2,1);
-            box-shadow: 0 -12px 48px rgba(0,0,0,0.15);
-        }
-        @media (min-width: 640px) {
-            .task-sheet {
-                max-width: 500px;
-                border-radius: 32px;
-                margin: 0 auto;
-            }
-        }
-        .task-handle {
-            display: flex;
-            justify-content: center;
-            padding: 12px 0 8px;
-            position: sticky;
-            top: 0;
-            background: var(--surface);
-            z-index: 10;
-            border-radius: 32px 32px 0 0;
-        }
-        .task-handle-bar {
-            width: 48px;
-            height: 5px;
-            background: #CBD5E1;
-            border-radius: 99px;
-        }
-        .task-container {
-            padding: 0 20px 20px;
-        }
-        .task-header-bar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 12px 0 16px;
-            border-bottom: 1px solid var(--border);
-            position: sticky;
-            top: 25px;
-            background: var(--surface);
-            z-index: 9;
-        }
-        .task-header-bar h2 {
-            font-size: 18px;
-            font-weight: 800;
-            color: var(--text);
-            letter-spacing: -0.3px;
-        }
-        .task-modal .modal-close {
-            background: #F1F5F9;
-            border: none;
-            border-radius: 50%;
-            width: 36px;
-            height: 36px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 18px;
-            cursor: pointer;
-            color: var(--muted);
-        }
-        .task-modal .modal-close:hover {
-            background: #E2E8F0;
-        }
-
         .task-tabs {
             display: flex;
             gap: 8px;
@@ -1123,38 +904,8 @@
         }
 
         /* ===== SETTINGS MODAL ===== */
-        .settings-modal {
-            position: fixed;
-            inset: 0;
-            background: rgba(0,0,0,0.6);
-            display: none;
-            align-items: center;
-            justify-content: center;
-            z-index: 10002;
-        }
-        .settings-modal.active {
-            display: flex !important;
-        }
         .settings-container {
-            background: white;
-            width: 92%;
             max-width: 450px;
-            border-radius: 24px;
-            padding: 24px;
-            box-shadow: 0 20px 35px -8px rgba(0,0,0,0.3);
-            max-height: 90vh;
-            overflow-y: auto;
-        }
-        .settings-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-        .settings-header h2 {
-            font-size: 20px;
-            font-weight: 800;
-            color: var(--text);
         }
         .settings-item {
             display: flex;
@@ -1170,17 +921,23 @@
             display: flex;
             align-items: center;
             gap: 12px;
+            flex: 1;
         }
         .settings-item .info i {
             font-size: 24px;
             color: var(--navy);
+            width: 30px;
+            text-align: center;
         }
         .settings-item .info .name {
             font-weight: 600;
+            white-space: nowrap;
         }
         .settings-item .info .status {
             font-size: 13px;
             color: var(--muted);
+            white-space: nowrap;
+            margin-left: 8px;
         }
         .settings-item .info .status.connected {
             color: var(--success);
@@ -1193,6 +950,8 @@
             border: none;
             cursor: pointer;
             transition: all 0.2s;
+            white-space: nowrap;
+            flex-shrink: 0;
         }
         .settings-btn.connect {
             background: var(--navy);
@@ -1207,6 +966,113 @@
         }
         .settings-btn.disconnect:hover {
             background: #FEE2E2;
+        }
+
+        /* ===== HISTORY MODAL ===== */
+        .history-modal .modal-box {
+            max-width: 500px;
+        }
+        .history-item {
+            border-bottom: 1px solid #eee;
+            padding: 12px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        .history-item:last-child {
+            border-bottom: none;
+        }
+        .history-info {
+            flex: 2;
+            font-size: 14px;
+            font-weight: 500;
+        }
+        .history-actions {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+        .status-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            white-space: nowrap;
+        }
+        .status-Done { background: #10B981; color: white; }
+        .status-Processing { background: #F59E0B; color: white; }
+        .status-Uploaded { background: #3B82F6; color: white; }
+        .expedite-btn {
+            background: #EF4444;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+        .expedite-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        .history-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+        .close-history {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .close-history:hover { background: #f0f0f0; }
+
+        .consent-disclaimer {
+            font-size: 14px;
+            font-weight: 400;
+            font-style: italic;
+            color: #1E293B;
+            text-align: center;
+            line-height: 1.7;
+            margin: 24px 0 18px;
+            padding: 14px 18px;
+            background: #F8FAFC;
+            border-radius: 10px;
+            border: 1px solid #CBD5E1;
+        }
+        .consent-disclaimer i {
+            color: var(--muted);
+            font-size: 16px;
+            margin-right: 8px;
+        }
+        .consent-disclaimer strong {
+            font-weight: 400;
+            color: inherit;
+            font-style: italic;
+        }
+        #fileStatusLabel {
+            pointer-events: none;
+        }
+        label.file-pick-btn {
+            cursor: pointer;
+        }
+        @media (max-width: 640px) {
+            .app { max-width: 100%; }
+            .hero-card { margin-left: 16px; margin-right: 16px; }
+            .dash-section { padding-left: 16px; padding-right: 16px; }
+            .modal-box { margin: 16px; padding: 20px; }
         }
     </style>
 </head>
@@ -1321,7 +1187,6 @@
                         <div class="feature-sub" data-i18n="ai_sub">Xử lý biên bản họp</div>
                     </div>
                 </button>
-                <!-- CARD NHIỆM VỤ -->
                 <button class="feature-card" id="tasksBtn">
                     <div class="feature-icon navy"><i class="fa-solid fa-tasks"></i></div>
                     <div>
@@ -1329,7 +1194,6 @@
                         <div class="feature-sub" data-i18n="tasks_sub">Quản lý công việc</div>
                     </div>
                 </button>
-                <!-- CARD SỰ KIỆN -->
                 <button class="feature-card" id="eventsBtn">
                     <div class="feature-icon navy"><i class="fa-solid fa-calendar-days"></i></div>
                     <div>
@@ -1365,7 +1229,6 @@
         <div class="dash-section">
             <div class="section-title" data-i18n="settings_title">Cài đặt</div>
             <div class="feature-grid">
-                <!-- Card Kết nối ứng dụng (chiếm 1 ô) -->
                 <button class="feature-card" id="settingsBtn">
                     <div class="feature-icon navy"><i class="fa-solid fa-gear"></i></div>
                     <div>
@@ -1373,7 +1236,6 @@
                         <div class="feature-sub" data-i18n="settings_sub">Quản lý tài khoản Google, Trello</div>
                     </div>
                 </button>
-                <!-- Card trống giữ layout -->
                 <div class="feature-card" style="opacity:0; cursor:default; pointer-events:none; border-color:transparent; box-shadow:none;">
                     <div class="feature-icon navy"><i class="fa-regular fa-circle"></i></div>
                     <div>
@@ -1385,10 +1247,9 @@
         </div>
     </div>
 
-    <!-- ========== RECORDER MODAL ========== -->
-    <div id="recorderModal">
-        <div class="modal-sheet">
-            <div class="modal-handle"><div class="modal-handle-bar"></div></div>
+    <!-- ========== RECORDER MODAL (căn giữa) ========== -->
+    <div id="recorderModal" class="modal-overlay">
+        <div class="modal-box recorder-modal">
             <div class="modal-header">
                 <span class="modal-title" data-i18n="modal_title">Khởi tạo biên bản họp AI</span>
                 <button class="modal-close" id="closeModalBtn"><i class="fa-solid fa-xmark"></i></button>
@@ -1429,12 +1290,10 @@
                             <option value="bilingual" data-i18n="lang_mode_bilingual">Song ngữ</option>
                         </select>
                     </div>
-                    <!-- Ngôn ngữ 1: (chỉ hiển thị khi chọn Song ngữ) -->
                     <div id="sourceLangDiv" style="display:none;">
                         <label class="field-label">Ngôn ngữ 1:</label>
                         <input type="text" id="sourceLangDisplay" class="modal-input" disabled value="Ngôn ngữ gốc">
                     </div>
-                    <!-- Ngôn ngữ đích (hiển thị khi chọn Dịch sang hoặc Song ngữ) -->
                     <div id="targetLangDiv" style="display:none;">
                         <label class="field-label" id="targetLabel">Ngôn ngữ đích</label>
                         <select id="outputTargetLang" class="modal-input">
@@ -1461,7 +1320,6 @@
                             <option value="tr" data-i18n="lang_tr">🇹🇷 Türkçe</option>
                         </select>
                     </div>
-                    <!-- ===== KẾT THÚC ===== -->
                 </div>
 
                 <div class="record-panel">
@@ -1477,7 +1335,6 @@
                             <input type="file" id="fileInput" accept="audio/*, .webm, .mp3, .m4a, .wav" class="hidden">
                             <span id="fileStatusLabel" class="control-label" data-i18n="upload_btn">Tải lên</span>
                         </div>
-
                         <div class="control-wrapper">
                             <button type="button" id="recordBtn" class="circle-btn">
                                 <i class="fa-solid fa-microphone"></i>
@@ -1506,57 +1363,52 @@
         </div>
     </div>
 
-    <!-- ========== TASK MODAL - BOTTOM SHEET ========== -->
-    <div id="taskModal" class="task-modal">
-        <div class="task-sheet">
-            <div class="task-handle"><div class="task-handle-bar"></div></div>
-            <div class="task-container">
-                <div class="task-header-bar">
-                    <h2>Quản lý nhiệm vụ</h2> <!-- Đã bỏ icon 📋 -->
-                    <button class="modal-close" id="closeTaskModalBtn"><i class="fa-solid fa-xmark"></i></button>
-                </div>
+    <!-- ========== TASK MODAL (căn giữa) ========== -->
+    <div id="taskModal" class="modal-overlay task-modal">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h2 class="modal-title">Quản lý nhiệm vụ</h2>
+                <button class="modal-close" id="closeTaskModalBtn"><i class="fa-solid fa-xmark"></i></button>
+            </div>
 
-                <div class="task-tabs">
-                    <button class="task-tab active" data-tab="suggested">Đề xuất <span class="badge" id="suggestedCount">0</span></button>
-                    <button class="task-tab" data-tab="confirmed">Đã xác nhận <span class="badge" id="confirmedCount">0</span></button>
-                </div>
+            <div class="task-tabs">
+                <button class="task-tab active" data-tab="suggested">Đề xuất <span class="badge" id="suggestedCount">0</span></button>
+                <button class="task-tab" data-tab="confirmed">Đã xác nhận <span class="badge" id="confirmedCount">0</span></button>
+            </div>
 
-                <div id="taskTabSuggested" class="task-tab-content active">
-                    <div class="task-list" id="suggestedTaskList"></div>
-                </div>
-                <div id="taskTabConfirmed" class="task-tab-content">
-                    <div class="task-list" id="confirmedTaskList"></div>
-                </div>
+            <div id="taskTabSuggested" class="task-tab-content active">
+                <div class="task-list" id="suggestedTaskList"></div>
+            </div>
+            <div id="taskTabConfirmed" class="task-tab-content">
+                <div class="task-list" id="confirmedTaskList"></div>
             </div>
         </div>
     </div>
 
-    <!-- ========== SETTINGS MODAL ========== -->
-    <div id="settingsModal" class="settings-modal">
-        <div class="settings-container">
-            <div class="settings-header">
-                <h2>⚙️ Kết nối ứng dụng</h2>
+    <!-- ========== SETTINGS MODAL (căn giữa) ========== -->
+    <div id="settingsModal" class="modal-overlay settings-modal">
+        <div class="modal-box settings-container">
+            <div class="modal-header">
+                <h2 class="modal-title">⚙️ Kết nối ứng dụng</h2>
                 <button class="modal-close" id="closeSettingsBtn"><i class="fa-solid fa-xmark"></i></button>
             </div>
             <div id="settingsList">
-                <!-- Google -->
                 <div class="settings-item">
                     <div class="info">
                         <i class="fa-brands fa-google"></i>
                         <div>
-                            <div class="name">Google Tasks & Calendar</div>
-                            <div class="status" id="settingsGoogleStatus">Chưa kết nối</div>
+                            <span class="name">Google Tasks & Calendar</span>
+                            <span class="status" id="settingsGoogleStatus">Chưa kết nối</span>
                         </div>
                     </div>
                     <button class="settings-btn connect" id="settingsGoogleBtn">Kết nối</button>
                 </div>
-                <!-- Trello -->
                 <div class="settings-item">
                     <div class="info">
                         <i class="fa-brands fa-trello"></i>
                         <div>
-                            <div class="name">Trello</div>
-                            <div class="status" id="settingsTrelloStatus">Chưa kết nối</div>
+                            <span class="name">Trello</span>
+                            <span class="status" id="settingsTrelloStatus">Chưa kết nối</span>
                         </div>
                     </div>
                     <button class="settings-btn connect" id="settingsTrelloBtn">Kết nối</button>
@@ -1565,9 +1417,9 @@
         </div>
     </div>
 
-    <!-- ========== HISTORY MODAL ========== -->
-    <div id="historyModal" class="history-modal">
-        <div class="history-container">
+    <!-- ========== HISTORY MODAL (căn giữa) ========== -->
+    <div id="historyModal" class="modal-overlay history-modal">
+        <div class="modal-box">
             <div class="history-header">
                 <h3 data-i18n="history_title_modal">Lịch sử xử lý</h3>
                 <button class="close-history" id="closeHistoryBtn">&times;</button>
@@ -2383,7 +2235,7 @@
             return;
         }
         updateModalSalesInfo();
-        modal.classList.add('flex');
+        modal.classList.add('active');
         resetRecorder();
         const savedMode = localStorage.getItem('popminutes_output_mode') || 'auto';
         const savedTarget = localStorage.getItem('popminutes_output_target') || 'vi';
@@ -2394,7 +2246,7 @@
     });
 
     function closeModal() {
-        modal.classList.remove('flex');
+        modal.classList.remove('active');
         resetRecorder();
     }
     closeModalBtn.addEventListener('click', closeModal);
@@ -2969,7 +2821,6 @@
 
     async function requestExpedite(recordId) {
         const modalElem = document.getElementById('historyModal');
-        modalElem.style.display = 'none';
         modalElem.classList.remove('active');
         try {
             const formData = new URLSearchParams();
@@ -3013,17 +2864,15 @@
             return;
         }
         loadHistory().catch(err => console.error(err));
-        historyModal.style.display = 'flex';
         historyModal.classList.add('active');
     }
 
     function closeHistoryModal() {
-        historyModal.style.display = 'none';
         historyModal.classList.remove('active');
     }
     if (historyBtn) historyBtn.addEventListener('click', openHistoryModal);
     if (closeHistoryBtn) closeHistoryBtn.addEventListener('click', closeHistoryModal);
-    window.addEventListener('click', (e) => {
+    historyModal.addEventListener('click', function(e) {
         if (e.target === historyModal) closeHistoryModal();
     });
 
