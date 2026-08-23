@@ -525,16 +525,6 @@
             to { transform: translateY(0); opacity: 1; }
         }
 
-        /* Riêng modal ghi âm (recorder) giữ nguyên bottom sheet? 
-           Theo yêu cầu "tất cả căn giữa", ta sẽ căn giữa cả recorder.
-           Nhưng nếu muốn giữ bottom sheet cho recorder, có thể comment.
-           Ở đây tôi căn giữa tất cả. */
-        .recorder-modal .modal-box {
-            max-width: 500px;
-            border-radius: var(--radius-xl);
-        }
-
-        /* Điều chỉnh header của modal */
         .modal-header {
             display: flex;
             justify-content: space-between;
@@ -752,7 +742,7 @@
             display: none !important;
         }
 
-        /* ===== TASK MODAL (căn giữa, không bottom sheet) ===== */
+        /* ===== TASK MODAL ===== */
         .task-modal .modal-box {
             padding: 20px;
         }
@@ -921,7 +911,6 @@
             display: flex;
             align-items: center;
             gap: 12px;
-            flex: 1;
         }
         .settings-item .info i {
             font-size: 24px;
@@ -932,15 +921,6 @@
         .settings-item .info .name {
             font-weight: 600;
             white-space: nowrap;
-        }
-        .settings-item .info .status {
-            font-size: 13px;
-            color: var(--muted);
-            white-space: nowrap;
-            margin-left: 8px;
-        }
-        .settings-item .info .status.connected {
-            color: var(--success);
         }
         .settings-btn {
             padding: 6px 16px;
@@ -966,6 +946,59 @@
         }
         .settings-btn.disconnect:hover {
             background: #FEE2E2;
+        }
+
+        /* ===== EDIT TASK MODAL (mini) ===== */
+        .edit-task-modal .modal-box {
+            max-width: 420px;
+            padding: 24px;
+        }
+        .edit-task-modal .modal-box input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1.5px solid var(--border);
+            border-radius: var(--radius-sm);
+            font-family: inherit;
+            font-size: 15px;
+            font-weight: 500;
+            color: var(--text);
+            background: var(--white);
+            outline: none;
+            transition: all 0.2s ease;
+            margin-bottom: 16px;
+            box-shadow: var(--shadow-sm);
+        }
+        .edit-task-modal .modal-box input:focus {
+            border-color: var(--navy-light);
+            box-shadow: 0 0 0 4px rgba(45,63,166,0.1);
+        }
+        .edit-task-modal .modal-box .edit-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+        .edit-task-modal .modal-box .edit-actions button {
+            padding: 10px 24px;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 14px;
+            cursor: pointer;
+            border: none;
+            transition: all 0.2s;
+        }
+        .edit-task-modal .modal-box .edit-actions .save-edit {
+            background: var(--navy);
+            color: white;
+        }
+        .edit-task-modal .modal-box .edit-actions .save-edit:hover {
+            background: var(--navy-deep);
+        }
+        .edit-task-modal .modal-box .edit-actions .cancel-edit {
+            background: #F1F5F9;
+            color: var(--text);
+        }
+        .edit-task-modal .modal-box .edit-actions .cancel-edit:hover {
+            background: #E2E8F0;
         }
 
         /* ===== HISTORY MODAL ===== */
@@ -1247,7 +1280,7 @@
         </div>
     </div>
 
-    <!-- ========== RECORDER MODAL (căn giữa) ========== -->
+    <!-- ========== RECORDER MODAL ========== -->
     <div id="recorderModal" class="modal-overlay">
         <div class="modal-box recorder-modal">
             <div class="modal-header">
@@ -1281,7 +1314,7 @@
                         </div>
                     </div>
 
-                    <!-- ===== PHẦN CHỌN NGÔN NGỮ BIÊN BẢN ===== -->
+                    <!-- PHẦN CHỌN NGÔN NGỮ BIÊN BẢN -->
                     <div>
                         <label class="field-label" data-i18n="language_mode_label">Chế độ ngôn ngữ</label>
                         <select id="outputMode" class="modal-input" onchange="toggleLanguageTarget()">
@@ -1363,7 +1396,7 @@
         </div>
     </div>
 
-    <!-- ========== TASK MODAL (căn giữa) ========== -->
+    <!-- ========== TASK MODAL ========== -->
     <div id="taskModal" class="modal-overlay task-modal">
         <div class="modal-box">
             <div class="modal-header">
@@ -1385,7 +1418,22 @@
         </div>
     </div>
 
-    <!-- ========== SETTINGS MODAL (căn giữa) ========== -->
+    <!-- ========== EDIT TASK MODAL (mini) ========== -->
+    <div id="editTaskModal" class="modal-overlay edit-task-modal">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h2 class="modal-title">Chỉnh sửa nhiệm vụ</h2>
+                <button class="modal-close" id="closeEditTaskBtn"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <input type="text" id="editTaskInput" placeholder="Nhập tiêu đề mới..." />
+            <div class="edit-actions">
+                <button class="cancel-edit" id="cancelEditTaskBtn">Hủy</button>
+                <button class="save-edit" id="saveEditTaskBtn">Lưu</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== SETTINGS MODAL ========== -->
     <div id="settingsModal" class="modal-overlay settings-modal">
         <div class="modal-box settings-container">
             <div class="modal-header">
@@ -1396,20 +1444,14 @@
                 <div class="settings-item">
                     <div class="info">
                         <i class="fa-brands fa-google"></i>
-                        <div>
-                            <span class="name">Google Tasks & Calendar</span>
-                            <span class="status" id="settingsGoogleStatus">Chưa kết nối</span>
-                        </div>
+                        <span class="name">Google Tasks & Calendar</span>
                     </div>
                     <button class="settings-btn connect" id="settingsGoogleBtn">Kết nối</button>
                 </div>
                 <div class="settings-item">
                     <div class="info">
                         <i class="fa-brands fa-trello"></i>
-                        <div>
-                            <span class="name">Trello</span>
-                            <span class="status" id="settingsTrelloStatus">Chưa kết nối</span>
-                        </div>
+                        <span class="name">Trello</span>
                     </div>
                     <button class="settings-btn connect" id="settingsTrelloBtn">Kết nối</button>
                 </div>
@@ -1417,7 +1459,7 @@
         </div>
     </div>
 
-    <!-- ========== HISTORY MODAL (căn giữa) ========== -->
+    <!-- ========== HISTORY MODAL ========== -->
     <div id="historyModal" class="modal-overlay history-modal">
         <div class="modal-box">
             <div class="history-header">
@@ -1479,8 +1521,6 @@
             settings_sub: 'Quản lý tài khoản Google, Trello',
             google_connect: 'Google Tasks & Calendar',
             trello_connect: 'Trello',
-            not_connected: 'Chưa kết nối',
-            connected: 'Đã kết nối',
             connect_btn: 'Kết nối',
             disconnect_btn: 'Ngắt kết nối',
             modal_title: 'Khởi tạo biên bản họp AI',
@@ -1590,8 +1630,6 @@
             settings_sub: 'Manage Google, Trello accounts',
             google_connect: 'Google Tasks & Calendar',
             trello_connect: 'Trello',
-            not_connected: 'Not connected',
-            connected: 'Connected',
             connect_btn: 'Connect',
             disconnect_btn: 'Disconnect',
             modal_title: 'Initialize AI Meeting Minutes',
@@ -2381,22 +2419,12 @@
     }
 
     function updateSettingsUI() {
-        const settingsGoogleStatus = document.getElementById('settingsGoogleStatus');
         const settingsGoogleBtn = document.getElementById('settingsGoogleBtn');
-        const settingsTrelloStatus = document.getElementById('settingsTrelloStatus');
         const settingsTrelloBtn = document.getElementById('settingsTrelloBtn');
 
-        if (settingsGoogleStatus) {
-            settingsGoogleStatus.textContent = connections.google ? t('connected') : t('not_connected');
-            settingsGoogleStatus.className = 'status' + (connections.google ? ' connected' : '');
-        }
         if (settingsGoogleBtn) {
             settingsGoogleBtn.textContent = connections.google ? t('disconnect_btn') : t('connect_btn');
             settingsGoogleBtn.className = 'settings-btn ' + (connections.google ? 'disconnect' : 'connect');
-        }
-        if (settingsTrelloStatus) {
-            settingsTrelloStatus.textContent = connections.trello ? t('connected') : t('not_connected');
-            settingsTrelloStatus.className = 'status' + (connections.trello ? ' connected' : '');
         }
         if (settingsTrelloBtn) {
             settingsTrelloBtn.textContent = connections.trello ? t('disconnect_btn') : t('connect_btn');
@@ -2547,7 +2575,7 @@
                             </div>
                         </div>
                         <div class="task-actions">
-                            <button class="edit-btn" onclick="editConfirmedTask('${task.id}')" title="Sửa"><i class="fa-regular fa-pen-to-square"></i></button>
+                            <button class="edit-btn" onclick="openEditTaskModal('${task.id}')" title="Sửa"><i class="fa-regular fa-pen-to-square"></i></button>
                             <button class="delete-btn" onclick="deleteConfirmedTask('${task.id}')" title="Xóa"><i class="fa-regular fa-trash-can"></i></button>
                         </div>
                     </div>
@@ -2557,6 +2585,62 @@
         container.innerHTML = html;
     }
 
+    // ========================================================================
+    //  EDIT TASK MODAL (mini)
+    // ========================================================================
+    let editingConfirmedTaskId = null;
+    const editTaskModal = document.getElementById('editTaskModal');
+    const editTaskInput = document.getElementById('editTaskInput');
+    const closeEditTaskBtn = document.getElementById('closeEditTaskBtn');
+    const cancelEditTaskBtn = document.getElementById('cancelEditTaskBtn');
+    const saveEditTaskBtn = document.getElementById('saveEditTaskBtn');
+
+    function openEditTaskModal(taskId) {
+        const task = tasks.confirmed.find(t => t.id === taskId);
+        if (!task) return;
+        editingConfirmedTaskId = taskId;
+        editTaskInput.value = task.title;
+        editTaskModal.classList.add('active');
+        editTaskInput.focus();
+        editTaskInput.select();
+    }
+
+    function closeEditTaskModal() {
+        editTaskModal.classList.remove('active');
+        editingConfirmedTaskId = null;
+        editTaskInput.value = '';
+    }
+
+    function saveEditedTask() {
+        const newTitle = editTaskInput.value.trim();
+        if (!newTitle) {
+            showToast('⚠️ Tiêu đề không được để trống', false);
+            return;
+        }
+        const task = tasks.confirmed.find(t => t.id === editingConfirmedTaskId);
+        if (task) {
+            task.title = newTitle;
+            saveTasksToStorage();
+            renderTasks();
+            closeEditTaskModal();
+            showToast('✅ Đã cập nhật nhiệm vụ', true);
+        }
+    }
+
+    closeEditTaskBtn.addEventListener('click', closeEditTaskModal);
+    cancelEditTaskBtn.addEventListener('click', closeEditTaskModal);
+    saveEditTaskBtn.addEventListener('click', saveEditedTask);
+    editTaskInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') saveEditedTask();
+        if (e.key === 'Escape') closeEditTaskModal();
+    });
+    editTaskModal.addEventListener('click', (e) => {
+        if (e.target === editTaskModal) closeEditTaskModal();
+    });
+
+    // ========================================================================
+    //  TASK FUNCTIONS
+    // ========================================================================
     function editTask(id) {
         if (editingTaskId === id) {
             editingTaskId = null;
@@ -2625,19 +2709,6 @@
             openSettingsModal();
         } else {
             showToast('⚠️ Không hỗ trợ kết nối cho nền tảng này', false);
-        }
-    }
-
-    function editConfirmedTask(id) {
-        const task = tasks.confirmed.find(t => t.id === id);
-        if (task) {
-            const newTitle = prompt('Sửa tiêu đề:', task.title);
-            if (newTitle !== null && newTitle.trim() !== '') {
-                task.title = newTitle.trim();
-                saveTasksToStorage();
-                renderTasks();
-                showToast('✅ Đã cập nhật nhiệm vụ', true);
-            }
         }
     }
 
