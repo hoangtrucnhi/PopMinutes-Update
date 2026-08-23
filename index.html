@@ -2414,23 +2414,23 @@
     }
 
     function connectPlatform(platform) {
-        if (platform === 'google') {
+        if (platform === 'Google') {
             connections.google = true;
-        } else if (platform === 'trello') {
+        } else if (platform === 'Trello') {
             connections.trello = true;
         }
         updateSettingsUI();
-        showToast(`✅ Đã kết nối ${platform}`, true);
+        showToast(`Đã kết nối ${platform}`, true);
     }
 
     function disconnectPlatform(platform) {
-        if (platform === 'google') {
+        if (platform === 'Google') {
             connections.google = false;
-        } else if (platform === 'trello') {
+        } else if (platform === 'Trello') {
             connections.trello = false;
         }
         updateSettingsUI();
-        showToast(`🔴 Đã ngắt kết nối ${platform}`, false);
+        showToast(`Đã ngắt kết nối ${platform}`, false);
     }
 
     // ========================================================================
