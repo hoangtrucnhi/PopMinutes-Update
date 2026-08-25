@@ -829,77 +829,62 @@
         .task-item .task-actions .confirm-btn:hover { background: #D1FAE5; }
         .task-item .task-actions .delete-btn { color: var(--danger); }
         .task-item .task-actions .delete-btn:hover { background: var(--danger-pale); }
-        .task-item .task-actions .connect-btn { 
-            color: white; 
-            background: var(--navy); 
-            border-radius: 20px; 
-            padding: 4px 14px; 
-            font-size: 12px; 
+        .task-item .task-actions .platform-btn {
+            color: var(--navy);
+            background: var(--navy-pale);
+            border-radius: 20px;
+            padding: 4px 12px;
+            font-size: 12px;
             font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
         }
-        .task-item .task-actions .connect-btn:hover { background: var(--navy-deep); }
-        .task-item .task-actions .connect-btn.connected {
-            background: #10B981;
-            color: white;
-            cursor: default;
-            pointer-events: none;
+        .task-item .task-actions .platform-btn:hover { background: #D6E0FF; }
+        .task-item .task-actions .platform-btn.connected {
+            background: #D1FAE5;
+            color: #065F46;
         }
-        .task-item .task-actions .connect-btn.connected i {
-            font-size: 14px;
+        .task-item .task-actions .platform-btn i {
+            font-size: 13px;
         }
-        .task-item .task-edit-form {
+
+        /* Dropdown chọn nền tảng */
+        .platform-dropdown {
             display: none;
-            flex-direction: column;
-            gap: 8px;
-            margin-top: 6px;
             background: white;
-            padding: 12px;
+            border: 1px solid var(--border);
             border-radius: 12px;
-            border: 1px solid var(--border);
+            padding: 12px;
+            margin-top: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
         }
-        .task-item .task-edit-form.active { display: flex; }
-        .task-item .task-edit-form input,
-        .task-item .task-edit-form select {
-            padding: 8px 12px;
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            font-size: 13px;
-            font-family: inherit;
-            outline: none;
-        }
-        .task-item .task-edit-form input:focus,
-        .task-item .task-edit-form select:focus {
-            border-color: var(--navy-light);
-            box-shadow: 0 0 0 3px rgba(45,63,166,0.1);
-        }
-        .task-item .task-edit-form .edit-actions {
-            display: flex;
-            gap: 10px;
-            justify-content: flex-end;
-            margin-top: 6px;
-        }
-        .task-item .task-edit-form .edit-actions button {
-            padding: 6px 16px;
-            border-radius: 8px;
-            font-weight: 600;
-            font-size: 13px;
-            cursor: pointer;
-            border: none;
-        }
-        .task-item .task-edit-form .edit-actions .save-edit { background: var(--navy); color: white; }
-        .task-item .task-edit-form .edit-actions .cancel-edit { background: #F1F5F9; color: var(--text); }
-        .task-empty {
-            text-align: center;
-            padding: 30px 0;
-            color: var(--muted);
-            font-size: 14px;
-            font-weight: 500;
-        }
-        .task-tab-content {
-            display: none;
-        }
-        .task-tab-content.active {
+        .platform-dropdown.active {
             display: block;
+        }
+        .platform-option {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 0;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text);
+        }
+        .platform-option input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            accent-color: var(--navy);
+        }
+        .platform-option label {
+            cursor: pointer;
+        }
+        .platform-empty {
+            font-size: 12px;
+            color: var(--muted);
+            text-align: center;
+            padding: 6px 0;
         }
 
         /* ===== SETTINGS MODAL ===== */
@@ -1634,7 +1619,7 @@
             task_unassigned: 'Chưa phân công',
             edit_tooltip: 'Sửa',
             confirm_tooltip: 'Xác nhận',
-            connect_task_btn: 'Kết nối',
+            platform_tooltip: 'Chọn nền tảng',
             connected_title: 'Đã kết nối',
             delete_tooltip: 'Xóa',
             title_placeholder: 'Tiêu đề',
@@ -1775,7 +1760,7 @@
             task_unassigned: 'Unassigned',
             edit_tooltip: 'Edit',
             confirm_tooltip: 'Confirm',
-            connect_task_btn: 'Connect',
+            platform_tooltip: 'Select platforms',
             connected_title: 'Connected',
             delete_tooltip: 'Delete',
             title_placeholder: 'Title',
@@ -2625,6 +2610,18 @@
         return map[platform] || platform;
     }
 
+    function getConnectedPlatforms() {
+        const platforms = [];
+        if (connections.google) {
+            platforms.push('Google_Tasks');
+            platforms.push('Google_Calendar');
+        }
+        if (connections.trello) {
+            platforms.push('Trello');
+        }
+        return platforms;
+    }
+
     function renderSuggestedTasks() {
         const container = document.getElementById('suggestedTaskList');
         if (tasks.suggested.length === 0) {
@@ -2634,37 +2631,48 @@
         let html = '';
         tasks.suggested.forEach(task => {
             const isEditing = (editingTaskId === task.id);
-            const connected = isConnected(task.platform);
+            const connectedPlatforms = getConnectedPlatforms();
+            const selectedPlatforms = task.platforms || [];
+            const hasSelection = selectedPlatforms.length > 0;
+            const platformBtnClass = hasSelection ? 'platform-btn connected' : 'platform-btn';
+            const platformBtnIcon = hasSelection ? 'fa-solid fa-check-double' : 'fa-solid fa-layer-group';
+            const platformBtnText = hasSelection ? selectedPlatforms.length : '';
+
             html += `
                 <div class="task-item" data-id="${task.id}">
                     <div class="task-header">
-                        <div>
+                        <div class="task-info" style="flex:1; min-width:0;">
                             <div class="task-title">${task.title}</div>
                             <div class="task-meta">
                                 <span><i class="fa-regular fa-calendar"></i> ${task.due || t('task_no_due')}</span>
-                                <span><i class="fa-regular fa-user"></i> ${task.assignee || t('task_unassigned')}</span>
-                                <span><i class="fa-regular fa-folder"></i> ${displayPlatform(task.platform)}</span>
                             </div>
                         </div>
-                        <div class="task-actions">
+                        <div class="task-actions" style="flex-shrink:0;">
+                            <button class="platform-btn ${hasSelection ? 'connected' : ''}" onclick="togglePlatformDropdown('${task.id}')" title="${t('platform_tooltip')}">
+                                <i class="${platformBtnIcon}"></i> ${platformBtnText}
+                            </button>
                             <button class="edit-btn" onclick="editTask('${task.id}')" title="${t('edit_tooltip')}"><i class="fa-regular fa-pen-to-square"></i></button>
                             <button class="confirm-btn" onclick="confirmTask('${task.id}')" title="${t('confirm_tooltip')}"><i class="fa-regular fa-circle-check"></i></button>
-                            ${connected 
-                                ? `<button class="connect-btn connected" disabled title="${t('connected_title')}"><i class="fa-solid fa-check"></i></button>`
-                                : `<button class="connect-btn" onclick="handleConnectForTask('${task.id}')" title="${t('connect_task_btn')}">🔗 ${t('connect_task_btn')}</button>`
-                            }
                         </div>
+                    </div>
+                    <div class="platform-dropdown" id="platformDropdown_${task.id}">
+                        ${connectedPlatforms.length === 0 
+                            ? '<div class="platform-empty">Bạn chưa kết nối nền tảng nào. Hãy vào Cài đặt để kết nối.</div>'
+                            : connectedPlatforms.map(platform => `
+                                <div class="platform-option">
+                                    <input type="checkbox" id="platform_${task.id}_${platform}" value="${platform}" 
+                                        ${selectedPlatforms.some(p => p.platform === platform) ? 'checked' : ''}
+                                        onchange="updateTaskPlatforms('${task.id}', '${platform}', this.checked)">
+                                    <label for="platform_${task.id}_${platform}">${displayPlatform(platform)}</label>
+                                </div>
+                            `).join('')
+                        }
                     </div>
                     <div class="task-edit-form ${isEditing ? 'active' : ''}">
                         <input type="text" id="edit_title_${task.id}" value="${task.title}" placeholder="${t('title_placeholder')}">
                         <input type="text" id="edit_desc_${task.id}" value="${task.description || ''}" placeholder="${t('desc_placeholder')}">
                         <input type="date" id="edit_due_${task.id}" value="${task.due || ''}">
                         <input type="text" id="edit_assignee_${task.id}" value="${task.assignee || ''}" placeholder="${t('assignee_placeholder')}">
-                        <select id="edit_platform_${task.id}">
-                            <option value="Google_Tasks" ${task.platform === 'Google_Tasks' ? 'selected' : ''}>Google Tasks</option>
-                            <option value="Google_Calendar" ${task.platform === 'Google_Calendar' ? 'selected' : ''}>Google Calendar</option>
-                            <option value="Trello" ${task.platform === 'Trello' ? 'selected' : ''}>Trello</option>
-                        </select>
                         <div class="edit-actions">
                             <button class="save-edit" onclick="saveEditTask('${task.id}')">${t('save_btn')}</button>
                             <button class="cancel-edit" onclick="cancelEditTask()">${t('cancel_btn')}</button>
@@ -2684,15 +2692,15 @@
         }
         let html = '';
         tasks.confirmed.forEach(task => {
+            const platformNames = (task.platforms || []).map(p => displayPlatform(p.platform)).join(', ');
             html += `
                 <div class="task-item">
                     <div class="task-header">
-                        <div>
+                        <div class="task-info" style="flex:1; min-width:0;">
                             <div class="task-title">${task.title}</div>
                             <div class="task-meta">
                                 <span><i class="fa-regular fa-calendar"></i> ${task.due || t('task_no_due')}</span>
-                                <span><i class="fa-regular fa-user"></i> ${task.assignee || t('task_unassigned')}</span>
-                                <span><i class="fa-regular fa-folder"></i> ${displayPlatform(task.platform)}</span>
+                                ${platformNames ? `<span><i class="fa-solid fa-layer-group"></i> ${platformNames}</span>` : ''}
                             </div>
                         </div>
                         <div class="task-actions">
@@ -2776,7 +2784,6 @@
         const desc = document.getElementById(`edit_desc_${id}`).value.trim();
         const due = document.getElementById(`edit_due_${id}`).value;
         const assignee = document.getElementById(`edit_assignee_${id}`).value.trim();
-        const platform = document.getElementById(`edit_platform_${id}`).value;
 
         const task = tasks.suggested.find(t => t.id === id);
         if (task) {
@@ -2784,7 +2791,6 @@
             task.description = desc || task.description;
             task.due = due || task.due;
             task.assignee = assignee || task.assignee;
-            task.platform = platform || task.platform;
             saveTasksToStorage();
             editingTaskId = null;
             renderTasks();
@@ -2796,56 +2802,104 @@
         renderTasks();
     }
 
+    function togglePlatformDropdown(taskId) {
+        const dropdown = document.getElementById(`platformDropdown_${taskId}`);
+        if (dropdown) {
+            dropdown.classList.toggle('active');
+        }
+    }
+
+    function updateTaskPlatforms(taskId, platform, checked) {
+        const task = tasks.suggested.find(t => t.id === taskId);
+        if (!task) return;
+        if (!task.platforms) task.platforms = [];
+        if (checked) {
+            if (!task.platforms.some(p => p.platform === platform)) {
+                task.platforms.push({
+                    platform: platform,
+                    externalId: '',
+                    syncStatus: 'pending',
+                    syncedAt: ''
+                });
+            }
+        } else {
+            task.platforms = task.platforms.filter(p => p.platform !== platform);
+        }
+        // Cập nhật nút platform
+        const btn = document.querySelector(`[onclick="togglePlatformDropdown('${taskId}')"]`);
+        if (btn) {
+            const hasSelection = task.platforms.length > 0;
+            btn.classList.toggle('connected', hasSelection);
+            btn.innerHTML = hasSelection ? `<i class="fa-solid fa-check-double"></i> ${task.platforms.length}` : '<i class="fa-solid fa-layer-group"></i>';
+        }
+        saveTasksToStorage();
+    }
+
     async function confirmTask(id) {
         const taskIndex = tasks.suggested.findIndex(t => t.id === id);
         if (taskIndex === -1) return;
         const task = tasks.suggested[taskIndex];
 
         try {
-            // 1. Gọi Cloud Run tạo task với bên thứ 3 (nếu có kết nối)
-            if (isConnected(task.platform)) {
-                const createResponse = await fetch(CLOUD_FUNCTION_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        action: 'createTask',
-                        userEmail: currentEmail,
-                        task: task
-                    })
-                });
-                const createResult = await createResponse.json();
-                if (createResult.status === 200 && createResult.externalId) {
-                    // Cập nhật GAS TASK_PLATFORMS
-                    await fetch(APPS_SCRIPT_URL, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            action: 'updateTaskPlatform',
-                            taskId: task.id,
-                            platform: task.platform,
-                            externalId: createResult.externalId,
-                            syncStatus: 'synced'
-                        })
-                    });
-                } else {
-                    throw new Error(createResult.message || 'Create task failed');
+            const selectedPlatforms = task.platforms || [];
+            if (selectedPlatforms.length > 0) {
+                // Gọi Cloud Run cho từng platform đã chọn
+                for (const platformObj of selectedPlatforms) {
+                    if (isConnected(platformObj.platform)) {
+                        const createResponse = await fetch(CLOUD_FUNCTION_URL, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                action: 'createTask',
+                                userEmail: currentEmail,
+                                task: {
+                                    ...task,
+                                    platform: platformObj.platform
+                                }
+                            })
+                        });
+                        const createResult = await createResponse.json();
+                        if (createResult.status === 200 && createResult.externalId) {
+                            // Cập nhật GAS TASK_PLATFORMS
+                            await fetch(APPS_SCRIPT_URL, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                    action: 'updateTaskPlatform',
+                                    taskId: task.id,
+                                    platform: platformObj.platform,
+                                    externalId: createResult.externalId,
+                                    syncStatus: 'synced'
+                                })
+                            });
+                            platformObj.syncStatus = 'synced';
+                            platformObj.externalId = createResult.externalId;
+                        } else {
+                            throw new Error(createResult.message || 'Create task failed');
+                        }
+                    } else {
+                        // Nếu platform chưa kết nối, vẫn đánh dấu not_required
+                        await fetch(APPS_SCRIPT_URL, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                action: 'updateTaskPlatform',
+                                taskId: task.id,
+                                platform: platformObj.platform,
+                                externalId: '',
+                                syncStatus: 'not_required'
+                            })
+                        });
+                        platformObj.syncStatus = 'not_required';
+                    }
                 }
             } else {
-                // Không kết nối, đánh dấu not_required
-                await fetch(APPS_SCRIPT_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        action: 'updateTaskPlatform',
-                        taskId: task.id,
-                        platform: task.platform,
-                        externalId: '',
-                        syncStatus: 'not_required'
-                    })
-                });
+                // Không có platform, đánh dấu task confirmed cục bộ
+                // Có thể gọi GAS update status chung hoặc để nguyên
+                console.log('Xác nhận task không có platform');
             }
 
-            // 2. Cập nhật UI
+            // Cập nhật UI
             tasks.suggested.splice(taskIndex, 1);
             tasks.confirmed.push(task);
             saveTasksToStorage();
@@ -2857,24 +2911,7 @@
     }
 
     function handleConnectForTask(taskId) {
-        const task = tasks.suggested.find(t => t.id === taskId);
-        if (!task) return;
-
-        if (isConnected(task.platform)) {
-            showToast(t('connected_title') + ' – ' + displayPlatform(task.platform), true);
-            return;
-        }
-
-        const platform = task.platform;
-        let key = '';
-        if (platform === 'Google_Tasks' || platform === 'Google_Calendar') key = 'google';
-        else if (platform === 'Trello') key = 'trello';
-
-        if (key) {
-            openSettingsModal();
-        } else {
-            showToast('⚠️ ' + t('unsupported_platform'), false);
-        }
+        // Hàm này có thể giữ nhưng không dùng nữa
     }
 
     function deleteConfirmedTask(id) {
@@ -2904,18 +2941,17 @@
                 const suggested = [];
                 const confirmed = [];
                 result.tasks.forEach(task => {
-                    const primaryPlatform = task.platforms && task.platforms.length > 0 ? task.platforms[0].platform : 'Google_Tasks';
+                    // Giữ nguyên danh sách platforms từ GAS
                     const taskObj = {
                         id: task.id,
                         title: task.title,
                         description: task.description,
                         due: task.due,
                         assignee: task.assignee,
-                        platform: primaryPlatform,
-                        status: task.status,
-                        platforms: task.platforms || []
+                        platforms: task.platforms || [],
+                        status: task.status
                     };
-                    if (task.status === 'pending' || task.status === 'not_required') {
+                    if (task.status === 'pending' || task.status === 'not_required' || task.status === 'partial') {
                         suggested.push(taskObj);
                     } else {
                         confirmed.push(taskObj);
@@ -2993,255 +3029,3 @@
         }
         loadConnectionStatus();
         settingsModal.classList.add('active');
-    }
-
-    function closeSettingsModal() {
-        settingsModal.classList.remove('active');
-    }
-
-    document.getElementById('settingsBtn').addEventListener('click', openSettingsModal);
-
-    closeSettingsBtn.addEventListener('click', closeSettingsModal);
-    settingsModal.addEventListener('click', function(e) {
-        if (e.target === settingsModal) closeSettingsModal();
-    });
-
-    document.getElementById('settingsGoogleBtn').addEventListener('click', function() {
-        if (connections.google) {
-            disconnectPlatform('google');
-        } else {
-            connectPlatform('google');
-        }
-        updateSettingsUI();
-    });
-
-    document.getElementById('settingsTrelloBtn').addEventListener('click', function() {
-        if (connections.trello) {
-            disconnectPlatform('trello');
-        } else {
-            connectPlatform('trello');
-        }
-        updateSettingsUI();
-    });
-
-    // ========================================================================
-    //  LỊCH SỬ
-    // ========================================================================
-    function showToast(message, isSuccess = true) {
-        let oldToast = document.getElementById('customToast');
-        if (oldToast) oldToast.remove();
-
-        const toast = document.createElement('div');
-        toast.id = 'customToast';
-        toast.style.cssText = `
-            position: fixed; bottom: 30px; left: 50%;
-            transform: translateX(-50%) translateY(20px);
-            background-color: ${isSuccess ? 'rgba(27,43,122,0.95)' : 'rgba(239,68,68,0.95)'};
-            color: white; padding: 12px 24px; border-radius: 60px;
-            font-size: 14px; font-weight: 600; font-family: 'Plus Jakarta Sans', sans-serif;
-            box-shadow: 0 8px 20px rgba(0,0,0,0.15); z-index: 100000;
-            display: flex; align-items: center; gap: 10px;
-            backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,0.2);
-            transition: opacity 0.3s ease, transform 0.3s ease;
-            opacity: 0; pointer-events: none; white-space: normal;
-            text-align: center; line-height: 1.4; max-width: 90vw;
-        `;
-        const icon = document.createElement('i');
-        icon.className = isSuccess ? 'fa-regular fa-circle-check' : 'fa-regular fa-circle-xmark';
-        icon.style.fontSize = '18px';
-        icon.style.marginRight = '4px';
-        const textSpan = document.createElement('span');
-        textSpan.textContent = message;
-        toast.appendChild(icon);
-        toast.appendChild(textSpan);
-        document.body.appendChild(toast);
-        setTimeout(() => { toast.style.opacity = '1'; toast.style.transform = 'translateX(-50%) translateY(0)'; }, 10);
-        setTimeout(() => {
-            toast.style.opacity = '0';
-            toast.style.transform = 'translateX(-50%) translateY(20px)';
-            setTimeout(() => { if (toast.parentNode) toast.parentNode.removeChild(toast); }, 300);
-        }, 3500);
-    }
-
-    async function loadHistory() {
-        const historyListDiv = document.getElementById('historyList');
-        historyListDiv.innerHTML = `<p>${t('history_loading')}</p>`;
-        try {
-            const formData = new URLSearchParams();
-            formData.append('action', 'getUserHistory');
-            formData.append('salesEmail', currentEmail);
-            const response = await fetch(APPS_SCRIPT_URL, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                body: formData.toString()
-            });
-            const history = await response.json();
-            if (!history.length) {
-                historyListDiv.innerHTML = `<p>${t('history_empty')}</p>`;
-                return;
-            }
-            let html = '';
-            history.forEach(record => {
-                let statusClass = '';
-                if (record.status === 'Done') statusClass = 'status-Done';
-                else if (record.status === 'Processing') statusClass = 'status-Processing';
-                else statusClass = 'status-Uploaded';
-                const clientName = escapeHtml(record.clientName || t('customer_label'));
-                const createdAt = record.createdAt || 'N/A';
-                const statusText = record.status || t('status_unknown');
-                const expediteLabel = t('expedite_btn');
-                const canExpedite = record.canExpedite ? `<button class="expedite-btn" data-record-id="${escapeHtml(record.recordId)}">${expediteLabel}</button>` : '';
-                html += `
-                    <div class="history-item">
-                        <div class="history-info"><strong>${clientName}</strong> - ${createdAt}</div>
-                        <div class="history-actions">
-                            <span class="status-badge ${statusClass}">${statusText}</span>
-                            ${canExpedite}
-                        </div>
-                    </div>
-                `;
-            });
-            historyListDiv.innerHTML = html;
-            document.querySelectorAll('.expedite-btn').forEach(btn => {
-                btn.addEventListener('click', async () => {
-                    const recordId = btn.getAttribute('data-record-id');
-                    await requestExpedite(recordId);
-                });
-            });
-        } catch (err) {
-            console.error(err);
-            historyListDiv.innerHTML = `<p>${t('history_empty')}</p>`;
-        }
-    }
-
-    async function requestExpedite(recordId) {
-        const modalElem = document.getElementById('historyModal');
-        modalElem.classList.remove('active');
-        try {
-            const formData = new URLSearchParams();
-            formData.append('action', 'expedite');
-            formData.append('recordId', recordId);
-            formData.append('salesEmail', currentEmail);
-            const response = await fetch(APPS_SCRIPT_URL, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                body: formData.toString()
-            });
-            const result = await response.json();
-            if (result.status === 200) {
-                showToast(t('toast_expedite_sent'), true);
-            } else {
-                showToast(t('toast_expedite_fail'), false);
-            }
-        } catch (err) {
-            console.error(err);
-            showToast(t('toast_network_error') + err.message, false);
-        }
-    }
-
-    function escapeHtml(str) {
-        if (!str) return '';
-        return str.replace(/[&<>]/g, function(m) {
-            if (m === '&') return '&amp;';
-            if (m === '<') return '&lt;';
-            if (m === '>') return '&gt;';
-            return m;
-        });
-    }
-
-    const historyModal = document.getElementById('historyModal');
-    const historyBtn = document.getElementById('historyBtn');
-    const closeHistoryBtn = document.getElementById('closeHistoryBtn');
-
-    function openHistoryModal() {
-        if (!currentEmail) {
-            showToast(t('toast_login_required'), false);
-            return;
-        }
-        loadHistory().catch(err => console.error(err));
-        historyModal.classList.add('active');
-    }
-
-    function closeHistoryModal() {
-        historyModal.classList.remove('active');
-    }
-    if (historyBtn) historyBtn.addEventListener('click', openHistoryModal);
-    if (closeHistoryBtn) closeHistoryBtn.addEventListener('click', closeHistoryModal);
-    historyModal.addEventListener('click', function(e) {
-        if (e.target === historyModal) closeHistoryModal();
-    });
-
-    // ========================================================================
-    //  SỰ KIỆN
-    // ========================================================================
-    document.getElementById('eventsBtn').addEventListener('click', function() {
-        alert(t('events_feature_alert'));
-    });
-
-    // ========================================================================
-    //  PWA
-    // ========================================================================
-    if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-            navigator.serviceWorker.register('/PopMinutes-PWA/sw-v2.js')
-                .then(reg => console.log('PopMinutes PWA đã kích hoạt thành công tại: ', reg.scope))
-                .catch(err => console.log('Kích hoạt PWA thất bại: ', err));
-        });
-    }
-
-    let deferredPrompt;
-    const btnInstall = document.getElementById('btnInstall');
-    window.addEventListener('beforeinstallprompt', (e) => {
-        e.preventDefault();
-        deferredPrompt = e;
-        if (btnInstall) btnInstall.style.display = 'block';
-    });
-    if (btnInstall) {
-        btnInstall.addEventListener('click', async () => {
-            if (!deferredPrompt) return;
-            deferredPrompt.prompt();
-            const { outcome } = await deferredPrompt.userChoice;
-            console.log(`User response to install prompt: ${outcome}`);
-            deferredPrompt = null;
-            btnInstall.style.display = 'none';
-        });
-    }
-    window.addEventListener('appinstalled', () => {
-        console.log('PopMinutes PWA đã được cài đặt thành công!');
-        if (btnInstall) btnInstall.style.display = 'none';
-    });
-
-    // ========================================================================
-    //  KHỞI CHẠY
-    // ========================================================================
-    document.addEventListener('DOMContentLoaded', async function() {
-        await tryAutoLogin();
-        applyLanguage(currentLang);
-        loginItems.forEach(item => {
-            item.classList.toggle('active-lang', item.dataset.lang === currentLang);
-        });
-        dashItems.forEach(item => {
-            item.classList.toggle('active-lang', item.dataset.lang === currentLang);
-        });
-        updateFlagIcons(currentLang);
-        updateLangTooltip(currentLang);
-        toggleLanguageTarget();
-        const savedLang = localStorage.getItem('popminutes_output_target') || 'vi';
-        document.getElementById('outputTargetLang').value = savedLang;
-        const savedMode = localStorage.getItem('popminutes_output_mode') || 'auto';
-        document.getElementById('outputMode').value = savedMode;
-        toggleLanguageTarget();
-        loadConnectionStatus();
-        initTaskData();
-        renderTasks();
-        if (document.getElementById('fileInput').files.length > 0) {
-            document.getElementById('fileStatusLabel').textContent = t('change_file_btn');
-        }
-        updateDashboardDynamicText();
-        updateUploadButton();
-        updateFlagIcons(currentLang);
-        updateLangTooltip(currentLang);
-    });
-</script>
-</body>
-</html>
