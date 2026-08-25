@@ -2457,6 +2457,8 @@
             if (processResult.status === 200) {
                 recordStatusDiv.innerHTML = `<div style="color:#065F46; font-weight:600;">${t('toast_upload_success')}</div>`;
                 setTimeout(() => closeModal(), 3000);
+                // Bắt đầu polling tasks
+                startTaskPolling();
             } else {
                 throw new Error(processResult.message || t('err_process_fail'));
             }
@@ -2528,8 +2530,9 @@
     }
 
     function isConnected(platform) {
-        if (platform === 'GG Tasks' || platform === 'GG Calendar') return connections.google;
-        if (platform === 'Trello') return connections.trello;
+        const normalized = platform.replace(/\s+/g, '_');
+        if (normalized === 'Google_Tasks' || normalized === 'Google_Calendar') return connections.google;
+        if (normalized === 'Trello') return connections.trello;
         return false;
     }
 
@@ -2554,34 +2557,23 @@
     }
 
     // ========================================================================
-    //  TASK MANAGER
+    //  TASK MANAGER (LẤY TỪ GAS)
     // ========================================================================
     let tasks = {
-        suggested: [
-            { id: 't1', title: 'Gửi báo giá cho khách hàng A', description: 'Báo giá chi tiết dịch vụ', due: '2024-11-01', assignee: 'Sales', platform: 'GG Tasks' },
-            { id: 't2', title: 'Họp review dự án tuần tới', description: 'Thảo luận tiến độ', due: '2024-10-28', assignee: 'Team', platform: 'GG Calendar' },
-            { id: 't3', title: 'Tạo card Trello cho tính năng X', description: 'Phát triển tính năng mới', due: '2024-11-05', assignee: 'Dev', platform: 'Trello' }
-        ],
-        confirmed: [
-            { id: 'c1', title: 'Chuẩn bị slide thuyết trình', description: 'Slide cho buổi họp khách hàng', due: '2024-10-25', assignee: 'Sales', platform: 'GG Tasks' }
-        ]
+        suggested: [],
+        confirmed: []
     };
     let editingTaskId = null;
     let currentTab = 'suggested';
 
     function initTaskData() {
-        if (localStorage.getItem('tasks_data')) {
-            try {
-                const saved = JSON.parse(localStorage.getItem('tasks_data'));
-                if (saved.suggested && saved.confirmed) {
-                    tasks = saved;
-                }
-            } catch (e) {}
-        }
+        tasks = { suggested: [], confirmed: [] };
+        // Không cần localStorage, luôn lấy từ GAS khi mở modal
         updateBadgeCounts();
     }
 
     function saveTasksToStorage() {
+        // Không cần lưu local nữa, nhưng có thể giữ để offline
         localStorage.setItem('tasks_data', JSON.stringify(tasks));
         updateBadgeCounts();
     }
@@ -2595,6 +2587,15 @@
         renderSuggestedTasks();
         renderConfirmedTasks();
         updateBadgeCounts();
+    }
+
+    function displayPlatform(platform) {
+        const map = {
+            'Google_Tasks': 'Google Tasks',
+            'Google_Calendar': 'Google Calendar',
+            'Trello': 'Trello'
+        };
+        return map[platform] || platform;
     }
 
     function renderSuggestedTasks() {
@@ -2615,7 +2616,7 @@
                             <div class="task-meta">
                                 <span><i class="fa-regular fa-calendar"></i> ${task.due || t('task_no_due')}</span>
                                 <span><i class="fa-regular fa-user"></i> ${task.assignee || t('task_unassigned')}</span>
-                                <span><i class="fa-regular fa-folder"></i> ${task.platform || 'GG Tasks'}</span>
+                                <span><i class="fa-regular fa-folder"></i> ${displayPlatform(task.platform)}</span>
                             </div>
                         </div>
                         <div class="task-actions">
@@ -2633,8 +2634,8 @@
                         <input type="date" id="edit_due_${task.id}" value="${task.due || ''}">
                         <input type="text" id="edit_assignee_${task.id}" value="${task.assignee || ''}" placeholder="${t('assignee_placeholder')}">
                         <select id="edit_platform_${task.id}">
-                            <option value="GG Tasks" ${task.platform === 'GG Tasks' ? 'selected' : ''}>GG Tasks</option>
-                            <option value="GG Calendar" ${task.platform === 'GG Calendar' ? 'selected' : ''}>GG Calendar</option>
+                            <option value="Google_Tasks" ${task.platform === 'Google_Tasks' ? 'selected' : ''}>Google Tasks</option>
+                            <option value="Google_Calendar" ${task.platform === 'Google_Calendar' ? 'selected' : ''}>Google Calendar</option>
                             <option value="Trello" ${task.platform === 'Trello' ? 'selected' : ''}>Trello</option>
                         </select>
                         <div class="edit-actions">
@@ -2664,7 +2665,7 @@
                             <div class="task-meta">
                                 <span><i class="fa-regular fa-calendar"></i> ${task.due || t('task_no_due')}</span>
                                 <span><i class="fa-regular fa-user"></i> ${task.assignee || t('task_unassigned')}</span>
-                                <span><i class="fa-regular fa-folder"></i> ${task.platform || 'GG Tasks'}</span>
+                                <span><i class="fa-regular fa-folder"></i> ${displayPlatform(task.platform)}</span>
                             </div>
                         </div>
                         <div class="task-actions">
@@ -2732,7 +2733,7 @@
     });
 
     // ========================================================================
-    //  TASK FUNCTIONS
+    //  TASK FUNCTIONS (GỌI GAS + CLOUD RUN)
     // ========================================================================
     function editTask(id) {
         if (editingTaskId === id) {
@@ -2774,8 +2775,52 @@
         const task = tasks.suggested[taskIndex];
 
         try {
+            // 1. Gọi Cloud Run tạo task với bên thứ 3 (nếu có kết nối)
+            if (isConnected(task.platform)) {
+                const createResponse = await fetch(CLOUD_FUNCTION_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: 'createTask',
+                        userEmail: currentEmail,
+                        task: task
+                    })
+                });
+                const createResult = await createResponse.json();
+                if (createResult.status === 200 && createResult.externalId) {
+                    // Cập nhật GAS TASK_PLATFORMS
+                    await fetch(APPS_SCRIPT_URL, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            action: 'updateTaskPlatform',
+                            taskId: task.id,
+                            platform: task.platform,
+                            externalId: createResult.externalId,
+                            syncStatus: 'synced'
+                        })
+                    });
+                } else {
+                    throw new Error(createResult.message || 'Create task failed');
+                }
+            } else {
+                // Không kết nối, vẫn đánh dấu task là confirmed trong GAS?
+                // Có thể gọi updateTaskPlatform với syncStatus = 'not_required'
+                await fetch(APPS_SCRIPT_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: 'updateTaskPlatform',
+                        taskId: task.id,
+                        platform: task.platform,
+                        externalId: '',
+                        syncStatus: 'not_required'
+                    })
+                });
+            }
+
+            // 2. Cập nhật UI
             tasks.suggested.splice(taskIndex, 1);
-            task.id = 'c_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6);
             tasks.confirmed.push(task);
             saveTasksToStorage();
             renderTasks();
@@ -2790,13 +2835,13 @@
         if (!task) return;
 
         if (isConnected(task.platform)) {
-            showToast(t('connected_title') + ' – ' + task.platform, true);
+            showToast(t('connected_title') + ' – ' + displayPlatform(task.platform), true);
             return;
         }
 
         const platform = task.platform;
         let key = '';
-        if (platform === 'GG Tasks' || platform === 'GG Calendar') key = 'google';
+        if (platform === 'Google_Tasks' || platform === 'Google_Calendar') key = 'google';
         else if (platform === 'Trello') key = 'trello';
 
         if (key) {
@@ -2816,6 +2861,67 @@
     }
 
     // ========================================================================
+    //  FETCH TASKS FROM GAS & POLLING
+    // ========================================================================
+    async function fetchTasksFromGAS() {
+        try {
+            const response = await fetch(APPS_SCRIPT_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: new URLSearchParams({
+                    action: 'getUserTasks',
+                    salesEmail: currentEmail
+                }).toString()
+            });
+            const result = await response.json();
+            if (result.status === 200 && Array.isArray(result.tasks)) {
+                // Chuyển đổi dữ liệu từ GAS thành cấu trúc tasks
+                const suggested = [];
+                const confirmed = [];
+                result.tasks.forEach(task => {
+                    // Lấy platform đầu tiên từ mảng platforms
+                    const primaryPlatform = task.platforms && task.platforms.length > 0 ? task.platforms[0].platform : 'Google_Tasks';
+                    const taskObj = {
+                        id: task.id,
+                        title: task.title,
+                        description: task.description,
+                        due: task.due,
+                        assignee: task.assignee,
+                        platform: primaryPlatform,
+                        status: task.status,
+                        platforms: task.platforms || []
+                    };
+                    if (task.status === 'pending' || task.status === 'not_required') {
+                        suggested.push(taskObj);
+                    } else {
+                        confirmed.push(taskObj);
+                    }
+                });
+                tasks.suggested = suggested;
+                tasks.confirmed = confirmed;
+                renderTasks();
+            }
+        } catch (err) {
+            console.error('Lỗi fetch tasks:', err);
+        }
+    }
+
+    let taskPollingInterval = null;
+    function startTaskPolling() {
+        if (taskPollingInterval) clearInterval(taskPollingInterval);
+        let attempts = 0;
+        const maxAttempts = 60; // tối đa 5 phút (mỗi 5 giây)
+        taskPollingInterval = setInterval(async () => {
+            attempts++;
+            await fetchTasksFromGAS();
+            if (tasks.suggested.length > 0 || tasks.confirmed.length > 0 || attempts >= maxAttempts) {
+                clearInterval(taskPollingInterval);
+                taskPollingInterval = null;
+            }
+        }, 5000);
+    }
+
+    // ========================================================================
     //  MODAL TASK
     // ========================================================================
     const taskModal = document.getElementById('taskModal');
@@ -2827,7 +2933,7 @@
             return;
         }
         taskModal.classList.add('active');
-        renderTasks();
+        fetchTasksFromGAS(); // Lấy tasks mới nhất từ GAS
     });
 
     function closeTaskModal() {
@@ -3051,67 +3157,4 @@
     // ========================================================================
     //  PWA
     // ========================================================================
-    if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-            navigator.serviceWorker.register('/PopMinutes-PWA/sw-v2.js')
-                .then(reg => console.log('PopMinutes PWA đã kích hoạt thành công tại: ', reg.scope))
-                .catch(err => console.log('Kích hoạt PWA thất bại: ', err));
-        });
-    }
-
-    let deferredPrompt;
-    const btnInstall = document.getElementById('btnInstall');
-    window.addEventListener('beforeinstallprompt', (e) => {
-        e.preventDefault();
-        deferredPrompt = e;
-        if (btnInstall) btnInstall.style.display = 'block';
-    });
-    if (btnInstall) {
-        btnInstall.addEventListener('click', async () => {
-            if (!deferredPrompt) return;
-            deferredPrompt.prompt();
-            const { outcome } = await deferredPrompt.userChoice;
-            console.log(`User response to install prompt: ${outcome}`);
-            deferredPrompt = null;
-            btnInstall.style.display = 'none';
-        });
-    }
-    window.addEventListener('appinstalled', () => {
-        console.log('PopMinutes PWA đã được cài đặt thành công!');
-        if (btnInstall) btnInstall.style.display = 'none';
-    });
-
-    // ========================================================================
-    //  KHỞI CHẠY
-    // ========================================================================
-    document.addEventListener('DOMContentLoaded', async function() {
-        await tryAutoLogin();
-        applyLanguage(currentLang);
-        loginItems.forEach(item => {
-            item.classList.toggle('active-lang', item.dataset.lang === currentLang);
-        });
-        dashItems.forEach(item => {
-            item.classList.toggle('active-lang', item.dataset.lang === currentLang);
-        });
-        updateFlagIcons(currentLang);
-        updateLangTooltip(currentLang);
-        toggleLanguageTarget();
-        const savedLang = localStorage.getItem('popminutes_output_target') || 'vi';
-        document.getElementById('outputTargetLang').value = savedLang;
-        const savedMode = localStorage.getItem('popminutes_output_mode') || 'auto';
-        document.getElementById('outputMode').value = savedMode;
-        toggleLanguageTarget();
-        loadConnectionStatus();
-        initTaskData();
-        renderTasks();
-        if (document.getElementById('fileInput').files.length > 0) {
-            document.getElementById('fileStatusLabel').textContent = t('change_file_btn');
-        }
-        updateDashboardDynamicText();
-        updateUploadButton();
-        updateFlagIcons(currentLang);
-        updateLangTooltip(currentLang);
-    });
-</script>
-</body>
-</html>
+    if ('serviceWorker' in navig
