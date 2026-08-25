@@ -860,6 +860,7 @@
         .task-item .task-actions .edit-btn:hover { background: var(--navy-pale); }
         .task-item .task-actions .confirm-btn { color: var(--success); }
         .task-item .task-actions .confirm-btn:hover { background: #D1FAE5; }
+        .task-item .task-actions .confirm-btn:disabled { color: #ccc; cursor: not-allowed; background: none; }
         .task-item .task-actions .delete-btn { color: var(--danger); }
         .task-item .task-actions .delete-btn:hover { background: var(--danger-pale); }
         .task-item .task-actions .platform-btn {
@@ -1734,7 +1735,145 @@
             target_lang2_label: 'Ngôn ngữ 2:',
         },
         en: {
-            // tương tự bản en (có thể giữ nguyên)
+            login_title: 'Smart Meeting Minutes AI',
+            login_sub: 'Minimal meeting minutes processing system for Sales professionals',
+            login_heading: 'Login',
+            login_desc: 'Enter Email and User ID sent in the verification email',
+            email_label: 'Email',
+            email_placeholder: 'sales@company.com',
+            userid_label: 'User ID',
+            userid_placeholder: 'S-PM-APP-000',
+            login_btn: 'Continue',
+            greeting: 'User:',
+            customer_label: 'Customer',
+            hours_unit: 'Hours used at café',
+            package_label: 'Package',
+            expiry_label: 'Expiry',
+            undefined_package: 'Not defined',
+            undefined_expiry: '--',
+            trial_account: 'Trial Account',
+            tools_title: 'Utilities',
+            cafe_btn: 'Café',
+            cafe_sub: 'Book a meeting spot',
+            ai_btn: 'PopMinutes AI',
+            ai_sub: 'Process meeting minutes',
+            tasks_btn: 'Tasks',
+            tasks_sub: 'Task management',
+            events_btn: 'Events',
+            events_sub: 'Schedule',
+            history_title: 'History',
+            checkin_btn: 'Check-in',
+            checkin_sub: 'Location usage',
+            minutes_btn: 'Minutes',
+            minutes_sub: 'Processing history',
+            settings_title: 'Settings',
+            settings_btn: 'Connect apps',
+            settings_sub: 'Manage Google, Trello accounts',
+            google_connect: 'Google Task & Calendar',
+            trello_connect: 'Trello',
+            connect_btn: 'Connect',
+            disconnect_btn: 'Disconnect',
+            modal_title: 'Initialize AI Meeting Minutes',
+            creator_label: 'Creator',
+            client_label: 'Partner / Your Client',
+            client_placeholder: 'e.g. Mr. Hoang - ABC Company',
+            client_tip: 'Enter the name of your partner/client you are meeting.',
+            email_label_modal: 'Email to receive minutes',
+            add_cc_btn: 'Add recipient',
+            hide_cc_btn: 'Hide',
+            cc_placeholder: 'abc@company.com (optional)',
+            file_panel_title: 'Audio file',
+            upload_btn: 'Upload',
+            change_file_btn: 'Change file',
+            record_btn: 'Record',
+            stop_record_btn: 'Stop recording',
+            recording_status: 'Recording (Microphone + Tab Audio)...',
+            file_tip: 'Supports: <strong>mp3, m4a, wav, webm...</strong>',
+            consent_text: 'By uploading, you confirm that you have the legal right and have obtained consent from participants to process this meeting data.',
+            start_btn: 'Start',
+            history_title_modal: 'Processing History',
+            history_empty: 'No records yet.',
+            history_loading: 'Loading...',
+            expedite_btn: 'Expedite',
+            toast_upload_success: '✅ Upload successful! AI is generating minutes.',
+            toast_expedite_sent: 'Expedite request sent!',
+            toast_expedite_fail: '⚠️ Failed to send request',
+            toast_network_error: '❌ Connection error: ',
+            toast_login_required: 'Please log in.',
+            toast_upgrade_required: 'Upgrade your plan to use this feature.',
+            toast_connect_required: 'Please connect your %s account before creating task.',
+            err_empty: 'Please fill in both Email and User ID!',
+            err_invalid: 'Email or User ID is incorrect!',
+            err_network: 'Cannot connect to server.',
+            err_client_empty: 'Please enter the partner name.',
+            err_no_file: 'No file selected.',
+            err_upload_init: 'Cannot get Signed URL',
+            err_upload_fail: 'Upload to Cloud Storage failed',
+            err_process_fail: 'Upload failed! AI is processing minutes.',
+            err_mic_permission: 'Cannot access Microphone or Tab Audio. Please grant permission.',
+            status_connecting: 'Initializing connection...',
+            status_uploading: 'Uploading file to Cloud...',
+            status_processing: 'AI is analyzing the meeting...',
+            recording_saved: 'Recording completed!',
+            select_language: 'Select language',
+            language_mode_label: 'Language mode',
+            lang_mode_auto: 'Original language',
+            lang_mode_translate: 'Translate to',
+            lang_mode_bilingual: 'Bilingual',
+            target_lang_label: 'Target language',
+            lang_en: '🇬🇧 English',
+            lang_vi: '🇻🇳 Vietnamese',
+            lang_id: '🇮🇩 Indonesian',
+            lang_ms: '🇲🇾 Malay',
+            lang_tl: '🇵🇭 Filipino',
+            lang_th: '🇹🇭 Thai',
+            lang_km: '🇰🇭 Khmer',
+            lang_lo: '🇱🇦 Lao',
+            lang_my: '🇲🇲 Burmese',
+            lang_zh: '🇨🇳 Chinese',
+            lang_ja: '🇯🇵 Japanese',
+            lang_ko: '🇰🇷 Korean',
+            lang_hi: '🇮🇳 Hindi',
+            lang_es: '🇪🇸 Spanish',
+            lang_fr: '🇫🇷 French',
+            lang_de: '🇩🇪 German',
+            lang_it: '🇮🇹 Italian',
+            lang_pt: '🇵🇹 Portuguese',
+            lang_ru: '🇷🇺 Russian',
+            lang_ar: '🇸🇦 Arabic',
+            lang_tr: '🇹🇷 Turkish',
+            task_modal_title: 'Task Management',
+            tab_suggested: 'Suggested',
+            tab_confirmed: 'Confirmed',
+            edit_task_modal_title: 'Edit Task',
+            new_title_placeholder: 'Enter new title...',
+            cancel_btn: 'Cancel',
+            save_btn: 'Save',
+            settings_modal_title: 'Connect Apps',
+            task_empty_suggested: 'No AI suggestions yet.',
+            task_empty_confirmed: 'No confirmed tasks yet.',
+            task_no_due: 'No due date',
+            task_unassigned: 'Unassigned',
+            edit_tooltip: 'Edit',
+            confirm_tooltip: 'Confirm',
+            platform_tooltip: 'Select platforms',
+            connected_title: 'Connected',
+            delete_tooltip: 'Delete',
+            title_placeholder: 'Title',
+            desc_placeholder: 'Description',
+            assignee_placeholder: 'Assignee',
+            title_empty_warn: 'Title cannot be empty',
+            task_updated_toast: 'Task updated',
+            task_confirmed_toast: 'Task confirmed: ',
+            task_create_error: 'Error creating task: ',
+            unsupported_platform: 'Connection not supported for this platform',
+            delete_confirm_msg: 'Are you sure you want to delete this task?',
+            task_deleted_toast: 'Task deleted',
+            connect_toast: 'Connected ',
+            disconnect_toast: 'Disconnected ',
+            events_feature_alert: 'The Events feature is coming soon!',
+            status_unknown: 'Unknown',
+            target_lang2_label: 'Language 2:',
         }
     };
 
@@ -2532,6 +2671,7 @@
     };
     let editingTaskId = null;
     let currentTab = 'suggested';
+    let isLoadingTasks = false;
 
     function initTaskData() {
         tasks = { suggested: [], confirmed: [] };
@@ -2549,6 +2689,11 @@
     }
 
     function renderTasks() {
+        if (isLoadingTasks) {
+            document.getElementById('suggestedTaskList').innerHTML = '<div class="task-empty"><i class="fa-solid fa-spinner fa-spin"></i> Đang tải...</div>';
+            document.getElementById('confirmedTaskList').innerHTML = '<div class="task-empty"><i class="fa-solid fa-spinner fa-spin"></i> Đang tải...</div>';
+            return;
+        }
         renderSuggestedTasks();
         renderConfirmedTasks();
         updateBadgeCounts();
@@ -2587,14 +2732,18 @@
         tasks.suggested.forEach(task => {
             const isEditing = (editingTaskId === task.id);
             const connectedPlatforms = getConnectedPlatforms();
+            // Đảm bảo platforms có ít nhất PopMinutes nếu chưa có
+            if (!task.platforms || task.platforms.length === 0) {
+                task.platforms = [{ platform: 'PopMinutes', externalId: '', syncStatus: 'pending', syncedAt: '' }];
+            }
             const selectedPlatforms = task.platforms || [];
             const hasSelection = selectedPlatforms.length > 0;
             const platformBtnClass = hasSelection ? 'platform-btn connected' : 'platform-btn';
             const platformBtnIcon = hasSelection ? 'fa-solid fa-check-double' : 'fa-solid fa-layer-group';
             const platformBtnText = hasSelection ? selectedPlatforms.length : '';
             const desc = task.description || '';
-            const descCollapsed = desc.length > 100 ? 'collapsed' : '';
-            const descToggle = desc.length > 100 ? `<button class="desc-toggle" onclick="toggleDesc('${task.id}')">Xem thêm</button>` : '';
+            const descCollapsed = desc.length > 0 ? 'collapsed' : '';
+            const descToggle = desc.length > 0 ? `<button class="desc-toggle" onclick="toggleDesc('${task.id}')">Xem thêm</button>` : '';
 
             html += `
                 <div class="task-item" data-id="${task.id}">
@@ -2612,7 +2761,7 @@
                                 <i class="${platformBtnIcon}"></i> ${platformBtnText}
                             </button>
                             <button class="edit-btn" onclick="editTask('${task.id}')" title="${t('edit_tooltip')}"><i class="fa-regular fa-pen-to-square"></i></button>
-                            <button class="confirm-btn" onclick="confirmTask('${task.id}')" title="${t('confirm_tooltip')}"><i class="fa-regular fa-circle-check"></i></button>
+                            <button class="confirm-btn" onclick="confirmTask('${task.id}')" title="${t('confirm_tooltip')}" ${!hasSelection ? 'disabled' : ''}><i class="fa-regular fa-circle-check"></i></button>
                         </div>
                     </div>
                     <div class="platform-dropdown" id="platformDropdown_${task.id}">
@@ -2651,8 +2800,8 @@
         tasks.confirmed.forEach(task => {
             const platformNames = (task.platforms || []).map(p => displayPlatform(p.platform)).join(', ');
             const desc = task.description || '';
-            const descCollapsed = desc.length > 100 ? 'collapsed' : '';
-            const descToggle = desc.length > 100 ? `<button class="desc-toggle" onclick="toggleDesc('${task.id}')">Xem thêm</button>` : '';
+            const descCollapsed = desc.length > 0 ? 'collapsed' : '';
+            const descToggle = desc.length > 0 ? `<button class="desc-toggle" onclick="toggleDesc('${task.id}')">Xem thêm</button>` : '';
 
             html += `
                 <div class="task-item">
@@ -2805,6 +2954,11 @@
             btn.classList.toggle('connected', hasSelection);
             btn.innerHTML = hasSelection ? `<i class="fa-solid fa-check-double"></i> ${task.platforms.length}` : '<i class="fa-solid fa-layer-group"></i>';
         }
+        // Cập nhật nút confirm
+        const confirmBtn = document.querySelector(`.task-item[data-id="${taskId}"] .confirm-btn`);
+        if (confirmBtn) {
+            confirmBtn.disabled = task.platforms.length === 0;
+        }
         saveTasksToStorage();
     }
 
@@ -2813,61 +2967,48 @@
         if (taskIndex === -1) return;
         const task = tasks.suggested[taskIndex];
 
+        // Kiểm tra nếu không có platform nào được chọn
+        if (!task.platforms || task.platforms.length === 0) {
+            showToast('⚠️ Vui lòng chọn ít nhất một nền tảng.', false);
+            return;
+        }
+
         try {
-            const selectedPlatforms = task.platforms || [];
-            if (selectedPlatforms.length > 0) {
-                // Gọi Cloud Run cho từng platform đã chọn, ngoại trừ PopMinutes
-                for (const platformObj of selectedPlatforms) {
-                    if (platformObj.platform === 'PopMinutes') {
-                        // Không cần gọi API, chỉ cập nhật GAS (nếu muốn)
-                        await fetch(APPS_SCRIPT_URL, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({
-                                action: 'updateTaskPlatform',
-                                taskId: task.id,
-                                platform: 'PopMinutes',
-                                externalId: '',
-                                syncStatus: 'not_required'
-                            })
-                        });
-                        platformObj.syncStatus = 'not_required';
-                        continue;
-                    }
-                    try {
-                        const createResponse = await fetch(CLOUD_FUNCTION_URL, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({
-                                action: 'createTask',
-                                userEmail: currentEmail,
-                                task: {
-                                    ...task,
-                                    platform: platformObj.platform
-                                }
-                            })
-                        });
-                        const createResult = await createResponse.json();
-                        if (createResult.status === 200 && createResult.externalId) {
-                            // Cập nhật GAS TASK_PLATFORMS
-                            await fetch(APPS_SCRIPT_URL, {
-                                method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({
-                                    action: 'updateTaskPlatform',
-                                    taskId: task.id,
-                                    platform: platformObj.platform,
-                                    externalId: createResult.externalId,
-                                    syncStatus: 'synced'
-                                })
-                            });
-                            platformObj.syncStatus = 'synced';
-                            platformObj.externalId = createResult.externalId;
-                        } else {
-                            throw new Error(createResult.message || 'Create task failed');
-                        }
-                    } catch (err) {
-                        console.error(`Lỗi tạo task trên ${platformObj.platform}:`, err);
+            const selectedPlatforms = task.platforms;
+            // Gọi Cloud Run cho từng platform đã chọn, ngoại trừ PopMinutes
+            for (const platformObj of selectedPlatforms) {
+                if (platformObj.platform === 'PopMinutes') {
+                    // Không cần gọi API, chỉ cập nhật GAS (nếu muốn)
+                    await fetch(APPS_SCRIPT_URL, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            action: 'updateTaskPlatform',
+                            taskId: task.id,
+                            platform: 'PopMinutes',
+                            externalId: '',
+                            syncStatus: 'not_required'
+                        })
+                    });
+                    platformObj.syncStatus = 'not_required';
+                    continue;
+                }
+                try {
+                    const createResponse = await fetch(CLOUD_FUNCTION_URL, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            action: 'createTask',
+                            userEmail: currentEmail,
+                            task: {
+                                ...task,
+                                platform: platformObj.platform
+                            }
+                        })
+                    });
+                    const createResult = await createResponse.json();
+                    if (createResult.status === 200 && createResult.externalId) {
+                        // Cập nhật GAS TASK_PLATFORMS
                         await fetch(APPS_SCRIPT_URL, {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
@@ -2875,24 +3016,30 @@
                                 action: 'updateTaskPlatform',
                                 taskId: task.id,
                                 platform: platformObj.platform,
-                                externalId: '',
-                                syncStatus: 'failed'
+                                externalId: createResult.externalId,
+                                syncStatus: 'synced'
                             })
                         });
-                        platformObj.syncStatus = 'failed';
+                        platformObj.syncStatus = 'synced';
+                        platformObj.externalId = createResult.externalId;
+                    } else {
+                        throw new Error(createResult.message || 'Create task failed');
                     }
+                } catch (err) {
+                    console.error(`Lỗi tạo task trên ${platformObj.platform}:`, err);
+                    await fetch(APPS_SCRIPT_URL, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            action: 'updateTaskPlatform',
+                            taskId: task.id,
+                            platform: platformObj.platform,
+                            externalId: '',
+                            syncStatus: 'failed'
+                        })
+                    });
+                    platformObj.syncStatus = 'failed';
                 }
-            } else {
-                // Không có platform, cập nhật trạng thái task thành confirmed (not_required)
-                await fetch(APPS_SCRIPT_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        action: 'updateTaskStatus',
-                        taskId: task.id,
-                        status: 'confirmed'
-                    })
-                });
             }
 
             // Cập nhật UI
@@ -2924,6 +3071,8 @@
     //  FETCH TASKS FROM GAS & POLLING
     // ========================================================================
     async function fetchTasksFromGAS() {
+        isLoadingTasks = true;
+        renderTasks();
         try {
             const response = await fetch(APPS_SCRIPT_URL, {
                 method: 'POST',
@@ -2947,7 +3096,11 @@
                         platforms: task.platforms || [],
                         status: task.status
                     };
-                    if (task.status === 'pending' || task.status === 'not_required' || task.status === 'partial') {
+                    // Nếu task chưa có platforms, thêm PopMinutes mặc định
+                    if (taskObj.platforms.length === 0) {
+                        taskObj.platforms.push({ platform: 'PopMinutes', externalId: '', syncStatus: 'pending', syncedAt: '' });
+                    }
+                    if (taskObj.status === 'pending' || taskObj.status === 'not_required' || taskObj.status === 'partial') {
                         suggested.push(taskObj);
                     } else {
                         confirmed.push(taskObj);
@@ -2955,10 +3108,12 @@
                 });
                 tasks.suggested = suggested;
                 tasks.confirmed = confirmed;
-                renderTasks();
             }
         } catch (err) {
             console.error('Lỗi fetch tasks:', err);
+        } finally {
+            isLoadingTasks = false;
+            renderTasks();
         }
     }
 
