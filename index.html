@@ -800,6 +800,29 @@
             font-size: 15px;
             color: var(--text);
         }
+        .task-item .task-desc {
+            font-size: 13px;
+            color: var(--muted);
+            line-height: 1.5;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+        .task-item .task-desc.collapsed {
+            display: -webkit-box;
+            -webkit-line-clamp: 1;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        .task-item .desc-toggle {
+            background: none;
+            border: none;
+            color: var(--navy-light);
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            padding: 0;
+            margin-top: 4px;
+        }
         .task-item .task-meta {
             font-size: 13px;
             color: var(--muted);
@@ -885,6 +908,64 @@
             color: var(--muted);
             text-align: center;
             padding: 6px 0;
+        }
+
+        /* Form chỉnh sửa */
+        .task-edit-form {
+            display: none;
+            flex-direction: column;
+            gap: 8px;
+            margin-top: 6px;
+            background: white;
+            padding: 12px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+        }
+        .task-edit-form.active {
+            display: flex;
+        }
+        .task-edit-form input,
+        .task-edit-form select {
+            padding: 8px 12px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 13px;
+            font-family: inherit;
+            outline: none;
+        }
+        .task-edit-form input:focus,
+        .task-edit-form select:focus {
+            border-color: var(--navy-light);
+            box-shadow: 0 0 0 3px rgba(45,63,166,0.1);
+        }
+        .task-edit-form .edit-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            margin-top: 6px;
+        }
+        .task-edit-form .edit-actions button {
+            padding: 6px 16px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 13px;
+            cursor: pointer;
+            border: none;
+        }
+        .task-edit-form .edit-actions .save-edit { background: var(--navy); color: white; }
+        .task-edit-form .edit-actions .cancel-edit { background: #F1F5F9; color: var(--text); }
+        .task-empty {
+            text-align: center;
+            padding: 30px 0;
+            color: var(--muted);
+            font-size: 14px;
+            font-weight: 500;
+        }
+        .task-tab-content {
+            display: none;
+        }
+        .task-tab-content.active {
+            display: block;
         }
 
         /* ===== SETTINGS MODAL ===== */
@@ -2397,7 +2478,6 @@
         recordStatusDiv.innerHTML = `<span class="status-loading"><i class="fa-solid fa-spinner fa-spin"></i> ${t('status_connecting')}</span>`;
 
         try {
-            // Bước 1: Lấy signed URL để upload
             const getUrlResponse = await fetch(CLOUD_FUNCTION_URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -2412,7 +2492,6 @@
 
             const { uploadUrl, filePath } = urlResult;
 
-            // Bước 2: Upload file lên Cloud Storage
             recordStatusDiv.innerHTML = `<span class="status-loading"><i class="fa-solid fa-spinner fa-spin"></i> ${t('status_uploading')}</span>`;
             const uploadResponse = await fetch(uploadUrl, {
                 method: 'PUT',
@@ -2421,8 +2500,8 @@
             });
             if (!uploadResponse.ok) throw new Error(t('err_upload_fail'));
 
-            // Bước 3: Ghi thông tin vào sheet RECORD để lấy recordId
             recordStatusDiv.innerHTML = `<span class="status-loading"><i class="fa-solid fa-spinner fa-spin"></i> ${t('status_processing')}</span>`;
+
             const processResponse = await fetch(CLOUD_FUNCTION_URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -2448,7 +2527,6 @@
             const recordId = processResult.recordId;
             if (!recordId) throw new Error('Không nhận được recordId');
 
-            // Bước 4: Xử lý toàn bộ audio và gửi transcript cho GAS
             const fullAudioResponse = await fetch(CLOUD_FUNCTION_URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -2474,7 +2552,6 @@
             recordStatusDiv.innerHTML = `<div style="color:#065F46; font-weight:600;">${t('toast_upload_success')}</div>`;
             setTimeout(() => closeModal(), 3000);
 
-            // Bắt đầu polling tasks từ GAS
             startTaskPolling();
 
         } catch (err) {
@@ -2637,14 +2714,19 @@
             const platformBtnClass = hasSelection ? 'platform-btn connected' : 'platform-btn';
             const platformBtnIcon = hasSelection ? 'fa-solid fa-check-double' : 'fa-solid fa-layer-group';
             const platformBtnText = hasSelection ? selectedPlatforms.length : '';
+            const desc = task.description || '';
+            const descCollapsed = desc.length > 100 ? 'collapsed' : '';
+            const descToggle = desc.length > 100 ? `<button class="desc-toggle" onclick="toggleDesc('${task.id}')">Xem thêm</button>` : '';
 
             html += `
                 <div class="task-item" data-id="${task.id}">
                     <div class="task-header">
                         <div class="task-info" style="flex:1; min-width:0;">
                             <div class="task-title">${task.title}</div>
+                            ${desc ? `<div class="task-desc ${descCollapsed}" id="desc_${task.id}">${desc}</div>${descToggle}` : ''}
                             <div class="task-meta">
                                 <span><i class="fa-regular fa-calendar"></i> ${task.due || t('task_no_due')}</span>
+                                <span><i class="fa-regular fa-user"></i> ${task.assignee || t('task_unassigned')}</span>
                             </div>
                         </div>
                         <div class="task-actions" style="flex-shrink:0;">
@@ -2693,13 +2775,19 @@
         let html = '';
         tasks.confirmed.forEach(task => {
             const platformNames = (task.platforms || []).map(p => displayPlatform(p.platform)).join(', ');
+            const desc = task.description || '';
+            const descCollapsed = desc.length > 100 ? 'collapsed' : '';
+            const descToggle = desc.length > 100 ? `<button class="desc-toggle" onclick="toggleDesc('${task.id}')">Xem thêm</button>` : '';
+
             html += `
                 <div class="task-item">
                     <div class="task-header">
                         <div class="task-info" style="flex:1; min-width:0;">
                             <div class="task-title">${task.title}</div>
+                            ${desc ? `<div class="task-desc ${descCollapsed}" id="desc_${task.id}">${desc}</div>${descToggle}` : ''}
                             <div class="task-meta">
                                 <span><i class="fa-regular fa-calendar"></i> ${task.due || t('task_no_due')}</span>
+                                <span><i class="fa-regular fa-user"></i> ${task.assignee || t('task_unassigned')}</span>
                                 ${platformNames ? `<span><i class="fa-solid fa-layer-group"></i> ${platformNames}</span>` : ''}
                             </div>
                         </div>
@@ -2712,6 +2800,16 @@
             `;
         });
         container.innerHTML = html;
+    }
+
+    function toggleDesc(taskId) {
+        const descElement = document.getElementById(`desc_${taskId}`);
+        if (!descElement) return;
+        descElement.classList.toggle('collapsed');
+        const toggleBtn = descElement.nextElementSibling;
+        if (toggleBtn) {
+            toggleBtn.textContent = descElement.classList.contains('collapsed') ? 'Xem thêm' : 'Thu gọn';
+        }
     }
 
     // ========================================================================
@@ -2845,7 +2943,7 @@
             if (selectedPlatforms.length > 0) {
                 // Gọi Cloud Run cho từng platform đã chọn
                 for (const platformObj of selectedPlatforms) {
-                    if (isConnected(platformObj.platform)) {
+                    try {
                         const createResponse = await fetch(CLOUD_FUNCTION_URL, {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
@@ -2877,8 +2975,9 @@
                         } else {
                             throw new Error(createResult.message || 'Create task failed');
                         }
-                    } else {
-                        // Nếu platform chưa kết nối, vẫn đánh dấu not_required
+                    } catch (err) {
+                        console.error(`Lỗi tạo task trên ${platformObj.platform}:`, err);
+                        // Có thể vẫn tiếp tục với platform khác, hoặc dừng? Tạm thời bỏ qua lỗi và đánh dấu failed
                         await fetch(APPS_SCRIPT_URL, {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
@@ -2887,16 +2986,23 @@
                                 taskId: task.id,
                                 platform: platformObj.platform,
                                 externalId: '',
-                                syncStatus: 'not_required'
+                                syncStatus: 'failed'
                             })
                         });
-                        platformObj.syncStatus = 'not_required';
+                        platformObj.syncStatus = 'failed';
                     }
                 }
             } else {
-                // Không có platform, đánh dấu task confirmed cục bộ
-                // Có thể gọi GAS update status chung hoặc để nguyên
-                console.log('Xác nhận task không có platform');
+                // Không có platform, cập nhật trạng thái task thành confirmed (not_required)
+                await fetch(APPS_SCRIPT_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: 'updateTaskStatus',
+                        taskId: task.id,
+                        status: 'confirmed'
+                    })
+                });
             }
 
             // Cập nhật UI
@@ -2906,6 +3012,7 @@
             renderTasks();
             showToast('' + t('task_confirmed_toast') + task.title, true);
         } catch (error) {
+            console.error('Confirm task error:', error);
             showToast('❌ ' + t('task_create_error') + error.message, false);
         }
     }
@@ -2941,7 +3048,6 @@
                 const suggested = [];
                 const confirmed = [];
                 result.tasks.forEach(task => {
-                    // Giữ nguyên danh sách platforms từ GAS
                     const taskObj = {
                         id: task.id,
                         title: task.title,
