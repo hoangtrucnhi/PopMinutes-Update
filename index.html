@@ -3157,4 +3157,67 @@
     // ========================================================================
     //  PWA
     // ========================================================================
-    if ('serviceWorker' in navig
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('/PopMinutes-PWA/sw-v2.js')
+                .then(reg => console.log('PopMinutes PWA đã kích hoạt thành công tại: ', reg.scope))
+                .catch(err => console.log('Kích hoạt PWA thất bại: ', err));
+        });
+    }
+
+    let deferredPrompt;
+    const btnInstall = document.getElementById('btnInstall');
+    window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        deferredPrompt = e;
+        if (btnInstall) btnInstall.style.display = 'block';
+    });
+    if (btnInstall) {
+        btnInstall.addEventListener('click', async () => {
+            if (!deferredPrompt) return;
+            deferredPrompt.prompt();
+            const { outcome } = await deferredPrompt.userChoice;
+            console.log(`User response to install prompt: ${outcome}`);
+            deferredPrompt = null;
+            btnInstall.style.display = 'none';
+        });
+    }
+    window.addEventListener('appinstalled', () => {
+        console.log('PopMinutes PWA đã được cài đặt thành công!');
+        if (btnInstall) btnInstall.style.display = 'none';
+    });
+
+    // ========================================================================
+    //  KHỞI CHẠY
+    // ========================================================================
+    document.addEventListener('DOMContentLoaded', async function() {
+        await tryAutoLogin();
+        applyLanguage(currentLang);
+        loginItems.forEach(item => {
+            item.classList.toggle('active-lang', item.dataset.lang === currentLang);
+        });
+        dashItems.forEach(item => {
+            item.classList.toggle('active-lang', item.dataset.lang === currentLang);
+        });
+        updateFlagIcons(currentLang);
+        updateLangTooltip(currentLang);
+        toggleLanguageTarget();
+        const savedLang = localStorage.getItem('popminutes_output_target') || 'vi';
+        document.getElementById('outputTargetLang').value = savedLang;
+        const savedMode = localStorage.getItem('popminutes_output_mode') || 'auto';
+        document.getElementById('outputMode').value = savedMode;
+        toggleLanguageTarget();
+        loadConnectionStatus();
+        initTaskData();
+        renderTasks();
+        if (document.getElementById('fileInput').files.length > 0) {
+            document.getElementById('fileStatusLabel').textContent = t('change_file_btn');
+        }
+        updateDashboardDynamicText();
+        updateUploadButton();
+        updateFlagIcons(currentLang);
+        updateLangTooltip(currentLang);
+    });
+</script>
+</body>
+</html>
