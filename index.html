@@ -1472,7 +1472,7 @@
                 <div class="settings-item">
                     <div class="info">
                         <i class="fa-brands fa-google"></i>
-                        <span class="name">Google Tasks & Calendar</span>
+                        <span class="name">GG Tasks & Calendar</span>
                     </div>
                     <button class="settings-btn connect" id="settingsGoogleBtn" data-i18n="connect_btn">Kết nối</button>
                 </div>
@@ -1547,7 +1547,7 @@
             settings_title: 'Cài đặt',
             settings_btn: 'Kết nối ứng dụng',
             settings_sub: 'Quản lý tài khoản Google, Trello',
-            google_connect: 'Google Tasks & Calendar',
+            google_connect: 'GG Tasks & Calendar',
             trello_connect: 'Trello',
             connect_btn: 'Kết nối',
             disconnect_btn: 'Ngắt kết nối',
@@ -1688,7 +1688,7 @@
             settings_title: 'Settings',
             settings_btn: 'Connect apps',
             settings_sub: 'Manage Google, Trello accounts',
-            google_connect: 'Google Tasks & Calendar',
+            google_connect: 'GG Tasks & Calendar',
             trello_connect: 'Trello',
             connect_btn: 'Connect',
             disconnect_btn: 'Disconnect',
@@ -2528,7 +2528,7 @@
     }
 
     function isConnected(platform) {
-        if (platform === 'Google Tasks' || platform === 'Google Calendar') return connections.google;
+        if (platform === 'GG Tasks' || platform === 'GG Calendar') return connections.google;
         if (platform === 'Trello') return connections.trello;
         return false;
     }
@@ -2558,12 +2558,12 @@
     // ========================================================================
     let tasks = {
         suggested: [
-            { id: 't1', title: 'Gửi báo giá cho khách hàng A', description: 'Báo giá chi tiết dịch vụ', due: '2024-11-01', assignee: 'Sales', platform: 'Google Tasks' },
-            { id: 't2', title: 'Họp review dự án tuần tới', description: 'Thảo luận tiến độ', due: '2024-10-28', assignee: 'Team', platform: 'Google Calendar' },
+            { id: 't1', title: 'Gửi báo giá cho khách hàng A', description: 'Báo giá chi tiết dịch vụ', due: '2024-11-01', assignee: 'Sales', platform: 'GG Tasks' },
+            { id: 't2', title: 'Họp review dự án tuần tới', description: 'Thảo luận tiến độ', due: '2024-10-28', assignee: 'Team', platform: 'GG Calendar' },
             { id: 't3', title: 'Tạo card Trello cho tính năng X', description: 'Phát triển tính năng mới', due: '2024-11-05', assignee: 'Dev', platform: 'Trello' }
         ],
         confirmed: [
-            { id: 'c1', title: 'Chuẩn bị slide thuyết trình', description: 'Slide cho buổi họp khách hàng', due: '2024-10-25', assignee: 'Sales', platform: 'Google Tasks' }
+            { id: 'c1', title: 'Chuẩn bị slide thuyết trình', description: 'Slide cho buổi họp khách hàng', due: '2024-10-25', assignee: 'Sales', platform: 'GG Tasks' }
         ]
     };
     let editingTaskId = null;
@@ -2615,7 +2615,7 @@
                             <div class="task-meta">
                                 <span><i class="fa-regular fa-calendar"></i> ${task.due || t('task_no_due')}</span>
                                 <span><i class="fa-regular fa-user"></i> ${task.assignee || t('task_unassigned')}</span>
-                                <span><i class="fa-regular fa-folder"></i> ${task.platform || 'Google Tasks'}</span>
+                                <span><i class="fa-regular fa-folder"></i> ${task.platform || 'GG Tasks'}</span>
                             </div>
                         </div>
                         <div class="task-actions">
@@ -2633,8 +2633,8 @@
                         <input type="date" id="edit_due_${task.id}" value="${task.due || ''}">
                         <input type="text" id="edit_assignee_${task.id}" value="${task.assignee || ''}" placeholder="${t('assignee_placeholder')}">
                         <select id="edit_platform_${task.id}">
-                            <option value="Google Tasks" ${task.platform === 'Google Tasks' ? 'selected' : ''}>Google Tasks</option>
-                            <option value="Google Calendar" ${task.platform === 'Google Calendar' ? 'selected' : ''}>Google Calendar</option>
+                            <option value="GG Tasks" ${task.platform === 'GG Tasks' ? 'selected' : ''}>GG Tasks</option>
+                            <option value="GG Calendar" ${task.platform === 'GG Calendar' ? 'selected' : ''}>GG Calendar</option>
                             <option value="Trello" ${task.platform === 'Trello' ? 'selected' : ''}>Trello</option>
                         </select>
                         <div class="edit-actions">
@@ -2664,7 +2664,7 @@
                             <div class="task-meta">
                                 <span><i class="fa-regular fa-calendar"></i> ${task.due || t('task_no_due')}</span>
                                 <span><i class="fa-regular fa-user"></i> ${task.assignee || t('task_unassigned')}</span>
-                                <span><i class="fa-regular fa-folder"></i> ${task.platform || 'Google Tasks'}</span>
+                                <span><i class="fa-regular fa-folder"></i> ${task.platform || 'GG Tasks'}</span>
                             </div>
                         </div>
                         <div class="task-actions">
@@ -2796,7 +2796,7 @@
 
         const platform = task.platform;
         let key = '';
-        if (platform === 'Google Tasks' || platform === 'Google Calendar') key = 'google';
+        if (platform === 'GG Tasks' || platform === 'GG Calendar') key = 'google';
         else if (platform === 'Trello') key = 'trello';
 
         if (key) {
