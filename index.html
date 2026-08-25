@@ -838,6 +838,15 @@
             font-weight: 600;
         }
         .task-item .task-actions .connect-btn:hover { background: var(--navy-deep); }
+        .task-item .task-actions .connect-btn.connected {
+            background: #10B981;
+            color: white;
+            cursor: default;
+            pointer-events: none;
+        }
+        .task-item .task-actions .connect-btn.connected i {
+            font-size: 14px;
+        }
         .task-item .task-edit-form {
             display: none;
             flex-direction: column;
@@ -1626,6 +1635,7 @@
             edit_tooltip: 'Sửa',
             confirm_tooltip: 'Xác nhận',
             connect_task_btn: 'Kết nối',
+            connected_title: 'Đã kết nối',
             delete_tooltip: 'Xóa',
             title_placeholder: 'Tiêu đề',
             desc_placeholder: 'Mô tả',
@@ -1766,6 +1776,7 @@
             edit_tooltip: 'Edit',
             confirm_tooltip: 'Confirm',
             connect_task_btn: 'Connect',
+            connected_title: 'Connected',
             delete_tooltip: 'Delete',
             title_placeholder: 'Title',
             desc_placeholder: 'Description',
@@ -2610,9 +2621,9 @@
                         <div class="task-actions">
                             <button class="edit-btn" onclick="editTask('${task.id}')" title="${t('edit_tooltip')}"><i class="fa-regular fa-pen-to-square"></i></button>
                             <button class="confirm-btn" onclick="confirmTask('${task.id}')" title="${t('confirm_tooltip')}"><i class="fa-regular fa-circle-check"></i></button>
-                            ${!connected 
-                                ? `<button class="connect-btn" onclick="handleConnectForTask('${task.id}')" title="${t('connect_task_btn')}" style="font-size:12px; padding:4px 10px; border-radius:20px;">🔗 ${t('connect_task_btn')}</button>`
-                                : ''
+                            ${connected 
+                                ? `<button class="connect-btn connected" disabled title="${t('connected_title')}"><i class="fa-solid fa-check"></i></button>`
+                                : `<button class="connect-btn" onclick="handleConnectForTask('${task.id}')" title="${t('connect_task_btn')}">🔗 ${t('connect_task_btn')}</button>`
                             }
                         </div>
                     </div>
@@ -2777,10 +2788,17 @@
     function handleConnectForTask(taskId) {
         const task = tasks.suggested.find(t => t.id === taskId);
         if (!task) return;
+
+        if (isConnected(task.platform)) {
+            showToast(t('connected_title') + ' – ' + task.platform, true);
+            return;
+        }
+
         const platform = task.platform;
         let key = '';
         if (platform === 'Google Tasks' || platform === 'Google Calendar') key = 'google';
         else if (platform === 'Trello') key = 'trello';
+
         if (key) {
             openSettingsModal();
         } else {
