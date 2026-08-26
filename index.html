@@ -271,6 +271,12 @@
             transition: all 0.2s ease;
             box-shadow: var(--shadow-sm);
         }
+        select.modal-input {
+            background-color: #fff;
+            color: var(--text);
+            -webkit-appearance: none;
+            appearance: none;
+        }
         .modal-input:focus {
             border-color: var(--navy-light);
             box-shadow: 0 0 0 4px rgba(45,63,166,0.1);
@@ -2981,14 +2987,14 @@
                     // Không cần gọi API, chỉ cập nhật GAS (nếu muốn)
                     await fetch(APPS_SCRIPT_URL, {
                         method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
+                        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                        body: new URLSearchParams({
                             action: 'updateTaskPlatform',
                             taskId: task.id,
                             platform: 'PopMinutes',
                             externalId: '',
                             syncStatus: 'not_required'
-                        })
+                        }).toString()
                     });
                     platformObj.syncStatus = 'not_required';
                     continue;
@@ -3011,14 +3017,14 @@
                         // Cập nhật GAS TASK_PLATFORMS
                         await fetch(APPS_SCRIPT_URL, {
                             method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({
+                            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                            body: new URLSearchParams({
                                 action: 'updateTaskPlatform',
                                 taskId: task.id,
                                 platform: platformObj.platform,
                                 externalId: createResult.externalId,
                                 syncStatus: 'synced'
-                            })
+                            }).toString()
                         });
                         platformObj.syncStatus = 'synced';
                         platformObj.externalId = createResult.externalId;
@@ -3029,14 +3035,14 @@
                     console.error(`Lỗi tạo task trên ${platformObj.platform}:`, err);
                     await fetch(APPS_SCRIPT_URL, {
                         method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
+                        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                        body: new URLSearchParams({
                             action: 'updateTaskPlatform',
                             taskId: task.id,
                             platform: platformObj.platform,
                             externalId: '',
                             syncStatus: 'failed'
-                        })
+                        }).toString()
                     });
                     platformObj.syncStatus = 'failed';
                 }
