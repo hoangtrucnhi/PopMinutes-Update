@@ -21,8 +21,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
 
     <style>
-        /* ========== TOÀN BỘ STYLE (giữ nguyên, đã có ở trên) ========== */
-        /* ... (giữ nguyên toàn bộ CSS, không thay đổi) ... */
+        /* ========== TOÀN BỘ STYLE ========== */
         *,
         *::before,
         *::after {
@@ -1230,7 +1229,6 @@
         .confirm-loading i {
             animation: spin 1s linear infinite;
         }
-        /* Thêm style cho nút xóa khi loading */
         .delete-loading {
             pointer-events: none;
             opacity: 0.6;
@@ -1676,7 +1674,7 @@
             history_empty: 'Chưa có bản ghi nào.',
             history_loading: 'Đang tải...',
             expedite_btn: 'Xử lý gấp',
-            toast_upload_success: '✅ Tải lên thành công! AI đang lập biên bản.',
+            toast_upload_success: '✅ Tải lên thành công!',
             toast_expedite_sent: 'Đã gửi yêu cầu xử lý gấp!',
             toast_expedite_fail: '⚠️ Không thể gửi yêu cầu',
             toast_network_error: '❌ Lỗi kết nối: ',
@@ -1690,7 +1688,7 @@
             err_no_file: 'Chưa có file.',
             err_upload_init: 'Không thể lấy Signed URL',
             err_upload_fail: 'Tải file lên Cloud Storage thất bại',
-            err_process_fail: 'Tải lên thất bại! AI đang lập biên bản.',
+            err_process_fail: 'Tải lên thất bại! Vui lòng thử lại.',
             err_mic_permission: 'Không thể truy cập Microphone hoặc Âm thanh Tab. Vui lòng cấp quyền.',
             status_connecting: 'Đang khởi tạo kết nối...',
             status_uploading: 'Đang tải file lên Cloud...',
@@ -1818,7 +1816,7 @@
             history_empty: 'No records yet.',
             history_loading: 'Loading...',
             expedite_btn: 'Expedite',
-            toast_upload_success: '✅ Upload successful! AI is generating minutes.',
+            toast_upload_success: '✅ Upload successful!',
             toast_expedite_sent: 'Expedite request sent!',
             toast_expedite_fail: '⚠️ Failed to send request',
             toast_network_error: '❌ Connection error: ',
@@ -1832,7 +1830,7 @@
             err_no_file: 'No file selected.',
             err_upload_init: 'Cannot get Signed URL',
             err_upload_fail: 'Upload to Cloud Storage failed',
-            err_process_fail: 'Upload failed! AI is processing minutes.',
+            err_process_fail: 'Upload failed! Please try again.',
             err_mic_permission: 'Cannot access Microphone or Tab Audio. Please grant permission.',
             status_connecting: 'Initializing connection...',
             status_uploading: 'Uploading file to Cloud...',
@@ -1909,7 +1907,7 @@
     }
 
     // ========================================================================
-    //  QUẢN LÝ NGÔN NGỮ GIAO DIỆN (giữ nguyên)
+    //  QUẢN LÝ NGÔN NGỮ GIAO DIỆN
     // ========================================================================
     const loginToggle = document.getElementById('loginLangToggleBtn');
     const loginMenu = document.getElementById('loginLangMenu');
@@ -2268,7 +2266,7 @@
     }
 
     // ========================================================================
-    //  LOGIC RECORDER (giữ nguyên)
+    //  LOGIC RECORDER
     // ========================================================================
     let selectedFileBlob = null;
     let mediaRecorder = null;
@@ -2486,6 +2484,9 @@
     }
     closeModalBtn.addEventListener('click', closeModal);
 
+    // ========================================================================
+    //  UPLOAD AUDIO (ĐÃ SỬA: KHÔNG CHỜ AI XỬ LÝ)
+    // ========================================================================
     uploadBtn.addEventListener('click', uploadAudio);
 
     let isUploading = false;
@@ -2517,6 +2518,7 @@
         recordStatusDiv.innerHTML = `<span class="status-loading"><i class="fa-solid fa-spinner fa-spin"></i> ${t('status_connecting')}</span>`;
 
         try {
+            // 1. Lấy Signed URL
             const getUrlResponse = await fetch(CLOUD_FUNCTION_URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -2531,6 +2533,7 @@
 
             const { uploadUrl, filePath } = urlResult;
 
+            // 2. Upload lên Cloud Storage
             recordStatusDiv.innerHTML = `<span class="status-loading"><i class="fa-solid fa-spinner fa-spin"></i> ${t('status_uploading')}</span>`;
             const uploadResponse = await fetch(uploadUrl, {
                 method: 'PUT',
@@ -2539,8 +2542,7 @@
             });
             if (!uploadResponse.ok) throw new Error(t('err_upload_fail'));
 
-            recordStatusDiv.innerHTML = `<span class="status-loading"><i class="fa-solid fa-spinner fa-spin"></i> ${t('status_processing')}</span>`;
-
+            // 3. Gọi processAudio để ghi vào sheet (không chờ AI xử lý)
             const processResponse = await fetch(CLOUD_FUNCTION_URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -2563,35 +2565,16 @@
                 throw new Error(processResult.message || t('err_process_fail'));
             }
 
-            const recordId = processResult.recordId;
-            if (!recordId) throw new Error('Không nhận được recordId');
-
-            const fullAudioResponse = await fetch(CLOUD_FUNCTION_URL, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    action: 'processFullAudio',
-                    filePath: filePath,
-                    recordId: recordId,
-                    salesEmail: currentEmail,
-                    salesName: currentSalesName,
-                    clientName: clientName,
-                    clientEmail: ccEmail1,
-                    managerEmail: ccEmail2,
-                    outputMode: outputMode,
-                    outputTargetLang: outputTargetLang
-                })
-            });
-            const fullAudioResult = await fullAudioResponse.json();
-
-            if (fullAudioResult.status !== 200) {
-                throw new Error(fullAudioResult.message || 'Lỗi xử lý audio');
-            }
-
+            // Thành công: hiển thị thông báo và đóng modal
             recordStatusDiv.innerHTML = `<div style="color:#065F46; font-weight:600;">${t('toast_upload_success')}</div>`;
-            setTimeout(() => closeModal(), 3000);
+            uploadBtn.disabled = false; // để có thể upload tiếp
 
-            startTaskPolling();
+            // Đóng modal sau 2 giây
+            setTimeout(() => {
+                closeModal();
+                // Bắt đầu polling task để hiển thị task sau khi worker xử lý
+                startTaskPolling();
+            }, 2000);
 
         } catch (err) {
             console.error('Upload error:', err);
@@ -2687,7 +2670,7 @@
     }
 
     // ========================================================================
-    //  TASK MANAGER (LẤY TỪ GAS) - ĐÃ THÊM XÓA Ở TAB ĐỀ XUẤT
+    //  TASK MANAGER (LẤY TỪ GAS) - ĐÃ CÓ XÓA Ở CẢ 2 TAB
     // ========================================================================
     let tasks = {
         suggested: [],
@@ -2745,7 +2728,6 @@
         return platforms;
     }
 
-    // ----- RENDER ĐỀ XUẤT (ĐÃ THÊM NÚT XÓA) -----
     function renderSuggestedTasks() {
         const container = document.getElementById('suggestedTaskList');
         if (tasks.suggested.length === 0) {
@@ -2786,7 +2768,6 @@
                             </button>
                             <button class="edit-btn" onclick="editTask('${task.id}')" title="${t('edit_tooltip')}"><i class="fa-regular fa-pen-to-square"></i></button>
                             <button class="confirm-btn" onclick="confirmTask('${task.id}')" title="${t('confirm_tooltip')}" ${!hasSelection ? 'disabled' : ''}><i class="fa-regular fa-circle-check"></i></button>
-                            <!-- NÚT XÓA THÊM VÀO TAB ĐỀ XUẤT -->
                             <button class="delete-btn" onclick="deleteSuggestedTask('${task.id}')" title="${t('delete_tooltip')}"><i class="fa-regular fa-trash-can"></i></button>
                         </div>
                     </div>
@@ -2816,7 +2797,6 @@
         container.innerHTML = html;
     }
 
-    // ----- RENDER XÁC NHẬN (GIỮ NGUYÊN) -----
     function renderConfirmedTasks() {
         const container = document.getElementById('confirmedTaskList');
         if (tasks.confirmed.length === 0) {
@@ -2864,7 +2844,7 @@
     }
 
     // ========================================================================
-    //  EDIT TASK MODAL (mini) (giữ nguyên)
+    //  EDIT TASK MODAL (mini)
     // ========================================================================
     let editingConfirmedTaskId = null;
     const editTaskModal = document.getElementById('editTaskModal');
@@ -3087,13 +3067,11 @@
     }
 
     // ========================================================================
-    //  HÀM XÓA TASK (CHO CẢ 2 TAB) - DÙNG CHUNG 1 LOGIC
+    //  HÀM XÓA TASK (CHO CẢ 2 TAB)
     // ========================================================================
     async function deleteTaskById(taskId, fromArray) {
-        // fromArray: 'suggested' hoặc 'confirmed'
         if (!confirm(t('delete_confirm_msg'))) return;
 
-        // Tìm nút xóa trong DOM để hiệu ứng loading (dùng querySelector chung)
         const deleteBtn = document.querySelector(`.task-item .delete-btn[onclick*="deleteTaskById('${taskId}')"]`) ||
                           document.querySelector(`.task-item .delete-btn[onclick*="deleteSuggestedTask('${taskId}')"]`) ||
                           document.querySelector(`.task-item .delete-btn[onclick*="deleteConfirmedTask('${taskId}')"]`);
@@ -3104,7 +3082,6 @@
         }
 
         try {
-            // Gọi API GAS xóa vĩnh viễn
             const formData = new URLSearchParams();
             formData.append('action', 'deleteTask');
             formData.append('taskId', taskId);
@@ -3117,7 +3094,6 @@
             const result = await response.json();
 
             if (result.status === 200) {
-                // Xóa khỏi mảng tương ứng
                 if (fromArray === 'suggested') {
                     tasks.suggested = tasks.suggested.filter(t => t.id !== taskId);
                 } else if (fromArray === 'confirmed') {
@@ -3141,18 +3117,16 @@
         }
     }
 
-    // Hàm xóa task ở tab Đề xuất (gọi hàm chung)
     function deleteSuggestedTask(id) {
         deleteTaskById(id, 'suggested');
     }
 
-    // Hàm xóa task ở tab Xác nhận (gọi hàm chung)
     function deleteConfirmedTask(id) {
         deleteTaskById(id, 'confirmed');
     }
 
     // ========================================================================
-    //  FETCH TASKS FROM GAS & POLLING (giữ nguyên)
+    //  FETCH TASKS FROM GAS & POLLING
     // ========================================================================
     async function fetchTasksFromGAS() {
         isLoadingTasks = true;
@@ -3217,7 +3191,7 @@
     }
 
     // ========================================================================
-    //  MODAL TASK (giữ nguyên)
+    //  MODAL TASK
     // ========================================================================
     const taskModal = document.getElementById('taskModal');
     const closeTaskModalBtn = document.getElementById('closeTaskModalBtn');
@@ -3252,7 +3226,7 @@
     });
 
     // ========================================================================
-    //  MODAL CÀI ĐẶT (giữ nguyên)
+    //  MODAL CÀI ĐẶT (SETTINGS)
     // ========================================================================
     const settingsModal = document.getElementById('settingsModal');
     const closeSettingsBtn = document.getElementById('closeSettingsBtn');
@@ -3296,7 +3270,7 @@
     });
 
     // ========================================================================
-    //  LỊCH SỬ (giữ nguyên)
+    //  LỊCH SỬ
     // ========================================================================
     function showToast(message, isSuccess = true) {
         let oldToast = document.getElementById('customToast');
@@ -3443,14 +3417,14 @@
     });
 
     // ========================================================================
-    //  SỰ KIỆN (giữ nguyên)
+    //  SỰ KIỆN
     // ========================================================================
     document.getElementById('eventsBtn').addEventListener('click', function() {
         alert(t('events_feature_alert'));
     });
 
     // ========================================================================
-    //  PWA (giữ nguyên)
+    //  PWA
     // ========================================================================
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
