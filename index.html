@@ -21,7 +21,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
 
     <style>
-        /* ========== TOÀN BỘ STYLE ========== */
+        /* ========== TOÀN BỘ STYLE (giữ nguyên) ========== */
         *,
         *::before,
         *::after {
@@ -1223,16 +1223,24 @@
             .modal-box { margin: 16px; padding: 20px; }
         }
         .confirm-loading {
-    pointer-events: none;
-    opacity: 0.6;
-}
-.confirm-loading i {
-    animation: spin 1s linear infinite;
-}
-@keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-}
+            pointer-events: none;
+            opacity: 0.6;
+        }
+        .confirm-loading i {
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        /* Thêm style cho nút xóa khi loading */
+        .delete-loading {
+            pointer-events: none;
+            opacity: 0.6;
+        }
+        .delete-loading i {
+            animation: spin 1s linear infinite;
+        }
     </style>
 </head>
 <body>
@@ -1607,7 +1615,7 @@
 
 <script>
     // ========================================================================
-    //  I18N – ĐA NGÔN NGỮ GIAO DIỆN
+    //  I18N – ĐA NGÔN NGỮ GIAO DIỆN (giữ nguyên)
     // ========================================================================
     const translations = {
         vi: {
@@ -1750,6 +1758,7 @@
             events_feature_alert: '📅 Tính năng Sự kiện sẽ được phát triển sau!',
             status_unknown: 'Chưa rõ',
             target_lang2_label: 'Ngôn ngữ 2:',
+            delete_error: '❌ Lỗi xóa task: ',
         },
         en: {
             login_title: 'Smart Meeting Minutes AI',
@@ -1891,6 +1900,7 @@
             events_feature_alert: 'The Events feature is coming soon!',
             status_unknown: 'Unknown',
             target_lang2_label: 'Language 2:',
+            delete_error: '❌ Error deleting task: ',
         }
     };
 
@@ -1902,7 +1912,7 @@
     }
 
     // ========================================================================
-    //  QUẢN LÝ NGÔN NGỮ GIAO DIỆN
+    //  QUẢN LÝ NGÔN NGỮ GIAO DIỆN (giữ nguyên)
     // ========================================================================
     const loginToggle = document.getElementById('loginLangToggleBtn');
     const loginMenu = document.getElementById('loginLangMenu');
@@ -2132,7 +2142,7 @@
         currentCompanyName = "";
 
     // ========================================================================
-    //  ĐĂNG NHẬP
+    //  ĐĂNG NHẬP (giữ nguyên)
     // ========================================================================
     async function handleLogin() {
         const emailInput = document.getElementById('emailInput').value.trim();
@@ -2261,7 +2271,7 @@
     }
 
     // ========================================================================
-    //  LOGIC RECORDER
+    //  LOGIC RECORDER (giữ nguyên, đã có đủ)
     // ========================================================================
     let selectedFileBlob = null;
     let mediaRecorder = null;
@@ -2614,7 +2624,7 @@
     document.getElementById('qrCheckinBtn').addEventListener('click', () => alert(t('toast_upgrade_required')));
 
     // ========================================================================
-    //  QUẢN LÝ TRẠNG THÁI KẾT NỐI
+    //  QUẢN LÝ TRẠNG THÁI KẾT NỐI (giữ nguyên)
     // ========================================================================
     let connections = {
         google: false,
@@ -2680,7 +2690,7 @@
     }
 
     // ========================================================================
-    //  TASK MANAGER (LẤY TỪ GAS)
+    //  TASK MANAGER (LẤY TỪ GAS) - PHẦN QUAN TRỌNG ĐÃ SỬA XÓA
     // ========================================================================
     let tasks = {
         suggested: [],
@@ -2727,7 +2737,6 @@
     }
 
     function getConnectedPlatforms() {
-        // Luôn có PopMinutes
         const platforms = ['PopMinutes'];
         if (connections.google) {
             platforms.push('Google_Tasks');
@@ -2749,16 +2758,13 @@
         tasks.suggested.forEach(task => {
             const isEditing = (editingTaskId === task.id);
             const connectedPlatforms = getConnectedPlatforms();
-            // Đảm bảo platforms có ít nhất PopMinutes nếu chưa có
             if (!task.platforms) task.platforms = [];
-// Luôn đảm bảo PopMinutes có trong platforms
-const hasPopMinutes = task.platforms.some(p => p.platform === 'PopMinutes');
-if (!hasPopMinutes) {
-    task.platforms.unshift({ platform: 'PopMinutes', externalId: '', syncStatus: 'pending', syncedAt: '' });
-}
+            const hasPopMinutes = task.platforms.some(p => p.platform === 'PopMinutes');
+            if (!hasPopMinutes) {
+                task.platforms.unshift({ platform: 'PopMinutes', externalId: '', syncStatus: 'pending', syncedAt: '' });
+            }
             const selectedPlatforms = task.platforms || [];
             const hasSelection = selectedPlatforms.length > 0;
-            const platformBtnClass = hasSelection ? 'platform-btn connected' : 'platform-btn';
             const platformBtnIcon = hasSelection ? 'fa-solid fa-check-double' : 'fa-solid fa-layer-group';
             const platformBtnText = hasSelection ? selectedPlatforms.length : '';
             const desc = task.description || '';
@@ -2857,7 +2863,7 @@ if (!hasPopMinutes) {
     }
 
     // ========================================================================
-    //  EDIT TASK MODAL (mini)
+    //  EDIT TASK MODAL (mini) (giữ nguyên)
     // ========================================================================
     let editingConfirmedTaskId = null;
     const editTaskModal = document.getElementById('editTaskModal');
@@ -2910,7 +2916,7 @@ if (!hasPopMinutes) {
     });
 
     // ========================================================================
-    //  TASK FUNCTIONS (GỌI GAS + CLOUD RUN)
+    //  TASK FUNCTIONS (GỌI GAS + CLOUD RUN) - SỬA HÀM XÓA
     // ========================================================================
     function editTask(id) {
         if (editingTaskId === id) {
@@ -2967,14 +2973,12 @@ if (!hasPopMinutes) {
         } else {
             task.platforms = task.platforms.filter(p => p.platform !== platform);
         }
-        // Cập nhật nút platform
         const btn = document.querySelector(`[onclick="togglePlatformDropdown('${taskId}')"]`);
         if (btn) {
             const hasSelection = task.platforms.length > 0;
             btn.classList.toggle('connected', hasSelection);
             btn.innerHTML = hasSelection ? `<i class="fa-solid fa-check-double"></i> ${task.platforms.length}` : '<i class="fa-solid fa-layer-group"></i>';
         }
-        // Cập nhật nút confirm
         const confirmBtn = document.querySelector(`.task-item[data-id="${taskId}"] .confirm-btn`);
         if (confirmBtn) {
             confirmBtn.disabled = task.platforms.length === 0;
@@ -2982,61 +2986,74 @@ if (!hasPopMinutes) {
         saveTasksToStorage();
     }
 
-async function confirmTask(id) {
-    const taskIndex = tasks.suggested.findIndex(t => t.id === id);
-    if (taskIndex === -1) return;
-    const task = tasks.suggested[taskIndex];
+    async function confirmTask(id) {
+        const taskIndex = tasks.suggested.findIndex(t => t.id === id);
+        if (taskIndex === -1) return;
+        const task = tasks.suggested[taskIndex];
 
-    // Kiểm tra nếu không có platform nào được chọn
-    if (!task.platforms || task.platforms.length === 0) {
-        showToast('⚠️ Vui lòng chọn ít nhất một nền tảng.', false);
-        return;
-    }
+        if (!task.platforms || task.platforms.length === 0) {
+            showToast('⚠️ Vui lòng chọn ít nhất một nền tảng.', false);
+            return;
+        }
 
-    // Lấy nút confirm để thêm hiệu ứng loading
-    const confirmBtn = document.querySelector(`.task-item[data-id="${id}"] .confirm-btn`);
-    if (confirmBtn) {
-        confirmBtn.disabled = true;
-        confirmBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
-        confirmBtn.classList.add('confirm-loading');
-    }
+        const confirmBtn = document.querySelector(`.task-item[data-id="${id}"] .confirm-btn`);
+        if (confirmBtn) {
+            confirmBtn.disabled = true;
+            confirmBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+            confirmBtn.classList.add('confirm-loading');
+        }
 
-    try {
-        const selectedPlatforms = task.platforms;
-        // Gọi Cloud Run cho từng platform đã chọn, ngoại trừ PopMinutes
-        for (const platformObj of selectedPlatforms) {
-            if (platformObj.platform === 'PopMinutes') {
-                // Không cần gọi API, chỉ cập nhật GAS (nếu muốn)
-                await fetch(APPS_SCRIPT_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                    body: new URLSearchParams({
-                        action: 'updateTaskPlatform',
-                        taskId: task.id,
-                        platform: 'PopMinutes',
-                        externalId: '',
-                        syncStatus: 'not_required'
-                    }).toString()
-                });
-                platformObj.syncStatus = 'not_required';
-                continue;
-            }
-            try {
-                const createResponse = await fetch(CLOUD_FUNCTION_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        action: 'createTask',
-                        userEmail: currentEmail,
-                        task: {
-                            ...task,
-                            platform: platformObj.platform
-                        }
-                    })
-                });
-                const createResult = await createResponse.json();
-                if (createResult.status === 200 && createResult.externalId) {
-                    // Cập nhật GAS TASK_PLATFORMS
+        try {
+            const selectedPlatforms = task.platforms;
+            for (const platformObj of selectedPlatforms) {
+                if (platformObj.platform === 'PopMinutes') {
+                    await fetch(APPS_SCRIPT_URL, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                        body: new URLSearchParams({
+                            action: 'updateTaskPlatform',
+                            taskId: task.id,
+                            platform: 'PopMinutes',
+                            externalId: '',
+                            syncStatus: 'not_required'
+                        }).toString()
+                    });
+                    platformObj.syncStatus = 'not_required';
+                    continue;
+                }
+                try {
+                    const createResponse = await fetch(CLOUD_FUNCTION_URL, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            action: 'createTask',
+                            userEmail: currentEmail,
+                            task: {
+                                ...task,
+                                platform: platformObj.platform
+                            }
+                        })
+                    });
+                    const createResult = await createResponse.json();
+                    if (createResult.status === 200 && createResult.externalId) {
+                        await fetch(APPS_SCRIPT_URL, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                            body: new URLSearchParams({
+                                action: 'updateTaskPlatform',
+                                taskId: task.id,
+                                platform: platformObj.platform,
+                                externalId: createResult.externalId,
+                                syncStatus: 'synced'
+                            }).toString()
+                        });
+                        platformObj.syncStatus = 'synced';
+                        platformObj.externalId = createResult.externalId;
+                    } else {
+                        throw new Error(createResult.message || 'Create task failed');
+                    }
+                } catch (err) {
+                    console.error(`Lỗi tạo task trên ${platformObj.platform}:`, err);
                     await fetch(APPS_SCRIPT_URL, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -3044,64 +3061,81 @@ async function confirmTask(id) {
                             action: 'updateTaskPlatform',
                             taskId: task.id,
                             platform: platformObj.platform,
-                            externalId: createResult.externalId,
-                            syncStatus: 'synced'
+                            externalId: '',
+                            syncStatus: 'failed'
                         }).toString()
                     });
-                    platformObj.syncStatus = 'synced';
-                    platformObj.externalId = createResult.externalId;
-                } else {
-                    throw new Error(createResult.message || 'Create task failed');
+                    platformObj.syncStatus = 'failed';
                 }
-            } catch (err) {
-                console.error(`Lỗi tạo task trên ${platformObj.platform}:`, err);
-                await fetch(APPS_SCRIPT_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                    body: new URLSearchParams({
-                        action: 'updateTaskPlatform',
-                        taskId: task.id,
-                        platform: platformObj.platform,
-                        externalId: '',
-                        syncStatus: 'failed'
-                    }).toString()
-                });
-                platformObj.syncStatus = 'failed';
             }
-        }
 
-        // Cập nhật UI
-        tasks.suggested.splice(taskIndex, 1);
-        tasks.confirmed.push(task);
-        saveTasksToStorage();
-        renderTasks();
-        showToast('' + t('task_confirmed_toast') + task.title, true);
-    } catch (error) {
-        console.error('Confirm task error:', error);
-        if (confirmBtn) {
-            confirmBtn.disabled = false;
-            confirmBtn.innerHTML = '<i class="fa-regular fa-circle-check"></i>';
-            confirmBtn.classList.remove('confirm-loading');
-        }
-        showToast('❌ ' + t('task_create_error') + error.message, false);
-    }
-}
-
-    function handleConnectForTask(taskId) {
-        // Không dùng nữa
-    }
-
-    function deleteConfirmedTask(id) {
-        if (confirm(t('delete_confirm_msg'))) {
-            tasks.confirmed = tasks.confirmed.filter(t => t.id !== id);
+            tasks.suggested.splice(taskIndex, 1);
+            tasks.confirmed.push(task);
             saveTasksToStorage();
             renderTasks();
-            showToast('' + t('task_deleted_toast'), false);
+            showToast('' + t('task_confirmed_toast') + task.title, true);
+        } catch (error) {
+            console.error('Confirm task error:', error);
+            if (confirmBtn) {
+                confirmBtn.disabled = false;
+                confirmBtn.innerHTML = '<i class="fa-regular fa-circle-check"></i>';
+                confirmBtn.classList.remove('confirm-loading');
+            }
+            showToast('❌ ' + t('task_create_error') + error.message, false);
         }
     }
 
     // ========================================================================
-    //  FETCH TASKS FROM GAS & POLLING
+    //  HÀM XÓA TASK MỚI - GỌI API GAS ĐỂ XÓA VĨNH VIỄN
+    // ========================================================================
+    async function deleteConfirmedTask(id) {
+        if (!confirm(t('delete_confirm_msg'))) return;
+
+        // Tìm nút xóa và thêm hiệu ứng loading
+        const taskItem = document.querySelector(`.task-item .delete-btn[onclick*="deleteConfirmedTask('${id}')"]`);
+        if (taskItem) {
+            taskItem.disabled = true;
+            taskItem.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+            taskItem.classList.add('delete-loading');
+        }
+
+        try {
+            // Gọi API GAS với action deleteTask
+            const formData = new URLSearchParams();
+            formData.append('action', 'deleteTask');
+            formData.append('taskId', id);
+
+            const response = await fetch(APPS_SCRIPT_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: formData.toString()
+            });
+            const result = await response.json();
+
+            if (result.status === 200) {
+                // Xóa thành công trên server, cập nhật local state
+                tasks.confirmed = tasks.confirmed.filter(t => t.id !== id);
+                saveTasksToStorage();
+                renderTasks();
+                showToast(t('task_deleted_toast'), false);
+            } else {
+                showToast('❌ ' + (result.message || t('delete_error') + 'Không rõ lỗi'), false);
+            }
+        } catch (error) {
+            console.error('Lỗi xóa task:', error);
+            showToast(t('delete_error') + error.message, false);
+        } finally {
+            // Reset nút xóa
+            if (taskItem) {
+                taskItem.disabled = false;
+                taskItem.innerHTML = '<i class="fa-regular fa-trash-can"></i>';
+                taskItem.classList.remove('delete-loading');
+            }
+        }
+    }
+
+    // ========================================================================
+    //  FETCH TASKS FROM GAS & POLLING (giữ nguyên)
     // ========================================================================
     async function fetchTasksFromGAS() {
         isLoadingTasks = true;
@@ -3129,12 +3163,10 @@ async function confirmTask(id) {
                         platforms: task.platforms || [],
                         status: task.status
                     };
-                    // Nếu task chưa có platforms, thêm PopMinutes mặc định
-                   // Luôn đảm bảo PopMinutes có trong platforms
-const hasPopMinutes = taskObj.platforms.some(p => p.platform === 'PopMinutes');
-if (!hasPopMinutes) {
-    taskObj.platforms.unshift({ platform: 'PopMinutes', externalId: '', syncStatus: 'pending', syncedAt: '' });
-}
+                    const hasPopMinutes = taskObj.platforms.some(p => p.platform === 'PopMinutes');
+                    if (!hasPopMinutes) {
+                        taskObj.platforms.unshift({ platform: 'PopMinutes', externalId: '', syncStatus: 'pending', syncedAt: '' });
+                    }
                     if (taskObj.status === 'pending' || taskObj.status === 'not_required' || taskObj.status === 'partial') {
                         suggested.push(taskObj);
                     } else {
@@ -3156,7 +3188,7 @@ if (!hasPopMinutes) {
     function startTaskPolling() {
         if (taskPollingInterval) clearInterval(taskPollingInterval);
         let attempts = 0;
-        const maxAttempts = 60; // tối đa 5 phút (mỗi 5 giây)
+        const maxAttempts = 60;
         taskPollingInterval = setInterval(async () => {
             attempts++;
             await fetchTasksFromGAS();
@@ -3168,7 +3200,7 @@ if (!hasPopMinutes) {
     }
 
     // ========================================================================
-    //  MODAL TASK
+    //  MODAL TASK (giữ nguyên)
     // ========================================================================
     const taskModal = document.getElementById('taskModal');
     const closeTaskModalBtn = document.getElementById('closeTaskModalBtn');
@@ -3203,7 +3235,7 @@ if (!hasPopMinutes) {
     });
 
     // ========================================================================
-    //  MODAL CÀI ĐẶT (SETTINGS)
+    //  MODAL CÀI ĐẶT (giữ nguyên)
     // ========================================================================
     const settingsModal = document.getElementById('settingsModal');
     const closeSettingsBtn = document.getElementById('closeSettingsBtn');
@@ -3247,7 +3279,7 @@ if (!hasPopMinutes) {
     });
 
     // ========================================================================
-    //  LỊCH SỬ
+    //  LỊCH SỬ (giữ nguyên)
     // ========================================================================
     function showToast(message, isSuccess = true) {
         let oldToast = document.getElementById('customToast');
@@ -3321,149 +3353,3 @@ if (!hasPopMinutes) {
                             ${canExpedite}
                         </div>
                     </div>
-                `;
-            });
-            historyListDiv.innerHTML = html;
-            document.querySelectorAll('.expedite-btn').forEach(btn => {
-                btn.addEventListener('click', async () => {
-                    const recordId = btn.getAttribute('data-record-id');
-                    await requestExpedite(recordId);
-                });
-            });
-        } catch (err) {
-            console.error(err);
-            historyListDiv.innerHTML = `<p>${t('history_empty')}</p>`;
-        }
-    }
-
-    async function requestExpedite(recordId) {
-        const modalElem = document.getElementById('historyModal');
-        modalElem.classList.remove('active');
-        try {
-            const formData = new URLSearchParams();
-            formData.append('action', 'expedite');
-            formData.append('recordId', recordId);
-            formData.append('salesEmail', currentEmail);
-            const response = await fetch(APPS_SCRIPT_URL, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                body: formData.toString()
-            });
-            const result = await response.json();
-            if (result.status === 200) {
-                showToast(t('toast_expedite_sent'), true);
-            } else {
-                showToast(t('toast_expedite_fail'), false);
-            }
-        } catch (err) {
-            console.error(err);
-            showToast(t('toast_network_error') + err.message, false);
-        }
-    }
-
-    function escapeHtml(str) {
-        if (!str) return '';
-        return str.replace(/[&<>]/g, function(m) {
-            if (m === '&') return '&amp;';
-            if (m === '<') return '&lt;';
-            if (m === '>') return '&gt;';
-            return m;
-        });
-    }
-
-    const historyModal = document.getElementById('historyModal');
-    const historyBtn = document.getElementById('historyBtn');
-    const closeHistoryBtn = document.getElementById('closeHistoryBtn');
-
-    function openHistoryModal() {
-        if (!currentEmail) {
-            showToast(t('toast_login_required'), false);
-            return;
-        }
-        loadHistory().catch(err => console.error(err));
-        historyModal.classList.add('active');
-    }
-
-    function closeHistoryModal() {
-        historyModal.classList.remove('active');
-    }
-    if (historyBtn) historyBtn.addEventListener('click', openHistoryModal);
-    if (closeHistoryBtn) closeHistoryBtn.addEventListener('click', closeHistoryModal);
-    historyModal.addEventListener('click', function(e) {
-        if (e.target === historyModal) closeHistoryModal();
-    });
-
-    // ========================================================================
-    //  SỰ KIỆN
-    // ========================================================================
-    document.getElementById('eventsBtn').addEventListener('click', function() {
-        alert(t('events_feature_alert'));
-    });
-
-    // ========================================================================
-    //  PWA
-    // ========================================================================
-    if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-            navigator.serviceWorker.register('/PopMinutes-PWA/sw-v2.js')
-                .then(reg => console.log('PopMinutes PWA đã kích hoạt thành công tại: ', reg.scope))
-                .catch(err => console.log('Kích hoạt PWA thất bại: ', err));
-        });
-    }
-
-    let deferredPrompt;
-    const btnInstall = document.getElementById('btnInstall');
-    window.addEventListener('beforeinstallprompt', (e) => {
-        e.preventDefault();
-        deferredPrompt = e;
-        if (btnInstall) btnInstall.style.display = 'block';
-    });
-    if (btnInstall) {
-        btnInstall.addEventListener('click', async () => {
-            if (!deferredPrompt) return;
-            deferredPrompt.prompt();
-            const { outcome } = await deferredPrompt.userChoice;
-            console.log(`User response to install prompt: ${outcome}`);
-            deferredPrompt = null;
-            btnInstall.style.display = 'none';
-        });
-    }
-    window.addEventListener('appinstalled', () => {
-        console.log('PopMinutes PWA đã được cài đặt thành công!');
-        if (btnInstall) btnInstall.style.display = 'none';
-    });
-
-    // ========================================================================
-    //  KHỞI CHẠY
-    // ========================================================================
-    document.addEventListener('DOMContentLoaded', async function() {
-        await tryAutoLogin();
-        applyLanguage(currentLang);
-        loginItems.forEach(item => {
-            item.classList.toggle('active-lang', item.dataset.lang === currentLang);
-        });
-        dashItems.forEach(item => {
-            item.classList.toggle('active-lang', item.dataset.lang === currentLang);
-        });
-        updateFlagIcons(currentLang);
-        updateLangTooltip(currentLang);
-        toggleLanguageTarget();
-        const savedLang = localStorage.getItem('popminutes_output_target') || 'vi';
-        document.getElementById('outputTargetLang').value = savedLang;
-        const savedMode = localStorage.getItem('popminutes_output_mode') || 'auto';
-        document.getElementById('outputMode').value = savedMode;
-        toggleLanguageTarget();
-        loadConnectionStatus();
-        initTaskData();
-        renderTasks();
-        if (document.getElementById('fileInput').files.length > 0) {
-            document.getElementById('fileStatusLabel').textContent = t('change_file_btn');
-        }
-        updateDashboardDynamicText();
-        updateUploadButton();
-        updateFlagIcons(currentLang);
-        updateLangTooltip(currentLang);
-    });
-</script>
-</body>
-</html>
