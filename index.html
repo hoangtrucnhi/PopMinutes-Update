@@ -21,7 +21,8 @@
     <script src="https://cdn.tailwindcss.com"></script>
 
     <style>
-        /* ========== TOÀN BỘ STYLE (giữ nguyên) ========== */
+        /* ========== TOÀN BỘ STYLE (giữ nguyên, đã có ở trên) ========== */
+        /* ... (giữ nguyên toàn bộ CSS, không thay đổi) ... */
         *,
         *::before,
         *::after {
@@ -1229,10 +1230,6 @@
         .confirm-loading i {
             animation: spin 1s linear infinite;
         }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
         /* Thêm style cho nút xóa khi loading */
         .delete-loading {
             pointer-events: none;
@@ -1615,7 +1612,7 @@
 
 <script>
     // ========================================================================
-    //  I18N – ĐA NGÔN NGỮ GIAO DIỆN (giữ nguyên)
+    //  I18N – ĐA NGÔN NGỮ GIAO DIỆN
     // ========================================================================
     const translations = {
         vi: {
@@ -2142,7 +2139,7 @@
         currentCompanyName = "";
 
     // ========================================================================
-    //  ĐĂNG NHẬP (giữ nguyên)
+    //  ĐĂNG NHẬP
     // ========================================================================
     async function handleLogin() {
         const emailInput = document.getElementById('emailInput').value.trim();
@@ -2271,7 +2268,7 @@
     }
 
     // ========================================================================
-    //  LOGIC RECORDER (giữ nguyên, đã có đủ)
+    //  LOGIC RECORDER (giữ nguyên)
     // ========================================================================
     let selectedFileBlob = null;
     let mediaRecorder = null;
@@ -2624,7 +2621,7 @@
     document.getElementById('qrCheckinBtn').addEventListener('click', () => alert(t('toast_upgrade_required')));
 
     // ========================================================================
-    //  QUẢN LÝ TRẠNG THÁI KẾT NỐI (giữ nguyên)
+    //  QUẢN LÝ TRẠNG THÁI KẾT NỐI
     // ========================================================================
     let connections = {
         google: false,
@@ -2690,7 +2687,7 @@
     }
 
     // ========================================================================
-    //  TASK MANAGER (LẤY TỪ GAS) - PHẦN QUAN TRỌNG ĐÃ SỬA XÓA
+    //  TASK MANAGER (LẤY TỪ GAS) - ĐÃ THÊM XÓA Ở TAB ĐỀ XUẤT
     // ========================================================================
     let tasks = {
         suggested: [],
@@ -2748,6 +2745,7 @@
         return platforms;
     }
 
+    // ----- RENDER ĐỀ XUẤT (ĐÃ THÊM NÚT XÓA) -----
     function renderSuggestedTasks() {
         const container = document.getElementById('suggestedTaskList');
         if (tasks.suggested.length === 0) {
@@ -2788,6 +2786,8 @@
                             </button>
                             <button class="edit-btn" onclick="editTask('${task.id}')" title="${t('edit_tooltip')}"><i class="fa-regular fa-pen-to-square"></i></button>
                             <button class="confirm-btn" onclick="confirmTask('${task.id}')" title="${t('confirm_tooltip')}" ${!hasSelection ? 'disabled' : ''}><i class="fa-regular fa-circle-check"></i></button>
+                            <!-- NÚT XÓA THÊM VÀO TAB ĐỀ XUẤT -->
+                            <button class="delete-btn" onclick="deleteSuggestedTask('${task.id}')" title="${t('delete_tooltip')}"><i class="fa-regular fa-trash-can"></i></button>
                         </div>
                     </div>
                     <div class="platform-dropdown" id="platformDropdown_${task.id}">
@@ -2816,6 +2816,7 @@
         container.innerHTML = html;
     }
 
+    // ----- RENDER XÁC NHẬN (GIỮ NGUYÊN) -----
     function renderConfirmedTasks() {
         const container = document.getElementById('confirmedTaskList');
         if (tasks.confirmed.length === 0) {
@@ -2916,7 +2917,7 @@
     });
 
     // ========================================================================
-    //  TASK FUNCTIONS (GỌI GAS + CLOUD RUN) - SỬA HÀM XÓA
+    //  TASK FUNCTIONS (GỌI GAS + CLOUD RUN)
     // ========================================================================
     function editTask(id) {
         if (editingTaskId === id) {
@@ -3086,24 +3087,27 @@
     }
 
     // ========================================================================
-    //  HÀM XÓA TASK MỚI - GỌI API GAS ĐỂ XÓA VĨNH VIỄN
+    //  HÀM XÓA TASK (CHO CẢ 2 TAB) - DÙNG CHUNG 1 LOGIC
     // ========================================================================
-    async function deleteConfirmedTask(id) {
+    async function deleteTaskById(taskId, fromArray) {
+        // fromArray: 'suggested' hoặc 'confirmed'
         if (!confirm(t('delete_confirm_msg'))) return;
 
-        // Tìm nút xóa và thêm hiệu ứng loading
-        const taskItem = document.querySelector(`.task-item .delete-btn[onclick*="deleteConfirmedTask('${id}')"]`);
-        if (taskItem) {
-            taskItem.disabled = true;
-            taskItem.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
-            taskItem.classList.add('delete-loading');
+        // Tìm nút xóa trong DOM để hiệu ứng loading (dùng querySelector chung)
+        const deleteBtn = document.querySelector(`.task-item .delete-btn[onclick*="deleteTaskById('${taskId}')"]`) ||
+                          document.querySelector(`.task-item .delete-btn[onclick*="deleteSuggestedTask('${taskId}')"]`) ||
+                          document.querySelector(`.task-item .delete-btn[onclick*="deleteConfirmedTask('${taskId}')"]`);
+        if (deleteBtn) {
+            deleteBtn.disabled = true;
+            deleteBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+            deleteBtn.classList.add('delete-loading');
         }
 
         try {
-            // Gọi API GAS với action deleteTask
+            // Gọi API GAS xóa vĩnh viễn
             const formData = new URLSearchParams();
             formData.append('action', 'deleteTask');
-            formData.append('taskId', id);
+            formData.append('taskId', taskId);
 
             const response = await fetch(APPS_SCRIPT_URL, {
                 method: 'POST',
@@ -3113,8 +3117,12 @@
             const result = await response.json();
 
             if (result.status === 200) {
-                // Xóa thành công trên server, cập nhật local state
-                tasks.confirmed = tasks.confirmed.filter(t => t.id !== id);
+                // Xóa khỏi mảng tương ứng
+                if (fromArray === 'suggested') {
+                    tasks.suggested = tasks.suggested.filter(t => t.id !== taskId);
+                } else if (fromArray === 'confirmed') {
+                    tasks.confirmed = tasks.confirmed.filter(t => t.id !== taskId);
+                }
                 saveTasksToStorage();
                 renderTasks();
                 showToast(t('task_deleted_toast'), false);
@@ -3125,13 +3133,22 @@
             console.error('Lỗi xóa task:', error);
             showToast(t('delete_error') + error.message, false);
         } finally {
-            // Reset nút xóa
-            if (taskItem) {
-                taskItem.disabled = false;
-                taskItem.innerHTML = '<i class="fa-regular fa-trash-can"></i>';
-                taskItem.classList.remove('delete-loading');
+            if (deleteBtn) {
+                deleteBtn.disabled = false;
+                deleteBtn.innerHTML = '<i class="fa-regular fa-trash-can"></i>';
+                deleteBtn.classList.remove('delete-loading');
             }
         }
+    }
+
+    // Hàm xóa task ở tab Đề xuất (gọi hàm chung)
+    function deleteSuggestedTask(id) {
+        deleteTaskById(id, 'suggested');
+    }
+
+    // Hàm xóa task ở tab Xác nhận (gọi hàm chung)
+    function deleteConfirmedTask(id) {
+        deleteTaskById(id, 'confirmed');
     }
 
     // ========================================================================
