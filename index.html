@@ -21,7 +21,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
 
     <style>
-        /* ========== TOÀN BỘ STYLE ========== */
+        /* ========== TOÀN BỘ STYLE (giữ nguyên) ========== */
         *,
         *::before,
         *::after {
@@ -1610,7 +1610,7 @@
 
 <script>
     // ========================================================================
-    //  I18N – ĐA NGÔN NGỮ GIAO DIỆN
+    //  I18N – ĐA NGÔN NGỮ GIAO DIỆN (giữ nguyên)
     // ========================================================================
     const translations = {
         vi: {
@@ -1674,7 +1674,7 @@
             history_empty: 'Chưa có bản ghi nào.',
             history_loading: 'Đang tải...',
             expedite_btn: 'Xử lý gấp',
-            toast_upload_success: '✅ Tải lên thành công!',
+            toast_upload_success: '✅ Tải lên thành công! AI đang xử lý transcript.',
             toast_expedite_sent: 'Đã gửi yêu cầu xử lý gấp!',
             toast_expedite_fail: '⚠️ Không thể gửi yêu cầu',
             toast_network_error: '❌ Lỗi kết nối: ',
@@ -1816,7 +1816,7 @@
             history_empty: 'No records yet.',
             history_loading: 'Loading...',
             expedite_btn: 'Expedite',
-            toast_upload_success: '✅ Upload successful!',
+            toast_upload_success: '✅ Upload successful! AI is processing transcript.',
             toast_expedite_sent: 'Expedite request sent!',
             toast_expedite_fail: '⚠️ Failed to send request',
             toast_network_error: '❌ Connection error: ',
@@ -1907,7 +1907,7 @@
     }
 
     // ========================================================================
-    //  QUẢN LÝ NGÔN NGỮ GIAO DIỆN
+    //  QUẢN LÝ NGÔN NGỮ GIAO DIỆN (giữ nguyên)
     // ========================================================================
     const loginToggle = document.getElementById('loginLangToggleBtn');
     const loginMenu = document.getElementById('loginLangMenu');
@@ -2137,7 +2137,7 @@
         currentCompanyName = "";
 
     // ========================================================================
-    //  ĐĂNG NHẬP
+    //  ĐĂNG NHẬP (giữ nguyên)
     // ========================================================================
     async function handleLogin() {
         const emailInput = document.getElementById('emailInput').value.trim();
@@ -2266,7 +2266,7 @@
     }
 
     // ========================================================================
-    //  LOGIC RECORDER
+    //  LOGIC RECORDER (giữ nguyên)
     // ========================================================================
     let selectedFileBlob = null;
     let mediaRecorder = null;
@@ -2485,7 +2485,7 @@
     closeModalBtn.addEventListener('click', closeModal);
 
     // ========================================================================
-    //  UPLOAD AUDIO (ĐÃ SỬA: KHÔNG CHỜ AI XỬ LÝ)
+    //  UPLOAD AUDIO (ĐÃ SỬA: GỌI processFullAudio KHÔNG AWAIT)
     // ========================================================================
     uploadBtn.addEventListener('click', uploadAudio);
 
@@ -2542,7 +2542,7 @@
             });
             if (!uploadResponse.ok) throw new Error(t('err_upload_fail'));
 
-            // 3. Gọi processAudio để ghi vào sheet (không chờ AI xử lý)
+            // 3. Gọi processAudio để ghi vào sheet và lấy recordId
             const processResponse = await fetch(CLOUD_FUNCTION_URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -2560,16 +2560,34 @@
                 })
             });
             const processResult = await processResponse.json();
-
             if (processResult.status !== 200) {
                 throw new Error(processResult.message || t('err_process_fail'));
             }
+            const recordId = processResult.recordId;
+
+            // 4. Gọi processFullAudio để xử lý transcript trong NỀN (không await)
+            //    Bỏ qua lỗi nếu có, vì đã upload thành công
+            fetch(CLOUD_FUNCTION_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    action: 'processFullAudio',
+                    filePath: filePath,
+                    recordId: recordId,
+                    salesEmail: currentEmail,
+                    salesName: currentSalesName,
+                    clientName: clientName,
+                    clientEmail: ccEmail1,
+                    managerEmail: ccEmail2,
+                    outputMode: outputMode,
+                    outputTargetLang: outputTargetLang
+                })
+            }).catch(err => console.error('processFullAudio background error:', err));
 
             // Thành công: hiển thị thông báo và đóng modal
             recordStatusDiv.innerHTML = `<div style="color:#065F46; font-weight:600;">${t('toast_upload_success')}</div>`;
-            uploadBtn.disabled = false; // để có thể upload tiếp
+            uploadBtn.disabled = false;
 
-            // Đóng modal sau 2 giây
             setTimeout(() => {
                 closeModal();
                 // Bắt đầu polling task để hiển thị task sau khi worker xử lý
@@ -2604,7 +2622,7 @@
     document.getElementById('qrCheckinBtn').addEventListener('click', () => alert(t('toast_upgrade_required')));
 
     // ========================================================================
-    //  QUẢN LÝ TRẠNG THÁI KẾT NỐI
+    //  QUẢN LÝ TRẠNG THÁI KẾT NỐI (giữ nguyên)
     // ========================================================================
     let connections = {
         google: false,
@@ -2844,7 +2862,7 @@
     }
 
     // ========================================================================
-    //  EDIT TASK MODAL (mini)
+    //  EDIT TASK MODAL (mini) (giữ nguyên)
     // ========================================================================
     let editingConfirmedTaskId = null;
     const editTaskModal = document.getElementById('editTaskModal');
@@ -2897,7 +2915,7 @@
     });
 
     // ========================================================================
-    //  TASK FUNCTIONS (GỌI GAS + CLOUD RUN)
+    //  TASK FUNCTIONS (GỌI GAS + CLOUD RUN) (giữ nguyên)
     // ========================================================================
     function editTask(id) {
         if (editingTaskId === id) {
@@ -3067,7 +3085,7 @@
     }
 
     // ========================================================================
-    //  HÀM XÓA TASK (CHO CẢ 2 TAB)
+    //  HÀM XÓA TASK (CHO CẢ 2 TAB) (giữ nguyên)
     // ========================================================================
     async function deleteTaskById(taskId, fromArray) {
         if (!confirm(t('delete_confirm_msg'))) return;
@@ -3126,7 +3144,7 @@
     }
 
     // ========================================================================
-    //  FETCH TASKS FROM GAS & POLLING
+    //  FETCH TASKS FROM GAS & POLLING (giữ nguyên)
     // ========================================================================
     async function fetchTasksFromGAS() {
         isLoadingTasks = true;
@@ -3191,7 +3209,7 @@
     }
 
     // ========================================================================
-    //  MODAL TASK
+    //  MODAL TASK (giữ nguyên)
     // ========================================================================
     const taskModal = document.getElementById('taskModal');
     const closeTaskModalBtn = document.getElementById('closeTaskModalBtn');
@@ -3226,7 +3244,7 @@
     });
 
     // ========================================================================
-    //  MODAL CÀI ĐẶT (SETTINGS)
+    //  MODAL CÀI ĐẶT (SETTINGS) (giữ nguyên)
     // ========================================================================
     const settingsModal = document.getElementById('settingsModal');
     const closeSettingsBtn = document.getElementById('closeSettingsBtn');
@@ -3270,7 +3288,7 @@
     });
 
     // ========================================================================
-    //  LỊCH SỬ
+    //  LỊCH SỬ (giữ nguyên)
     // ========================================================================
     function showToast(message, isSuccess = true) {
         let oldToast = document.getElementById('customToast');
@@ -3417,14 +3435,14 @@
     });
 
     // ========================================================================
-    //  SỰ KIỆN
+    //  SỰ KIỆN (giữ nguyên)
     // ========================================================================
     document.getElementById('eventsBtn').addEventListener('click', function() {
         alert(t('events_feature_alert'));
     });
 
     // ========================================================================
-    //  PWA
+    //  PWA (giữ nguyên)
     // ========================================================================
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
