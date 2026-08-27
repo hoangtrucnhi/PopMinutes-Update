@@ -3353,3 +3353,149 @@
                             ${canExpedite}
                         </div>
                     </div>
+                `;
+            });
+            historyListDiv.innerHTML = html;
+            document.querySelectorAll('.expedite-btn').forEach(btn => {
+                btn.addEventListener('click', async () => {
+                    const recordId = btn.getAttribute('data-record-id');
+                    await requestExpedite(recordId);
+                });
+            });
+        } catch (err) {
+            console.error(err);
+            historyListDiv.innerHTML = `<p>${t('history_empty')}</p>`;
+        }
+    }
+
+    async function requestExpedite(recordId) {
+        const modalElem = document.getElementById('historyModal');
+        modalElem.classList.remove('active');
+        try {
+            const formData = new URLSearchParams();
+            formData.append('action', 'expedite');
+            formData.append('recordId', recordId);
+            formData.append('salesEmail', currentEmail);
+            const response = await fetch(APPS_SCRIPT_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: formData.toString()
+            });
+            const result = await response.json();
+            if (result.status === 200) {
+                showToast(t('toast_expedite_sent'), true);
+            } else {
+                showToast(t('toast_expedite_fail'), false);
+            }
+        } catch (err) {
+            console.error(err);
+            showToast(t('toast_network_error') + err.message, false);
+        }
+    }
+
+    function escapeHtml(str) {
+        if (!str) return '';
+        return str.replace(/[&<>]/g, function(m) {
+            if (m === '&') return '&amp;';
+            if (m === '<') return '&lt;';
+            if (m === '>') return '&gt;';
+            return m;
+        });
+    }
+
+    const historyModal = document.getElementById('historyModal');
+    const historyBtn = document.getElementById('historyBtn');
+    const closeHistoryBtn = document.getElementById('closeHistoryBtn');
+
+    function openHistoryModal() {
+        if (!currentEmail) {
+            showToast(t('toast_login_required'), false);
+            return;
+        }
+        loadHistory().catch(err => console.error(err));
+        historyModal.classList.add('active');
+    }
+
+    function closeHistoryModal() {
+        historyModal.classList.remove('active');
+    }
+    if (historyBtn) historyBtn.addEventListener('click', openHistoryModal);
+    if (closeHistoryBtn) closeHistoryBtn.addEventListener('click', closeHistoryModal);
+    historyModal.addEventListener('click', function(e) {
+        if (e.target === historyModal) closeHistoryModal();
+    });
+
+    // ========================================================================
+    //  SỰ KIỆN (giữ nguyên)
+    // ========================================================================
+    document.getElementById('eventsBtn').addEventListener('click', function() {
+        alert(t('events_feature_alert'));
+    });
+
+    // ========================================================================
+    //  PWA (giữ nguyên)
+    // ========================================================================
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('/PopMinutes-PWA/sw-v2.js')
+                .then(reg => console.log('PopMinutes PWA đã kích hoạt thành công tại: ', reg.scope))
+                .catch(err => console.log('Kích hoạt PWA thất bại: ', err));
+        });
+    }
+
+    let deferredPrompt;
+    const btnInstall = document.getElementById('btnInstall');
+    window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        deferredPrompt = e;
+        if (btnInstall) btnInstall.style.display = 'block';
+    });
+    if (btnInstall) {
+        btnInstall.addEventListener('click', async () => {
+            if (!deferredPrompt) return;
+            deferredPrompt.prompt();
+            const { outcome } = await deferredPrompt.userChoice;
+            console.log(`User response to install prompt: ${outcome}`);
+            deferredPrompt = null;
+            btnInstall.style.display = 'none';
+        });
+    }
+    window.addEventListener('appinstalled', () => {
+        console.log('PopMinutes PWA đã được cài đặt thành công!');
+        if (btnInstall) btnInstall.style.display = 'none';
+    });
+
+    // ========================================================================
+    //  KHỞI CHẠY
+    // ========================================================================
+    document.addEventListener('DOMContentLoaded', async function() {
+        await tryAutoLogin();
+        applyLanguage(currentLang);
+        loginItems.forEach(item => {
+            item.classList.toggle('active-lang', item.dataset.lang === currentLang);
+        });
+        dashItems.forEach(item => {
+            item.classList.toggle('active-lang', item.dataset.lang === currentLang);
+        });
+        updateFlagIcons(currentLang);
+        updateLangTooltip(currentLang);
+        toggleLanguageTarget();
+        const savedLang = localStorage.getItem('popminutes_output_target') || 'vi';
+        document.getElementById('outputTargetLang').value = savedLang;
+        const savedMode = localStorage.getItem('popminutes_output_mode') || 'auto';
+        document.getElementById('outputMode').value = savedMode;
+        toggleLanguageTarget();
+        loadConnectionStatus();
+        initTaskData();
+        renderTasks();
+        if (document.getElementById('fileInput').files.length > 0) {
+            document.getElementById('fileStatusLabel').textContent = t('change_file_btn');
+        }
+        updateDashboardDynamicText();
+        updateUploadButton();
+        updateFlagIcons(currentLang);
+        updateLangTooltip(currentLang);
+    });
+</script>
+</body>
+</html>
