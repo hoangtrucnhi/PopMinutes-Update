@@ -21,7 +21,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
 
     <style>
-        /* ========== TOÀN BỘ STYLE ========== */
+        /* ========== TOÀN BỘ STYLE (giữ nguyên) ========== */
         *,
         *::before,
         *::after {
@@ -75,6 +75,8 @@
             margin: 0 auto;
             padding-bottom: 300px;
         }
+
+        /* ===== Nút ngôn ngữ hình tròn ===== */
         .lang-btn {
             width: 44px;
             height: 44px;
@@ -98,6 +100,8 @@
         .lang-btn:active {
             transform: scale(0.95);
         }
+
+        /* ===== Menu ngôn ngữ popup ===== */
         .lang-menu {
             position: absolute;
             top: 52px;
@@ -132,6 +136,8 @@
             background: var(--navy-pale);
             color: var(--navy);
         }
+
+        /* ===== Nút ngôn ngữ trên login ===== */
         .login-lang-wrapper {
             position: absolute;
             top: 16px;
@@ -142,6 +148,7 @@
             right: 0;
             top: 52px;
         }
+
         .loader {
             width: 20px;
             height: 20px;
@@ -487,6 +494,8 @@
             color: var(--muted);
             font-weight: 500;
         }
+
+        /* ===== CÁC MODAL - ĐỀU CĂN GIỮA ===== */
         .modal-overlay {
             position: fixed;
             inset: 0;
@@ -505,6 +514,7 @@
             from { opacity: 0; }
             to { opacity: 1; }
         }
+
         .modal-box {
             background: var(--surface);
             border-radius: var(--radius-xl);
@@ -520,6 +530,7 @@
             from { transform: translateY(30px); opacity: 0; }
             to { transform: translateY(0); opacity: 1; }
         }
+
         .modal-header {
             display: flex;
             justify-content: space-between;
@@ -554,6 +565,8 @@
         .modal-close:active {
             transform: scale(0.9);
         }
+
+        /* Các phần tử trong modal */
         .fields-stack {
             display: flex;
             flex-direction: column;
@@ -734,6 +747,8 @@
         #waveformCanvas {
             display: none !important;
         }
+
+        /* ===== TASK MODAL ===== */
         .task-modal .modal-box {
             padding: 20px;
         }
@@ -873,6 +888,8 @@
         .task-item .task-actions .platform-btn i {
             font-size: 13px;
         }
+
+        /* Dropdown chọn nền tảng */
         .platform-dropdown {
             display: none;
             background: white;
@@ -909,6 +926,8 @@
             text-align: center;
             padding: 6px 0;
         }
+
+        /* Form chỉnh sửa */
         .task-edit-form {
             display: none;
             flex-direction: column;
@@ -934,9 +953,6 @@
         .task-edit-form input[type="date"] {
             width: 100%;
             min-width: 160px;
-        }
-        .task-edit-form input[type="datetime-local"] {
-            width: 100%;
         }
         .task-edit-form input:focus,
         .task-edit-form select:focus {
@@ -972,6 +988,8 @@
         .task-tab-content.active {
             display: block;
         }
+
+        /* ===== SETTINGS MODAL ===== */
         .settings-container {
             max-width: 450px;
         }
@@ -1032,6 +1050,7 @@
         .settings-btn.disconnect:hover {
             background: #FEE2E2;
         }
+        /* Khi màn hình hẹp, nếu xuống hàng, button căn phải */
         @media (max-width: 480px) {
             .settings-item {
                 flex-wrap: wrap;
@@ -1043,6 +1062,8 @@
                 margin-left: auto;
             }
         }
+
+        /* ===== EDIT TASK MODAL (mini) ===== */
         .edit-task-modal .modal-box {
             max-width: 420px;
             padding: 24px;
@@ -1094,6 +1115,8 @@
         .edit-task-modal .modal-box .edit-actions .cancel-edit:hover {
             background: #E2E8F0;
         }
+
+        /* ===== HISTORY MODAL ===== */
         .history-modal .modal-box {
             max-width: 500px;
         }
@@ -1163,6 +1186,7 @@
             justify-content: center;
         }
         .close-history:hover { background: #f0f0f0; }
+
         .consent-disclaimer {
             font-size: 14px;
             font-weight: 400;
@@ -1307,6 +1331,7 @@
             <div class="hours-bar-track"><div class="hours-bar-fill"></div></div>
         </div>
 
+        <!-- ========== TIỆN ÍCH ========== -->
         <div class="dash-section">
             <div class="section-title" data-i18n="tools_title">Tiện ích</div>
             <div class="feature-grid">
@@ -1341,6 +1366,7 @@
             </div>
         </div>
 
+        <!-- ========== LỊCH SỬ ========== -->
         <div class="dash-section">
             <div class="section-title" data-i18n="history_title">Lịch sử</div>
             <div class="feature-grid">
@@ -1361,6 +1387,7 @@
             </div>
         </div>
 
+        <!-- ========== CÀI ĐẶT ========== -->
         <div class="dash-section">
             <div class="section-title" data-i18n="settings_title">Cài đặt</div>
             <div class="feature-grid">
@@ -1416,6 +1443,7 @@
                         </div>
                     </div>
 
+                    <!-- PHẦN CHỌN NGÔN NGỮ BIÊN BẢN -->
                     <div>
                         <label class="field-label" data-i18n="language_mode_label">Chế độ ngôn ngữ</label>
                         <select id="outputMode" class="modal-input" onchange="toggleLanguageTarget()">
@@ -1527,7 +1555,6 @@
                 <button class="modal-close" id="closeEditTaskBtn"><i class="fa-solid fa-xmark"></i></button>
             </div>
             <input type="text" id="editTaskInput" data-i18n-placeholder="new_title_placeholder" placeholder="Nhập tiêu đề mới..." />
-            <input type="datetime-local" id="editTaskDueInput" style="width:100%; padding:12px 16px; border:1.5px solid var(--border); border-radius:var(--radius-sm); font-family:inherit; font-size:15px; font-weight:500; color:var(--text); background:var(--white); outline:none; transition:all 0.2s ease; margin-bottom:16px; box-shadow:var(--shadow-sm);">
             <div class="edit-actions">
                 <button class="cancel-edit" id="cancelEditTaskBtn" data-i18n="cancel_btn">Hủy</button>
                 <button class="save-edit" id="saveEditTaskBtn" data-i18n="save_btn">Lưu</button>
@@ -1583,7 +1610,7 @@
 
 <script>
     // ========================================================================
-    //  I18N – ĐA NGÔN NGỮ GIAO DIỆN
+    //  I18N – ĐA NGÔN NGỮ GIAO DIỆN (giữ nguyên)
     // ========================================================================
     const translations = {
         vi: {
@@ -1880,7 +1907,7 @@
     }
 
     // ========================================================================
-    //  QUẢN LÝ NGÔN NGỮ GIAO DIỆN
+    //  QUẢN LÝ NGÔN NGỮ GIAO DIỆN (giữ nguyên)
     // ========================================================================
     const loginToggle = document.getElementById('loginLangToggleBtn');
     const loginMenu = document.getElementById('loginLangMenu');
@@ -2110,7 +2137,7 @@
         currentCompanyName = "";
 
     // ========================================================================
-    //  ĐĂNG NHẬP
+    //  ĐĂNG NHẬP (giữ nguyên)
     // ========================================================================
     async function handleLogin() {
         const emailInput = document.getElementById('emailInput').value.trim();
@@ -2239,7 +2266,7 @@
     }
 
     // ========================================================================
-    //  LOGIC RECORDER
+    //  LOGIC RECORDER (giữ nguyên)
     // ========================================================================
     let selectedFileBlob = null;
     let mediaRecorder = null;
@@ -2458,7 +2485,7 @@
     closeModalBtn.addEventListener('click', closeModal);
 
     // ========================================================================
-    //  UPLOAD AUDIO
+    //  UPLOAD AUDIO (ĐÃ SỬA: GỌI processFullAudio KHÔNG AWAIT)
     // ========================================================================
     uploadBtn.addEventListener('click', uploadAudio);
 
@@ -2491,6 +2518,7 @@
         recordStatusDiv.innerHTML = `<span class="status-loading"><i class="fa-solid fa-spinner fa-spin"></i> ${t('status_connecting')}</span>`;
 
         try {
+            // 1. Lấy Signed URL
             const getUrlResponse = await fetch(CLOUD_FUNCTION_URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -2505,6 +2533,7 @@
 
             const { uploadUrl, filePath } = urlResult;
 
+            // 2. Upload lên Cloud Storage
             recordStatusDiv.innerHTML = `<span class="status-loading"><i class="fa-solid fa-spinner fa-spin"></i> ${t('status_uploading')}</span>`;
             const uploadResponse = await fetch(uploadUrl, {
                 method: 'PUT',
@@ -2513,6 +2542,7 @@
             });
             if (!uploadResponse.ok) throw new Error(t('err_upload_fail'));
 
+            // 3. Gọi processAudio để ghi vào sheet và lấy recordId
             const processResponse = await fetch(CLOUD_FUNCTION_URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -2535,6 +2565,8 @@
             }
             const recordId = processResult.recordId;
 
+            // 4. Gọi processFullAudio để xử lý transcript trong NỀN (không await)
+            //    Bỏ qua lỗi nếu có, vì đã upload thành công
             fetch(CLOUD_FUNCTION_URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -2552,11 +2584,13 @@
                 })
             }).catch(err => console.error('processFullAudio background error:', err));
 
+            // Thành công: hiển thị thông báo và đóng modal
             recordStatusDiv.innerHTML = `<div style="color:#065F46; font-weight:600;">${t('toast_upload_success')}</div>`;
             uploadBtn.disabled = false;
 
             setTimeout(() => {
                 closeModal();
+                // Bắt đầu polling task để hiển thị task sau khi worker xử lý
                 startTaskPolling();
             }, 2000);
 
@@ -2588,7 +2622,7 @@
     document.getElementById('qrCheckinBtn').addEventListener('click', () => alert(t('toast_upgrade_required')));
 
     // ========================================================================
-    //  QUẢN LÝ TRẠNG THÁI KẾT NỐI
+    //  QUẢN LÝ TRẠNG THÁI KẾT NỐI (giữ nguyên)
     // ========================================================================
     let connections = {
         google: false,
@@ -2654,7 +2688,7 @@
     }
 
     // ========================================================================
-    //  TASK MANAGER – ĐÃ CẬP NHẬT DATETIME
+    //  TASK MANAGER (LẤY TỪ GAS) - ĐÃ CÓ XÓA Ở CẢ 2 TAB
     // ========================================================================
     let tasks = {
         suggested: [],
@@ -2712,19 +2746,6 @@
         return platforms;
     }
 
-    // ---- Hàm định dạng ngày giờ ----
-    function formatDueDate(dueISO) {
-        if (!dueISO) return t('task_no_due');
-        try {
-            const date = new Date(dueISO);
-            if (isNaN(date.getTime())) return dueISO;
-            const options = { timeZone: 'Asia/Ho_Chi_Minh', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' };
-            return new Intl.DateTimeFormat('vi-VN', options).format(date);
-        } catch (e) {
-            return dueISO;
-        }
-    }
-
     function renderSuggestedTasks() {
         const container = document.getElementById('suggestedTaskList');
         if (tasks.suggested.length === 0) {
@@ -2747,7 +2768,6 @@
             const desc = task.description || '';
             const descCollapsed = desc.length > 0 ? 'collapsed' : '';
             const descToggle = desc.length > 0 ? `<button class="desc-toggle" onclick="toggleDesc('${task.id}')">Xem thêm</button>` : '';
-            const dueDisplay = formatDueDate(task.due);
 
             html += `
                 <div class="task-item" data-id="${task.id}">
@@ -2756,7 +2776,7 @@
                             <div class="task-title">${task.title}</div>
                             ${desc ? `<div class="task-desc ${descCollapsed}" id="desc_${task.id}">${desc}</div>${descToggle}` : ''}
                             <div class="task-meta">
-                                <span><i class="fa-regular fa-calendar"></i> ${dueDisplay}</span>
+                                <span><i class="fa-regular fa-calendar"></i> ${task.due || t('task_no_due')}</span>
                                 <span><i class="fa-regular fa-user"></i> ${task.assignee || t('task_unassigned')}</span>
                             </div>
                         </div>
@@ -2782,7 +2802,7 @@
                     <div class="task-edit-form ${isEditing ? 'active' : ''}">
                         <input type="text" id="edit_title_${task.id}" value="${task.title}" placeholder="${t('title_placeholder')}">
                         <input type="text" id="edit_desc_${task.id}" value="${task.description || ''}" placeholder="${t('desc_placeholder')}">
-                        <input type="datetime-local" id="edit_due_${task.id}" value="${task.due ? task.due.substring(0,16) : ''}">
+                        <input type="date" id="edit_due_${task.id}" value="${task.due || ''}">
                         <input type="text" id="edit_assignee_${task.id}" value="${task.assignee || ''}" placeholder="${t('assignee_placeholder')}">
                         <div class="edit-actions">
                             <button class="save-edit" onclick="saveEditTask('${task.id}')">${t('save_btn')}</button>
@@ -2807,7 +2827,6 @@
             const desc = task.description || '';
             const descCollapsed = desc.length > 0 ? 'collapsed' : '';
             const descToggle = desc.length > 0 ? `<button class="desc-toggle" onclick="toggleDesc('${task.id}')">Xem thêm</button>` : '';
-            const dueDisplay = formatDueDate(task.due);
 
             html += `
                 <div class="task-item">
@@ -2816,7 +2835,7 @@
                             <div class="task-title">${task.title}</div>
                             ${desc ? `<div class="task-desc ${descCollapsed}" id="desc_${task.id}">${desc}</div>${descToggle}` : ''}
                             <div class="task-meta">
-                                <span><i class="fa-regular fa-calendar"></i> ${dueDisplay}</span>
+                                <span><i class="fa-regular fa-calendar"></i> ${task.due || t('task_no_due')}</span>
                                 <span><i class="fa-regular fa-user"></i> ${task.assignee || t('task_unassigned')}</span>
                                 ${platformNames ? `<span><i class="fa-solid fa-layer-group"></i> ${platformNames}</span>` : ''}
                             </div>
@@ -2843,12 +2862,11 @@
     }
 
     // ========================================================================
-    //  EDIT TASK MODAL (mini) – ĐÃ CẬP NHẬT
+    //  EDIT TASK MODAL (mini) (giữ nguyên)
     // ========================================================================
     let editingConfirmedTaskId = null;
     const editTaskModal = document.getElementById('editTaskModal');
     const editTaskInput = document.getElementById('editTaskInput');
-    const editTaskDueInput = document.getElementById('editTaskDueInput');
     const closeEditTaskBtn = document.getElementById('closeEditTaskBtn');
     const cancelEditTaskBtn = document.getElementById('cancelEditTaskBtn');
     const saveEditTaskBtn = document.getElementById('saveEditTaskBtn');
@@ -2858,7 +2876,6 @@
         if (!task) return;
         editingConfirmedTaskId = taskId;
         editTaskInput.value = task.title;
-        editTaskDueInput.value = task.due ? task.due.substring(0,16) : '';
         editTaskModal.classList.add('active');
         editTaskInput.focus();
         editTaskInput.select();
@@ -2868,7 +2885,6 @@
         editTaskModal.classList.remove('active');
         editingConfirmedTaskId = null;
         editTaskInput.value = '';
-        editTaskDueInput.value = '';
     }
 
     function saveEditedTask() {
@@ -2880,8 +2896,6 @@
         const task = tasks.confirmed.find(t => t.id === editingConfirmedTaskId);
         if (task) {
             task.title = newTitle;
-            const dueVal = editTaskDueInput.value;
-            task.due = dueVal ? new Date(dueVal).toISOString() : '';
             saveTasksToStorage();
             renderTasks();
             closeEditTaskModal();
@@ -2901,7 +2915,7 @@
     });
 
     // ========================================================================
-    //  TASK FUNCTIONS (GỌI GAS + CLOUD RUN) – ĐÃ CẬP NHẬT SAVE
+    //  TASK FUNCTIONS (GỌI GAS + CLOUD RUN) (giữ nguyên)
     // ========================================================================
     function editTask(id) {
         if (editingTaskId === id) {
@@ -2915,16 +2929,14 @@
     function saveEditTask(id) {
         const title = document.getElementById(`edit_title_${id}`).value.trim();
         const desc = document.getElementById(`edit_desc_${id}`).value.trim();
-        const dueInput = document.getElementById(`edit_due_${id}`);
-        const due = dueInput ? dueInput.value : '';
-        const dueISO = due ? new Date(due).toISOString() : '';
+        const due = document.getElementById(`edit_due_${id}`).value;
         const assignee = document.getElementById(`edit_assignee_${id}`).value.trim();
 
         const task = tasks.suggested.find(t => t.id === id);
         if (task) {
             task.title = title || task.title;
             task.description = desc || task.description;
-            task.due = dueISO || task.due;
+            task.due = due || task.due;
             task.assignee = assignee || task.assignee;
             saveTasksToStorage();
             editingTaskId = null;
@@ -3073,7 +3085,7 @@
     }
 
     // ========================================================================
-    //  HÀM XÓA TASK (CHO CẢ 2 TAB)
+    //  HÀM XÓA TASK (CHO CẢ 2 TAB) (giữ nguyên)
     // ========================================================================
     async function deleteTaskById(taskId, fromArray) {
         if (!confirm(t('delete_confirm_msg'))) return;
@@ -3132,7 +3144,7 @@
     }
 
     // ========================================================================
-    //  FETCH TASKS FROM GAS & POLLING
+    //  FETCH TASKS FROM GAS & POLLING (giữ nguyên)
     // ========================================================================
     async function fetchTasksFromGAS() {
         isLoadingTasks = true;
@@ -3197,7 +3209,7 @@
     }
 
     // ========================================================================
-    //  MODAL TASK
+    //  MODAL TASK (giữ nguyên)
     // ========================================================================
     const taskModal = document.getElementById('taskModal');
     const closeTaskModalBtn = document.getElementById('closeTaskModalBtn');
@@ -3232,7 +3244,7 @@
     });
 
     // ========================================================================
-    //  MODAL CÀI ĐẶT (SETTINGS)
+    //  MODAL CÀI ĐẶT (SETTINGS) (giữ nguyên)
     // ========================================================================
     const settingsModal = document.getElementById('settingsModal');
     const closeSettingsBtn = document.getElementById('closeSettingsBtn');
@@ -3276,7 +3288,7 @@
     });
 
     // ========================================================================
-    //  LỊCH SỬ
+    //  LỊCH SỬ (giữ nguyên)
     // ========================================================================
     function showToast(message, isSuccess = true) {
         let oldToast = document.getElementById('customToast');
@@ -3423,14 +3435,14 @@
     });
 
     // ========================================================================
-    //  SỰ KIỆN
+    //  SỰ KIỆN (giữ nguyên)
     // ========================================================================
     document.getElementById('eventsBtn').addEventListener('click', function() {
         alert(t('events_feature_alert'));
     });
 
     // ========================================================================
-    //  PWA
+    //  PWA (giữ nguyên)
     // ========================================================================
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
