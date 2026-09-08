@@ -1133,10 +1133,10 @@
         }
         .settings-item {
             display: flex;
-            flex-wrap: wrap;
+            flex-wrap: nowrap;
             align-items: center;
             justify-content: space-between;
-            gap: 12px;
+            gap: 8px;
             padding: 12px 0;
             border-bottom: 1px solid var(--border);
         }
@@ -1146,14 +1146,15 @@
         .settings-item .info {
             display: flex;
             align-items: center;
-            gap: 12px;
-            flex: 1 1 auto;
+            gap: 10px;
+            flex: 0 1 auto;
             min-width: 0;
+            overflow: hidden;
         }
         .settings-item .info i {
-            font-size: 20px;
+            font-size: 18px;
             color: var(--navy);
-            width: 28px;
+            width: 24px;
             text-align: center;
             flex-shrink: 0;
         }
@@ -1190,14 +1191,19 @@
             background: #FEE2E2;
         }
         .settings-select {
-            padding: 4px 10px;
+            padding: 4px 8px;
             border-radius: 20px;
             border: 1px solid var(--border);
             font-family: inherit;
-            font-size: 13px;
+            font-size: 12px;
             background: white;
             outline: none;
             cursor: pointer;
+            min-width: 0;
+            flex-shrink: 1;
+            max-width: 100%;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         /* ===== EDIT TASK MODAL (mini) ===== */
@@ -1384,6 +1390,21 @@
                 margin-left: 0;
                 width: 100%;
                 justify-content: flex-end;
+            }
+            .settings-item {
+                flex-wrap: nowrap;
+                gap: 6px;
+            }
+            .settings-item .info i {
+                font-size: 16px;
+                width: 20px;
+            }
+            .settings-item .info .name {
+                font-size: 12px;
+            }
+            .settings-select {
+                font-size: 11px;
+                padding: 3px 6px;
             }
         }
         .confirm-loading {
