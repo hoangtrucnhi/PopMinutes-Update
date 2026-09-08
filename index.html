@@ -21,7 +21,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
 
     <style>
-        /* ========== TOÀN BỘ STYLE (giữ nguyên) ========== */
+        /* ========== TOÀN BỘ STYLE ========== */
         *,
         *::before,
         *::after {
@@ -160,9 +160,7 @@
             display: none;
         }
         @keyframes spin {
-            to {
-                transform: rotate(360deg);
-            }
+            to { transform: rotate(360deg); }
         }
         .screen {
             position: relative;
@@ -514,12 +512,8 @@
             animation: fadeIn 0.2s ease-out;
         }
         @keyframes fadeIn {
-            from {
-                opacity: 0;
-            }
-            to {
-                opacity: 1;
-            }
+            from { opacity: 0; }
+            to { opacity: 1; }
         }
 
         .modal-box {
@@ -534,14 +528,8 @@
             animation: slideUp 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
         }
         @keyframes slideUp {
-            from {
-                transform: translateY(30px);
-                opacity: 0;
-            }
-            to {
-                transform: translateY(0);
-                opacity: 1;
-            }
+            from { transform: translateY(30px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
         }
 
         .modal-header {
@@ -654,15 +642,9 @@
             border-color: #DC2626;
         }
         @keyframes pulse {
-            0% {
-                transform: scale(1);
-            }
-            50% {
-                transform: scale(1.08);
-            }
-            100% {
-                transform: scale(1);
-            }
+            0% { transform: scale(1); }
+            50% { transform: scale(1.08); }
+            100% { transform: scale(1); }
         }
         .circle-btn:active {
             transform: scale(0.92);
@@ -775,6 +757,8 @@
             display: flex;
             gap: 8px;
             margin: 16px 0 20px;
+            flex-wrap: wrap;
+            align-items: center;
         }
         .task-tab {
             padding: 8px 18px;
@@ -792,14 +776,34 @@
             color: white;
         }
         .task-tab .badge {
-            background: rgba(255, 255, 255, 0.3);
+            background: rgba(255,255,255,0.3);
             border-radius: 20px;
             padding: 0 8px;
             font-size: 11px;
             margin-left: 6px;
         }
         .task-tab.active .badge {
-            background: rgba(255, 255, 255, 0.25);
+            background: rgba(255,255,255,0.25);
+        }
+        .task-group-select {
+            margin-left: auto;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--muted);
+        }
+        .task-group-select select {
+            padding: 4px 10px;
+            border-radius: 20px;
+            border: 1px solid var(--border);
+            font-family: inherit;
+            font-size: 13px;
+            background: white;
+            outline: none;
+            cursor: pointer;
+            color: var(--text);
         }
         .task-list {
             display: flex;
@@ -865,6 +869,11 @@
             align-items: center;
             margin-top: 4px;
         }
+        .task-item .task-meta span {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
         .task-item .task-actions {
             display: flex;
             gap: 6px;
@@ -881,29 +890,13 @@
             border-radius: 8px;
             transition: background 0.15s;
         }
-        .task-item .task-actions .edit-btn {
-            color: var(--navy-light);
-        }
-        .task-item .task-actions .edit-btn:hover {
-            background: var(--navy-pale);
-        }
-        .task-item .task-actions .confirm-btn {
-            color: var(--success);
-        }
-        .task-item .task-actions .confirm-btn:hover {
-            background: #D1FAE5;
-        }
-        .task-item .task-actions .confirm-btn:disabled {
-            color: #ccc;
-            cursor: not-allowed;
-            background: none;
-        }
-        .task-item .task-actions .delete-btn {
-            color: var(--danger);
-        }
-        .task-item .task-actions .delete-btn:hover {
-            background: var(--danger-pale);
-        }
+        .task-item .task-actions .edit-btn { color: var(--navy-light); }
+        .task-item .task-actions .edit-btn:hover { background: var(--navy-pale); }
+        .task-item .task-actions .confirm-btn { color: var(--success); }
+        .task-item .task-actions .confirm-btn:hover { background: #D1FAE5; }
+        .task-item .task-actions .confirm-btn:disabled { color: #ccc; cursor: not-allowed; background: none; }
+        .task-item .task-actions .delete-btn { color: var(--danger); }
+        .task-item .task-actions .delete-btn:hover { background: var(--danger-pale); }
         .task-item .task-actions .platform-btn {
             color: var(--navy);
             background: var(--navy-pale);
@@ -915,9 +908,7 @@
             align-items: center;
             gap: 4px;
         }
-        .task-item .task-actions .platform-btn:hover {
-            background: #D6E0FF;
-        }
+        .task-item .task-actions .platform-btn:hover { background: #D6E0FF; }
         .task-item .task-actions .platform-btn.connected {
             background: #D1FAE5;
             color: #065F46;
@@ -934,7 +925,7 @@
             border-radius: 12px;
             padding: 12px;
             margin-top: 8px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
         }
         .platform-dropdown.active {
             display: block;
@@ -1013,14 +1004,8 @@
             cursor: pointer;
             border: none;
         }
-        .task-edit-form .edit-actions .save-edit {
-            background: var(--navy);
-            color: white;
-        }
-        .task-edit-form .edit-actions .cancel-edit {
-            background: #F1F5F9;
-            color: var(--text);
-        }
+        .task-edit-form .edit-actions .save-edit { background: var(--navy); color: white; }
+        .task-edit-form .edit-actions .cancel-edit { background: #F1F5F9; color: var(--text); }
         .task-empty {
             text-align: center;
             padding: 30px 0;
@@ -1049,14 +1034,32 @@
             padding: 8px 12px;
             background: var(--navy-pale);
             border-radius: var(--radius-sm);
-            margin-bottom: 10px;
+            margin-bottom: 0;
             display: flex;
             align-items: center;
             gap: 8px;
+            cursor: pointer;
+            user-select: none;
+            transition: background 0.15s;
         }
-        .task-group-header i {
-            font-size: 14px;
+        .task-group-header:hover {
+            background: #E6EDFF;
+        }
+        .task-group-header .toggle-icon {
+            margin-left: auto;
+            font-size: 12px;
             color: var(--navy-light);
+            transition: transform 0.2s;
+        }
+        .task-group-header .toggle-icon.open {
+            transform: rotate(180deg);
+        }
+        .task-group-body {
+            padding-top: 10px;
+            display: block;
+        }
+        .task-group-body.collapsed {
+            display: none;
         }
 
         /* ===== SETTINGS MODAL ===== */
@@ -1131,6 +1134,17 @@
             .settings-btn {
                 margin-left: auto;
             }
+        }
+        /* Settings - Date format */
+        .settings-select {
+            padding: 4px 10px;
+            border-radius: 20px;
+            border: 1px solid var(--border);
+            font-family: inherit;
+            font-size: 13px;
+            background: white;
+            outline: none;
+            cursor: pointer;
         }
 
         /* ===== EDIT TASK MODAL (mini) ===== */
@@ -1220,18 +1234,9 @@
             font-weight: bold;
             white-space: nowrap;
         }
-        .status-Done {
-            background: #10B981;
-            color: white;
-        }
-        .status-Processing {
-            background: #F59E0B;
-            color: white;
-        }
-        .status-Uploaded {
-            background: #3B82F6;
-            color: white;
-        }
+        .status-Done { background: #10B981; color: white; }
+        .status-Processing { background: #F59E0B; color: white; }
+        .status-Uploaded { background: #3B82F6; color: white; }
         .expedite-btn {
             background: #EF4444;
             color: white;
@@ -1264,9 +1269,7 @@
             align-items: center;
             justify-content: center;
         }
-        .close-history:hover {
-            background: #f0f0f0;
-        }
+        .close-history:hover { background: #f0f0f0; }
 
         .consent-disclaimer {
             font-size: 14px;
@@ -1298,20 +1301,14 @@
             cursor: pointer;
         }
         @media (max-width: 640px) {
-            .app {
-                max-width: 100%;
-            }
-            .hero-card {
-                margin-left: 16px;
-                margin-right: 16px;
-            }
-            .dash-section {
-                padding-left: 16px;
-                padding-right: 16px;
-            }
-            .modal-box {
-                margin: 16px;
-                padding: 20px;
+            .app { max-width: 100%; }
+            .hero-card { margin-left: 16px; margin-right: 16px; }
+            .dash-section { padding-left: 16px; padding-right: 16px; }
+            .modal-box { margin: 16px; padding: 20px; }
+            .task-group-select {
+                margin-left: 0;
+                width: 100%;
+                justify-content: flex-end;
             }
         }
         .confirm-loading {
@@ -1628,15 +1625,14 @@
                 <div class="task-tabs">
                     <button class="task-tab active" data-tab="suggested"><span data-i18n="tab_suggested">Đề xuất</span> <span class="badge" id="suggestedCount">0</span></button>
                     <button class="task-tab" data-tab="confirmed"><span data-i18n="tab_confirmed">Đã xác nhận</span> <span class="badge" id="confirmedCount">0</span></button>
-                </div>
 
-                <!-- THÊM DROPDOWN CHỌN NHÓM -->
-                <div style="display:flex; align-items:center; gap:12px; margin: 12px 0 16px;">
-                    <label style="font-size:13px; font-weight:600; color:var(--muted);">Nhóm theo:</label>
-                    <select id="groupBySelect" style="padding:6px 12px; border-radius:8px; border:1px solid var(--border); font-family:inherit; font-size:13px; background:white; outline:none; cursor:pointer;">
-                        <option value="client">👤 Khách hàng</option>
-                        <option value="due">📅 Ngày hết hạn</option>
-                    </select>
+                    <div class="task-group-select">
+                        <span>Nhóm theo</span>
+                        <select id="groupBySelect">
+                            <option value="client">Khách hàng</option>
+                            <option value="due">Ngày hết hạn</option>
+                        </select>
+                    </div>
                 </div>
 
                 <div id="taskTabSuggested" class="task-tab-content active">
@@ -1668,10 +1664,53 @@
         <div id="settingsModal" class="modal-overlay settings-modal">
             <div class="modal-box settings-container">
                 <div class="modal-header">
-                    <h2 class="modal-title" data-i18n="settings_modal_title">Kết nối ứng dụng</h2>
+                    <h2 class="modal-title" data-i18n="settings_modal_title">Cài đặt</h2>
                     <button class="modal-close" id="closeSettingsBtn"><i class="fa-solid fa-xmark"></i></button>
                 </div>
                 <div id="settingsList">
+                    <!-- Định dạng ngày giờ -->
+                    <div class="settings-item">
+                        <div class="info">
+                            <i class="fa-regular fa-calendar"></i>
+                            <span class="name">Định dạng ngày</span>
+                        </div>
+                        <select id="dateFormatSelect" class="settings-select">
+                            <option value="DD/MM/YYYY">DD/MM/YYYY</option>
+                            <option value="MM/DD/YYYY">MM/DD/YYYY</option>
+                            <option value="YYYY/MM/DD">YYYY/MM/DD</option>
+                        </select>
+                    </div>
+                    <div class="settings-item">
+                        <div class="info">
+                            <i class="fa-regular fa-clock"></i>
+                            <span class="name">Hiển thị giờ</span>
+                        </div>
+                        <select id="timeFormatSelect" class="settings-select">
+                            <option value="12h">12 giờ (AM/PM)</option>
+                            <option value="24h">24 giờ</option>
+                        </select>
+                    </div>
+                    <div class="settings-item">
+                        <div class="info">
+                            <i class="fa-regular fa-clock"></i>
+                            <span class="name">Múi giờ</span>
+                        </div>
+                        <select id="timezoneSelect" class="settings-select">
+                            <option value="Asia/Ho_Chi_Minh">🇻🇳 Việt Nam (UTC+7)</option>
+                            <option value="Asia/Bangkok">🇹🇭 Thái Lan (UTC+7)</option>
+                            <option value="Asia/Jakarta">🇮🇩 Indonesia (UTC+7)</option>
+                            <option value="Asia/Singapore">🇸🇬 Singapore (UTC+8)</option>
+                            <option value="Asia/Tokyo">🇯🇵 Nhật Bản (UTC+9)</option>
+                            <option value="Asia/Seoul">🇰🇷 Hàn Quốc (UTC+9)</option>
+                            <option value="Australia/Sydney">🇦🇺 Sydney (UTC+10)</option>
+                            <option value="America/New_York">🇺🇸 New York (UTC-4/5)</option>
+                            <option value="America/Los_Angeles">🇺🇸 Los Angeles (UTC-7/8)</option>
+                            <option value="Europe/London">🇬🇧 London (UTC+0/1)</option>
+                            <option value="Europe/Paris">🇫🇷 Paris (UTC+1/2)</option>
+                        </select>
+                    </div>
+
+                    <!-- Kết nối ứng dụng -->
                     <div class="settings-item">
                         <div class="info">
                             <i class="fa-brands fa-google"></i>
@@ -1830,7 +1869,7 @@
                 new_title_placeholder: 'Nhập tiêu đề mới...',
                 cancel_btn: 'Hủy',
                 save_btn: 'Lưu',
-                settings_modal_title: 'Kết nối ứng dụng',
+                settings_modal_title: 'Cài đặt',
                 task_empty_suggested: 'Chưa có đề xuất nào từ AI.',
                 task_empty_confirmed: 'Chưa có nhiệm vụ nào đã xác nhận.',
                 task_no_due: 'Không có hạn',
@@ -1864,6 +1903,9 @@
                 due_next_week: 'Tuần sau',
                 due_later: 'Sau này',
                 overdue: 'Quá hạn',
+                date_format_label: 'Định dạng ngày',
+                time_format_label: 'Hiển thị giờ',
+                timezone_label: 'Múi giờ',
             },
             en: {
                 login_title: 'Smart Meeting Minutes AI',
@@ -1980,7 +2022,7 @@
                 new_title_placeholder: 'Enter new title...',
                 cancel_btn: 'Cancel',
                 save_btn: 'Save',
-                settings_modal_title: 'Connect Apps',
+                settings_modal_title: 'Settings',
                 task_empty_suggested: 'No AI suggestions yet.',
                 task_empty_confirmed: 'No confirmed tasks yet.',
                 task_no_due: 'No due date',
@@ -2014,6 +2056,9 @@
                 due_next_week: 'Next week',
                 due_later: 'Later',
                 overdue: 'Overdue',
+                date_format_label: 'Date format',
+                time_format_label: 'Time format',
+                timezone_label: 'Timezone',
             }
         };
 
@@ -2309,6 +2354,9 @@
             localStorage.removeItem(AUTH_STORAGE_KEY);
             localStorage.removeItem('popminutes_connections');
             localStorage.removeItem('tasks_data');
+            localStorage.removeItem('popminutes_date_format');
+            localStorage.removeItem('popminutes_time_format');
+            localStorage.removeItem('popminutes_timezone');
             currentEmail = "";
             currentSalesName = "";
             currentCompanyName = "";
@@ -2801,7 +2849,7 @@
         }
 
         // ========================================================================
-        //  TASK MANAGER (LẤY TỪ GAS) - ĐÃ CÓ XÓA Ở CẢ 2 TAB + NHÓM
+        //  TASK MANAGER (LẤY TỪ GAS) - ĐÃ CÓ XÓA Ở CẢ 2 TAB + NHÓM + FORMAT
         // ========================================================================
         let tasks = {
             suggested: [],
@@ -2812,6 +2860,105 @@
         let isLoadingTasks = false;
         let groupBy = localStorage.getItem('popminutes_groupby') || 'client';
 
+        // ---- Cài đặt hiển thị ngày giờ ----
+        let dateFormat = localStorage.getItem('popminutes_date_format') || 'DD/MM/YYYY';
+        let timeFormat = localStorage.getItem('popminutes_time_format') || '12h';
+        let timezone = localStorage.getItem('popminutes_timezone') || 'Asia/Ho_Chi_Minh';
+
+        // ---- Hàm định dạng ngày giờ ----
+        function formatDueDate(dueISO) {
+            if (!dueISO) return t('task_no_due');
+            try {
+                const date = new Date(dueISO);
+                if (isNaN(date.getTime())) return dueISO;
+
+                const options = {
+                    timeZone: timezone,
+                    year: 'numeric',
+                    month: '2-digit',
+                    day: '2-digit',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    hour12: (timeFormat === '12h')
+                };
+
+                // Lấy các thành phần để custom định dạng ngày
+                const formatter = new Intl.DateTimeFormat('en-US', options);
+                const parts = formatter.formatToParts(date);
+                let hour = '', minute = '', day = '', month = '', year = '', ampm = '';
+                parts.forEach(p => {
+                    if (p.type === 'hour') hour = p.value;
+                    if (p.type === 'minute') minute = p.value;
+                    if (p.type === 'day') day = p.value;
+                    if (p.type === 'month') month = p.value;
+                    if (p.type === 'year') year = p.value;
+                    if (p.type === 'dayPeriod') ampm = p.value;
+                });
+
+                // Xử lý hiển thị giờ (bỏ số 0 đầu nếu cần)
+                let hourDisplay = parseInt(hour, 10);
+                if (timeFormat === '12h') {
+                    if (hourDisplay === 0) hourDisplay = 12;
+                    hour = hourDisplay.toString();
+                } else {
+                    hour = hour.padStart(2, '0');
+                }
+                const timeStr = timeFormat === '12h' ? `${hour}:${minute} ${ampm}` : `${hour}:${minute}`;
+
+                // Định dạng ngày
+                let dateStr = '';
+                switch (dateFormat) {
+                    case 'DD/MM/YYYY':
+                        dateStr = `${day}/${month}/${year}`;
+                        break;
+                    case 'MM/DD/YYYY':
+                        dateStr = `${month}/${day}/${year}`;
+                        break;
+                    case 'YYYY/MM/DD':
+                        dateStr = `${year}/${month}/${day}`;
+                        break;
+                    default:
+                        dateStr = `${day}/${month}/${year}`;
+                }
+
+                return `${timeStr} ${dateStr}`;
+            } catch (e) {
+                return dueISO;
+            }
+        }
+
+        // ---- Lưu cài đặt và áp dụng ----
+        function saveDisplaySettings() {
+            localStorage.setItem('popminutes_date_format', dateFormat);
+            localStorage.setItem('popminutes_time_format', timeFormat);
+            localStorage.setItem('popminutes_timezone', timezone);
+            renderTasks();
+        }
+
+        // ---- Cập nhật UI Settings ----
+        function applySettingsUI() {
+            document.getElementById('dateFormatSelect').value = dateFormat;
+            document.getElementById('timeFormatSelect').value = timeFormat;
+            document.getElementById('timezoneSelect').value = timezone;
+        }
+
+        // ---- Sự kiện Settings ----
+        document.getElementById('dateFormatSelect').addEventListener('change', function() {
+            dateFormat = this.value;
+            saveDisplaySettings();
+        });
+        document.getElementById('timeFormatSelect').addEventListener('change', function() {
+            timeFormat = this.value;
+            saveDisplaySettings();
+        });
+        document.getElementById('timezoneSelect').addEventListener('change', function() {
+            timezone = this.value;
+            saveDisplaySettings();
+        });
+
+        // ========================================================================
+        //  TASK MANAGER (LẤY TỪ GAS) - ĐÃ CÓ XÓA Ở CẢ 2 TAB + NHÓM
+        // ========================================================================
         function initTaskData() {
             tasks = { suggested: [], confirmed: [] };
             updateBadgeCounts();
@@ -2860,20 +3007,6 @@
                 platforms.push('Trello');
             }
             return platforms;
-        }
-
-        // ---- Hàm định dạng ngày giờ ----
-        function formatDueDate(dueISO) {
-            if (!dueISO) return t('task_no_due');
-            try {
-                const date = new Date(dueISO);
-                if (isNaN(date.getTime())) return dueISO;
-                const options = { timeZone: 'Asia/Ho_Chi_Minh', year: 'numeric', month: '2-digit', day: '2-digit',
-                    hour: '2-digit', minute: '2-digit' };
-                return new Intl.DateTimeFormat('vi-VN', options).format(date);
-            } catch (e) {
-                return dueISO;
-            }
         }
 
         // ---- Hàm nhóm và sắp xếp ----
@@ -2966,7 +3099,20 @@
             }
         }
 
-        // ---- RENDER ĐỀ XUẤT (NHÓM THEO CLIENT) ----
+        // ---- Toggle group collapse ----
+        function toggleGroup(headerElement) {
+            const body = headerElement.nextElementSibling;
+            const icon = headerElement.querySelector('.toggle-icon');
+            if (body.classList.contains('collapsed')) {
+                body.classList.remove('collapsed');
+                icon.classList.add('open');
+            } else {
+                body.classList.add('collapsed');
+                icon.classList.remove('open');
+            }
+        }
+
+        // ---- RENDER ĐỀ XUẤT (CÓ ASSIGNEE) ----
         function renderSuggestedTasks(groupByType) {
             const container = document.getElementById('suggestedTaskList');
             if (tasks.suggested.length === 0) {
@@ -2978,7 +3124,14 @@
             let html = '';
             grouped.forEach(group => {
                 const groupLabel = group.groupName;
-                html += `<div class="task-group"><div class="task-group-header"><i class="fa-regular fa-user"></i> ${groupLabel}</div>`;
+                html += `
+                    <div class="task-group">
+                        <div class="task-group-header" onclick="toggleGroup(this)">
+                            <span>${groupLabel}</span>
+                            <span class="toggle-icon open"><i class="fa-solid fa-chevron-down"></i></span>
+                        </div>
+                        <div class="task-group-body">
+                `;
                 group.tasks.forEach(task => {
                     const isEditing = (editingTaskId === task.id);
                     const connectedPlatforms = getConnectedPlatforms();
@@ -2997,7 +3150,8 @@
                     const descToggle = desc.length > 0 ?
                         `<button class="desc-toggle" onclick="toggleDesc('${task.id}')">Xem thêm</button>` : '';
                     const dueDisplay = formatDueDate(task.due);
-                    // BỎ assignee
+                    const assignee = task.assignee || t('task_unassigned');
+
                     html += `
                     <div class="task-item" data-id="${task.id}">
                         <div class="task-header">
@@ -3006,6 +3160,7 @@
                                 ${desc ? `<div class="task-desc ${descCollapsed}" id="desc_${task.id}">${desc}</div>${descToggle}` : ''}
                                 <div class="task-meta">
                                     <span><i class="fa-regular fa-calendar"></i> ${dueDisplay}</span>
+                                    <span><i class="fa-regular fa-user"></i> ${assignee}</span>
                                 </div>
                             </div>
                             <div class="task-actions">
@@ -3031,7 +3186,7 @@
                             <input type="text" id="edit_title_${task.id}" value="${task.title}" placeholder="${t('title_placeholder')}">
                             <input type="text" id="edit_desc_${task.id}" value="${task.description || ''}" placeholder="${t('desc_placeholder')}">
                             <input type="datetime-local" id="edit_due_${task.id}" value="${task.due ? task.due.substring(0,16) : ''}">
-                            <!-- BỎ input assignee -->
+                            <input type="text" id="edit_assignee_${task.id}" value="${task.assignee || ''}" placeholder="${t('assignee_placeholder')}">
                             <div class="edit-actions">
                                 <button class="save-edit" onclick="saveEditTask('${task.id}')">${t('save_btn')}</button>
                                 <button class="cancel-edit" onclick="cancelEditTask()">${t('cancel_btn')}</button>
@@ -3040,12 +3195,12 @@
                     </div>
                     `;
                 });
-                html += `</div>`;
+                html += `</div></div>`;
             });
             container.innerHTML = html;
         }
 
-        // ---- RENDER XÁC NHẬN (NHÓM THEO CLIENT) ----
+        // ---- RENDER XÁC NHẬN (CÓ ASSIGNEE) ----
         function renderConfirmedTasks(groupByType) {
             const container = document.getElementById('confirmedTaskList');
             if (tasks.confirmed.length === 0) {
@@ -3057,7 +3212,14 @@
             let html = '';
             grouped.forEach(group => {
                 const groupLabel = group.groupName;
-                html += `<div class="task-group"><div class="task-group-header"><i class="fa-regular fa-user"></i> ${groupLabel}</div>`;
+                html += `
+                    <div class="task-group">
+                        <div class="task-group-header" onclick="toggleGroup(this)">
+                            <span>${groupLabel}</span>
+                            <span class="toggle-icon open"><i class="fa-solid fa-chevron-down"></i></span>
+                        </div>
+                        <div class="task-group-body">
+                `;
                 group.tasks.forEach(task => {
                     const platformNames = (task.platforms || []).map(p => displayPlatform(p.platform)).join(', ');
                     const desc = task.description || '';
@@ -3065,7 +3227,8 @@
                     const descToggle = desc.length > 0 ?
                         `<button class="desc-toggle" onclick="toggleDesc('${task.id}')">Xem thêm</button>` : '';
                     const dueDisplay = formatDueDate(task.due);
-                    // BỎ assignee
+                    const assignee = task.assignee || t('task_unassigned');
+
                     html += `
                     <div class="task-item">
                         <div class="task-header">
@@ -3074,6 +3237,7 @@
                                 ${desc ? `<div class="task-desc ${descCollapsed}" id="desc_${task.id}">${desc}</div>${descToggle}` : ''}
                                 <div class="task-meta">
                                     <span><i class="fa-regular fa-calendar"></i> ${dueDisplay}</span>
+                                    <span><i class="fa-regular fa-user"></i> ${assignee}</span>
                                     ${platformNames ? `<span><i class="fa-solid fa-layer-group"></i> ${platformNames}</span>` : ''}
                                 </div>
                             </div>
@@ -3085,7 +3249,7 @@
                     </div>
                     `;
                 });
-                html += `</div>`;
+                html += `</div></div>`;
             });
             container.innerHTML = html;
         }
@@ -3101,7 +3265,7 @@
         }
 
         // ========================================================================
-        //  EDIT TASK MODAL (mini) - ĐÃ CẬP NHẬT (BỎ ASSIGNEE)
+        //  EDIT TASK MODAL (mini) - ĐÃ CẬP NHẬT
         // ========================================================================
         let editingConfirmedTaskId = null;
         const editTaskModal = document.getElementById('editTaskModal');
@@ -3176,13 +3340,14 @@
             const dueInput = document.getElementById(`edit_due_${id}`);
             const due = dueInput ? dueInput.value : '';
             const dueISO = due ? new Date(due).toISOString() : '';
-            // BỎ assignee
+            const assignee = document.getElementById(`edit_assignee_${id}`).value.trim();
 
             const task = tasks.suggested.find(t => t.id === id);
             if (task) {
                 task.title = title || task.title;
                 task.description = desc || task.description;
                 task.due = dueISO || task.due;
+                task.assignee = assignee || task.assignee;
                 saveTasksToStorage();
                 editingTaskId = null;
                 renderTasks();
@@ -3415,9 +3580,10 @@
                             title: task.title,
                             description: task.description,
                             due: task.due,
+                            assignee: task.assignee || '',
                             platforms: task.platforms || [],
                             status: task.status,
-                            clientName: task.clientName || ''  // THÊM CLIENT_NAME
+                            clientName: task.clientName || ''
                         };
                         const hasPopMinutes = taskObj.platforms.some(p => p.platform === 'PopMinutes');
                         if (!hasPopMinutes) {
@@ -3516,6 +3682,7 @@
                 return;
             }
             loadConnectionStatus();
+            applySettingsUI();
             settingsModal.classList.add('active');
         }
 
@@ -3767,6 +3934,11 @@
             // Khôi phục groupBy
             groupBy = localStorage.getItem('popminutes_groupby') || 'client';
             document.getElementById('groupBySelect').value = groupBy;
+            // Khôi phục cài đặt hiển thị
+            dateFormat = localStorage.getItem('popminutes_date_format') || 'DD/MM/YYYY';
+            timeFormat = localStorage.getItem('popminutes_time_format') || '12h';
+            timezone = localStorage.getItem('popminutes_timezone') || 'Asia/Ho_Chi_Minh';
+            applySettingsUI();
             renderTasks();
             if (document.getElementById('fileInput').files.length > 0) {
                 document.getElementById('fileStatusLabel').textContent = t('change_file_btn');
