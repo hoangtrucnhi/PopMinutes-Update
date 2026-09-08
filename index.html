@@ -1630,6 +1630,15 @@
                     <button class="task-tab" data-tab="confirmed"><span data-i18n="tab_confirmed">Đã xác nhận</span> <span class="badge" id="confirmedCount">0</span></button>
                 </div>
 
+                <!-- THÊM DROPDOWN CHỌN NHÓM -->
+                <div style="display:flex; align-items:center; gap:12px; margin: 12px 0 16px;">
+                    <label style="font-size:13px; font-weight:600; color:var(--muted);">Nhóm theo:</label>
+                    <select id="groupBySelect" style="padding:6px 12px; border-radius:8px; border:1px solid var(--border); font-family:inherit; font-size:13px; background:white; outline:none; cursor:pointer;">
+                        <option value="client">👤 Khách hàng</option>
+                        <option value="due">📅 Ngày hết hạn</option>
+                    </select>
+                </div>
+
                 <div id="taskTabSuggested" class="task-tab-content active">
                     <div class="task-list" id="suggestedTaskList"></div>
                 </div>
@@ -2801,6 +2810,7 @@
         let editingTaskId = null;
         let currentTab = 'suggested';
         let isLoadingTasks = false;
+        let groupBy = localStorage.getItem('popminutes_groupby') || 'client';
 
         function initTaskData() {
             tasks = { suggested: [], confirmed: [] };
@@ -2825,8 +2835,8 @@
                     '<div class="task-empty"><i class="fa-solid fa-spinner fa-spin"></i> Đang tải...</div>';
                 return;
             }
-            renderSuggestedTasks();
-            renderConfirmedTasks();
+            renderSuggestedTasks(groupBy);
+            renderConfirmedTasks(groupBy);
             updateBadgeCounts();
         }
 
@@ -2867,11 +2877,11 @@
         }
 
         // ---- Hàm nhóm và sắp xếp ----
-        function groupAndSortTasks(taskList, groupBy = 'client') {
-            if (groupBy === 'client') {
+        function groupAndSortTasks(taskList, groupByType = 'client') {
+            if (groupByType === 'client') {
                 const grouped = {};
                 taskList.forEach(task => {
-                    const key = task.assignee || t('task_unassigned');
+                    const key = task.clientName || t('task_unassigned');
                     if (!grouped[key]) grouped[key] = [];
                     grouped[key].push(task);
                 });
@@ -2957,14 +2967,14 @@
         }
 
         // ---- RENDER ĐỀ XUẤT (NHÓM THEO CLIENT) ----
-        function renderSuggestedTasks() {
+        function renderSuggestedTasks(groupByType) {
             const container = document.getElementById('suggestedTaskList');
             if (tasks.suggested.length === 0) {
                 container.innerHTML = `<div class="task-empty">${t('task_empty_suggested')}</div>`;
                 return;
             }
 
-            const grouped = groupAndSortTasks(tasks.suggested, 'client');
+            const grouped = groupAndSortTasks(tasks.suggested, groupByType);
             let html = '';
             grouped.forEach(group => {
                 const groupLabel = group.groupName;
@@ -2987,7 +2997,7 @@
                     const descToggle = desc.length > 0 ?
                         `<button class="desc-toggle" onclick="toggleDesc('${task.id}')">Xem thêm</button>` : '';
                     const dueDisplay = formatDueDate(task.due);
-
+                    // BỎ assignee
                     html += `
                     <div class="task-item" data-id="${task.id}">
                         <div class="task-header">
@@ -2996,7 +3006,6 @@
                                 ${desc ? `<div class="task-desc ${descCollapsed}" id="desc_${task.id}">${desc}</div>${descToggle}` : ''}
                                 <div class="task-meta">
                                     <span><i class="fa-regular fa-calendar"></i> ${dueDisplay}</span>
-                                    <span><i class="fa-regular fa-user"></i> ${task.assignee || t('task_unassigned')}</span>
                                 </div>
                             </div>
                             <div class="task-actions">
@@ -3022,7 +3031,7 @@
                             <input type="text" id="edit_title_${task.id}" value="${task.title}" placeholder="${t('title_placeholder')}">
                             <input type="text" id="edit_desc_${task.id}" value="${task.description || ''}" placeholder="${t('desc_placeholder')}">
                             <input type="datetime-local" id="edit_due_${task.id}" value="${task.due ? task.due.substring(0,16) : ''}">
-                            <input type="text" id="edit_assignee_${task.id}" value="${task.assignee || ''}" placeholder="${t('assignee_placeholder')}">
+                            <!-- BỎ input assignee -->
                             <div class="edit-actions">
                                 <button class="save-edit" onclick="saveEditTask('${task.id}')">${t('save_btn')}</button>
                                 <button class="cancel-edit" onclick="cancelEditTask()">${t('cancel_btn')}</button>
@@ -3037,14 +3046,14 @@
         }
 
         // ---- RENDER XÁC NHẬN (NHÓM THEO CLIENT) ----
-        function renderConfirmedTasks() {
+        function renderConfirmedTasks(groupByType) {
             const container = document.getElementById('confirmedTaskList');
             if (tasks.confirmed.length === 0) {
                 container.innerHTML = `<div class="task-empty">${t('task_empty_confirmed')}</div>`;
                 return;
             }
 
-            const grouped = groupAndSortTasks(tasks.confirmed, 'client');
+            const grouped = groupAndSortTasks(tasks.confirmed, groupByType);
             let html = '';
             grouped.forEach(group => {
                 const groupLabel = group.groupName;
@@ -3056,7 +3065,7 @@
                     const descToggle = desc.length > 0 ?
                         `<button class="desc-toggle" onclick="toggleDesc('${task.id}')">Xem thêm</button>` : '';
                     const dueDisplay = formatDueDate(task.due);
-
+                    // BỎ assignee
                     html += `
                     <div class="task-item">
                         <div class="task-header">
@@ -3065,7 +3074,6 @@
                                 ${desc ? `<div class="task-desc ${descCollapsed}" id="desc_${task.id}">${desc}</div>${descToggle}` : ''}
                                 <div class="task-meta">
                                     <span><i class="fa-regular fa-calendar"></i> ${dueDisplay}</span>
-                                    <span><i class="fa-regular fa-user"></i> ${task.assignee || t('task_unassigned')}</span>
                                     ${platformNames ? `<span><i class="fa-solid fa-layer-group"></i> ${platformNames}</span>` : ''}
                                 </div>
                             </div>
@@ -3093,7 +3101,7 @@
         }
 
         // ========================================================================
-        //  EDIT TASK MODAL (mini) - ĐÃ CẬP NHẬT
+        //  EDIT TASK MODAL (mini) - ĐÃ CẬP NHẬT (BỎ ASSIGNEE)
         // ========================================================================
         let editingConfirmedTaskId = null;
         const editTaskModal = document.getElementById('editTaskModal');
@@ -3168,14 +3176,13 @@
             const dueInput = document.getElementById(`edit_due_${id}`);
             const due = dueInput ? dueInput.value : '';
             const dueISO = due ? new Date(due).toISOString() : '';
-            const assignee = document.getElementById(`edit_assignee_${id}`).value.trim();
+            // BỎ assignee
 
             const task = tasks.suggested.find(t => t.id === id);
             if (task) {
                 task.title = title || task.title;
                 task.description = desc || task.description;
                 task.due = dueISO || task.due;
-                task.assignee = assignee || task.assignee;
                 saveTasksToStorage();
                 editingTaskId = null;
                 renderTasks();
@@ -3408,9 +3415,9 @@
                             title: task.title,
                             description: task.description,
                             due: task.due,
-                            assignee: task.assignee,
                             platforms: task.platforms || [],
-                            status: task.status
+                            status: task.status,
+                            clientName: task.clientName || ''  // THÊM CLIENT_NAME
                         };
                         const hasPopMinutes = taskObj.platforms.some(p => p.platform === 'PopMinutes');
                         if (!hasPopMinutes) {
@@ -3452,6 +3459,15 @@
         }
 
         // ========================================================================
+        //  SỰ KIỆN CHO DROPDOWN NHÓM
+        // ========================================================================
+        document.getElementById('groupBySelect').addEventListener('change', function() {
+            groupBy = this.value;
+            localStorage.setItem('popminutes_groupby', groupBy);
+            renderTasks();
+        });
+
+        // ========================================================================
         //  MODAL TASK
         // ========================================================================
         const taskModal = document.getElementById('taskModal');
@@ -3463,6 +3479,8 @@
                 return;
             }
             taskModal.classList.add('active');
+            // Set dropdown value từ localStorage
+            document.getElementById('groupBySelect').value = groupBy;
             fetchTasksFromGAS();
         });
 
@@ -3746,6 +3764,9 @@
             toggleLanguageTarget();
             loadConnectionStatus();
             initTaskData();
+            // Khôi phục groupBy
+            groupBy = localStorage.getItem('popminutes_groupby') || 'client';
+            document.getElementById('groupBySelect').value = groupBy;
             renderTasks();
             if (document.getElementById('fileInput').files.length > 0) {
                 document.getElementById('fileStatusLabel').textContent = t('change_file_btn');
