@@ -3348,72 +3348,111 @@
         let dateFormat = localStorage.getItem('popminutes_date_format') || 'DD/MM/YY';
         let timezone = localStorage.getItem('popminutes_timezone') || 'Asia/Ho_Chi_Minh';
 
+        // ============ HÀM PARSE ĐỊNH DẠNG NGÀY GIỜ TỪ BACKEND (GMT+7) ============
+function parseDueString(dueStr) {
+    if (!dueStr) return null;
+    var s = String(dueStr).trim();
+
+    // Format "YYYY/MM/DD hh:mmAM/PM" hoặc "YYYY-MM-DD hh:mmAM/PM"
+    var m = s.match(/^(\d{4})[\/\-](\d{2})[\/\-](\d{2})\s+(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
+    if (m) {
+        var year = parseInt(m[1], 10);
+        var month = parseInt(m[2], 10) - 1;
+        var day = parseInt(m[3], 10);
+        var hour = parseInt(m[4], 10);
+        var minute = parseInt(m[5], 10);
+        var ampm = m[6].toUpperCase();
+        if (ampm === 'PM' && hour < 12) hour += 12;
+        if (ampm === 'AM' && hour === 12) hour = 0;
+        // Chuỗi từ backend hiểu là GMT+7 → chuyển về UTC
+        return new Date(Date.UTC(year, month, day, hour - 7, minute, 0, 0));
+    }
+
+    // Format chỉ có ngày "YYYY/MM/DD" hoặc "YYYY-MM-DD"
+    var m2 = s.match(/^(\d{4})[\/\-](\d{2})[\/\-](\d{2})$/);
+    if (m2) {
+        var y2 = parseInt(m2[1], 10);
+        var mo2 = parseInt(m2[2], 10) - 1;
+        var d2 = parseInt(m2[3], 10);
+        // Mặc định 11:59PM GMT+7 = 16:59 UTC
+        return new Date(Date.UTC(y2, mo2, d2, 16, 59, 0, 0));
+    }
+
+    // Fallback: ISO string hoặc bất kỳ thứ gì Date parse được
+    var d = new Date(s);
+    return isNaN(d.getTime()) ? null : d;
+}
         function formatDueDate(dueISO) {
-            if (!dueISO) return t('task_no_due');
-            try {
-                const date = new Date(dueISO);
-                if (isNaN(date.getTime())) return dueISO;
+    if (!dueISO) return t('task_no_due');
+    try {
+        const date = parseDueString(dueISO);   // <-- ĐỔI TỪ new Date(dueISO) SANG parseDueString
+        if (!date) return dueISO;
 
-                const options = {
-                    timeZone: timezone,
-                    year: 'numeric',
-                    month: '2-digit',
-                    day: '2-digit',
-                    hour: '2-digit',
-                    minute: '2-digit',
-                    hour12: true
-                };
+        const options = {
+            timeZone: timezone,
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: true
+        };
 
-                const formatter = new Intl.DateTimeFormat('en-US', options);
-                const parts = formatter.formatToParts(date);
-                let hour = '',
-                    minute = '',
-                    day = '',
-                    month = '',
-                    year = '',
-                    ampm = '';
-                parts.forEach(p => {
-                    if (p.type === 'hour') hour = p.value;
-                    if (p.type === 'minute') minute = p.value;
-                    if (p.type === 'day') day = p.value;
-                    if (p.type === 'month') month = p.value;
-                    if (p.type === 'year') year = p.value;
-                    if (p.type === 'dayPeriod') ampm = p.value;
-                });
+        const formatter = new Intl.DateTimeFormat('en-US', options);
+        const parts = formatter.formatToParts(date);
+        let hour = '', minute = '', day = '', month = '', year = '', ampm = '';
+        parts.forEach(p => {
+            if (p.type === 'hour') hour = p.value;
+            if (p.type === 'minute') minute = p.value;
+            if (p.type === 'day') day = p.value;
+            if (p.type === 'month') month = p.value;
+            if (p.type === 'year') year = p.value;
+            if (p.type === 'dayPeriod') ampm = p.value;
+        });
 
-                let hourDisplay = parseInt(hour, 10);
-                if (hourDisplay === 0) hourDisplay = 12;
-                const timeStr = `${hourDisplay}:${minute} ${ampm}`;
+        let hourDisplay = parseInt(hour, 10);
+        if (hourDisplay === 0) hourDisplay = 12;
+        const timeStr = `${hourDisplay}:${minute} ${ampm}`;
 
-                const shortYear = year.slice(-2);
-                let dateStr = '';
-                switch (dateFormat) {
-                    case 'DD/MM/YY':
-                        dateStr = `${day}/${month}/${shortYear}`;
-                        break;
-                    case 'MM/DD/YY':
-                        dateStr = `${month}/${day}/${shortYear}`;
-                        break;
-                    case 'YY/MM/DD':
-                        dateStr = `${shortYear}/${month}/${day}`;
-                        break;
-                    default:
-                        dateStr = `${day}/${month}/${shortYear}`;
-                }
-                return `${timeStr} ${dateStr}`;
-            } catch (e) {
-                return dueISO;
-            }
+        const shortYear = year.slice(-2);
+        let dateStr = '';
+        switch (dateFormat) {
+            case 'DD/MM/YY': dateStr = `${day}/${month}/${shortYear}`; break;
+            case 'MM/DD/YY': dateStr = `${month}/${day}/${shortYear}`; break;
+            case 'YY/MM/DD': dateStr = `${shortYear}/${month}/${day}`; break;
+            default:         dateStr = `${day}/${month}/${shortYear}`;
         }
-
-        function getDateTimeValue(dueISO) {
-            if (!dueISO) return '';
-            if (dueISO.length <= 10) {
-                return dueISO + 'T23:59';
-            }
-            return dueISO.substring(0, 16);
-        }
-
+        return `${timeStr} ${dateStr}`;
+    } catch (e) {
+        return dueISO;
+    }
+}
+function getDateTimeValue(dueISO) {
+    if (!dueISO) return '';
+    const date = parseDueString(dueISO);   // <-- ĐỔI TỪ substring SANG parseDueString
+    if (!date) {
+        // Fallback thô nếu parse fail
+        if (dueISO.length <= 10) return dueISO + 'T23:59';
+        return dueISO.substring(0, 16);
+    }
+    // Chuyển về wall-clock theo timezone đang chọn
+    const formatter = new Intl.DateTimeFormat('en-CA', {
+        timeZone: timezone,
+        year: 'numeric', month: '2-digit', day: '2-digit',
+        hour: '2-digit', minute: '2-digit', hour12: false
+    });
+    const parts = formatter.formatToParts(date);
+    let y='', mo='', d='', h='', mi='';
+    parts.forEach(p => {
+        if (p.type === 'year') y = p.value;
+        if (p.type === 'month') mo = p.value;
+        if (p.type === 'day') d = p.value;
+        if (p.type === 'hour') h = p.value;
+        if (p.type === 'minute') mi = p.value;
+    });
+    if (h === '24') h = '00';
+    return `${y}-${mo}-${d}T${h}:${mi}`;
+}
         function saveDisplaySettings() {
             localStorage.setItem('popminutes_date_format', dateFormat);
             localStorage.setItem('popminutes_timezone', timezone);
