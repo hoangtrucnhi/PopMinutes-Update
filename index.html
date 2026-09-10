@@ -3523,93 +3523,103 @@ function getDateTimeValue(dueISO) {
             return platforms;
         }
 
-        function groupAndSortTasks(taskList, groupByType = 'client') {
-            if (groupByType === 'client') {
-                const grouped = {};
-                taskList.forEach(task => {
-                    const key = task.clientName || t('task_unassigned');
-                    if (!grouped[key]) grouped[key] = [];
-                    grouped[key].push(task);
-                });
-                const sortedKeys = Object.keys(grouped).sort((a, b) => a.localeCompare(b));
-                const result = [];
-                sortedKeys.forEach(key => {
-                    const tasksInGroup = grouped[key].sort((a, b) => {
-                        if (!a.due) return 1;
-                        if (!b.due) return -1;
-                        return new Date(a.due) - new Date(b.due);
-                    });
-                    result.push({ groupName: key, tasks: tasksInGroup });
-                });
-                return result;
-            } else {
-                const now = new Date();
-                const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-                const tomorrow = new Date(today);
-                tomorrow.setDate(tomorrow.getDate() + 1);
-                const nextWeek = new Date(today);
-                nextWeek.setDate(nextWeek.getDate() + 7);
+function groupAndSortTasks(taskList, groupByType = 'client') {
+    if (groupByType === 'client') {
+        const grouped = {};
+        taskList.forEach(task => {
+            const key = task.clientName || t('task_unassigned');
+            if (!grouped[key]) grouped[key] = [];
+            grouped[key].push(task);
+        });
+        const sortedKeys = Object.keys(grouped).sort((a, b) => a.localeCompare(b));
+        const result = [];
+        sortedKeys.forEach(key => {
+            const tasksInGroup = grouped[key].sort((a, b) => {
+                const da = parseDueString(a.due);   // <-- ĐỔI
+                const db = parseDueString(b.due);   // <-- ĐỔI
+                if (!da) return 1;
+                if (!db) return -1;
+                return da - db;
+            });
+            result.push({ groupName: key, tasks: tasksInGroup });
+        });
+        return result;
+    } else {
+        const now = new Date();
+        const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        const tomorrow = new Date(today);
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        const nextWeek = new Date(today);
+        nextWeek.setDate(nextWeek.getDate() + 7);
 
-                const groups = {
-                    overdue: [],
-                    today: [],
-                    tomorrow: [],
-                    this_week: [],
-                    next_week: [],
-                    later: []
-                };
+        const groups = {
+            overdue: [],
+            today: [],
+            tomorrow: [],
+            this_week: [],
+            next_week: [],
+            later: []
+        };
 
-                taskList.forEach(task => {
-                    if (!task.due) {
-                        groups.later.push(task);
-                        return;
-                    }
-                    const dueDate = new Date(task.due);
-                    if (isNaN(dueDate.getTime())) {
-                        groups.later.push(task);
-                        return;
-                    }
-                    if (dueDate < today) {
-                        groups.overdue.push(task);
-                    } else if (dueDate.getDate() === today.getDate() && dueDate.getMonth() === today.getMonth() &&
-                        dueDate.getFullYear() === today.getFullYear()) {
-                        groups.today.push(task);
-                    } else if (dueDate.getDate() === tomorrow.getDate() && dueDate.getMonth() === tomorrow.getMonth() &&
-                        dueDate.getFullYear() === tomorrow.getFullYear()) {
-                        groups.tomorrow.push(task);
-                    } else if (dueDate >= tomorrow && dueDate < nextWeek) {
-                        groups.this_week.push(task);
-                    } else if (dueDate >= nextWeek && dueDate < new Date(nextWeek.getTime() + 7 * 24 * 60 * 60 *
-                            1000)) {
-                        groups.next_week.push(task);
-                    } else {
-                        groups.later.push(task);
-                    }
-                });
-
-                const groupKeys = ['overdue', 'today', 'tomorrow', 'this_week', 'next_week', 'later'];
-                const result = [];
-                groupKeys.forEach(key => {
-                    const sorted = groups[key].sort((a, b) => {
-                        if (!a.due) return 1;
-                        if (!b.due) return -1;
-                        return new Date(a.due) - new Date(b.due);
-                    });
-                    if (sorted.length > 0) {
-                        const labelMap = {
-                            overdue: t('overdue'),
-                            today: t('due_today'),
-                            tomorrow: t('due_tomorrow'),
-                            this_week: t('due_this_week'),
-                            next_week: t('due_next_week'),
-                            later: t('due_later')
-                        };
-                        result.push({ groupName: labelMap[key] || key, tasks: sorted });
-                    }
-                });
-                return result;
+        taskList.forEach(task => {
+            if (!task.due) {
+                groups.later.push(task);
+                return;
             }
-        }
+            const dueDate = parseDueString(task.due);   // <-- ĐỔI
+            if (!dueDate) {
+                groups.later.push(task);
+                return;
+            }
+
+            // So sánh dùng timestamp (UTC) — chính xác tuyệt đối
+            const dueTime = dueDate.getTime();
+            const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 0, 0, 0, 0).getTime();
+            const tomorrowStart = new Date(tomorrow.getFullYear(), tomorrow.getMonth(), tomorrow.getDate(), 0, 0, 0, 0).getTime();
+            const afterTomorrow = tomorrowStart + 24 * 60 * 60 * 1000;
+            const nextWeekStart = new Date(nextWeek.getFullYear(), nextWeek.getMonth(), nextWeek.getDate(), 0, 0, 0, 0).getTime();
+            const weekAfterStart = nextWeekStart + 7 * 24 * 60 * 60 * 1000;
+
+            if (dueTime < todayStart) {
+                groups.overdue.push(task);
+            } else if (dueTime < tomorrowStart) {
+                groups.today.push(task);
+            } else if (dueTime < afterTomorrow) {
+                groups.tomorrow.push(task);
+            } else if (dueTime < nextWeekStart) {
+                groups.this_week.push(task);
+            } else if (dueTime < weekAfterStart) {
+                groups.next_week.push(task);
+            } else {
+                groups.later.push(task);
+            }
+        });
+
+        const groupKeys = ['overdue', 'today', 'tomorrow', 'this_week', 'next_week', 'later'];
+        const result = [];
+        groupKeys.forEach(key => {
+            const sorted = groups[key].sort((a, b) => {
+                const da = parseDueString(a.due);
+                const db = parseDueString(b.due);
+                if (!da) return 1;
+                if (!db) return -1;
+                return da - db;
+            });
+            if (sorted.length > 0) {
+                const labelMap = {
+                    overdue: t('overdue'),
+                    today: t('due_today'),
+                    tomorrow: t('due_tomorrow'),
+                    this_week: t('due_this_week'),
+                    next_week: t('due_next_week'),
+                    later: t('due_later')
+                };
+                result.push({ groupName: labelMap[key] || key, tasks: sorted });
+            }
+        });
+        return result;
+    }
+}
 
         function toggleGroup(headerElement) {
             const body = headerElement.nextElementSibling;
