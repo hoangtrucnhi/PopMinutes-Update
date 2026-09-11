@@ -3898,23 +3898,76 @@ function groupAndSortTasks(taskList, groupByType = 'client') {
             editTaskDueInput.value = '';
         }
 
-        function saveEditedTask() {
-            const newTitle = editTaskInput.value.trim();
-            if (!newTitle) {
-                showToast('⚠️ ' + t('title_empty_warn'), false);
-                return;
-            }
-            const task = tasks.confirmed.find(t => t.id === editingConfirmedTaskId);
-            if (task) {
-                task.title = newTitle;
-                const dueVal = editTaskDueInput.value;
-                task.due = dueVal ? new Date(dueVal).toISOString() : '';
-                saveTasksToStorage();
-                renderTasks();
-                closeEditTaskModal();
-                showToast('' + t('task_updated_toast'), true);
+        async function saveEditedTask() {
+    const newTitle = editTaskInput.value.trim();
+    if (!newTitle) {
+        showToast('⚠️ ' + t('title_empty_warn'), false);
+        return;
+    }
+    const task = tasks.confirmed.find(t => t.id === editingConfirmedTaskId);
+    if (!task) return;
+
+    // Update local
+    task.title = newTitle;
+    const dueVal = editTaskDueInput.value;
+    task.due = dueVal ? new Date(dueVal).toISOString() : '';
+
+    saveTasksToStorage();
+    renderTasks();
+    closeEditTaskModal();
+
+    // Sync sheet (GAS)
+    try {
+        await fetch(APPS_SCRIPT_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: new URLSearchParams({
+                action: 'updateTask',
+                taskId: task.id,
+                title: task.title,
+                description: task.description || '',
+                due: task.due || '',
+                assignee: task.assignee || ''
+            }).toString()
+        });
+    } catch (e) {
+        console.warn('Update sheet failed:', e);
+    }
+
+    // Sync Trello
+    const platforms = task.platforms || [];
+    for (const p of platforms) {
+        if (p.platform !== 'PopMinutes' && p.externalId) {
+            try {
+                const res = await fetch(CLOUD_FUNCTION_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: 'updateExternalTask',
+                        platform: p.platform,
+                        externalId: p.externalId,
+                        userEmail: currentEmail,
+                        task: {
+                            title: task.title,
+                            description: task.description || '',
+                            due: task.due || ''
+                        }
+                    })
+                });
+                const data = await res.json();
+                if (data.status !== 200) {
+                    console.warn(`Update ${p.platform} failed:`, data.message);
+                } else {
+                    console.log(`✅ Updated card on ${p.platform}`);
+                }
+            } catch (e) {
+                console.warn(`Update ${p.platform} error:`, e);
             }
         }
+    }
+
+    showToast('' + t('task_updated_toast'), true);
+}
 
         closeEditTaskBtn.addEventListener('click', closeEditTaskModal);
         cancelEditTaskBtn.addEventListener('click', closeEditTaskModal);
