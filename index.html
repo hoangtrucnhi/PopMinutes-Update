@@ -3351,13 +3351,13 @@ async function connectPlatform(platform) {
                 const left = (screen.width - w) / 2;
                 const top = (screen.height - h) / 2;
                 const popup = window.open(data.authorizeUrl, 'TrelloAuth', `width=${w},height=${h},left=${left},top=${top}`);
-                // Đợi user authorize xong, kiểm tra mỗi 1s
-                const checkInterval = setInterval(async () => {
-                    if (popup.closed) {
-                        clearInterval(checkInterval);
-                        await refreshTrelloStatus();
-                    }
-                }, 1000);
+// Fallback: nếu popup bị đóng bằng tay, cũng refresh
+const checkInterval = setInterval(async () => {
+    if (popup && popup.closed) {
+        clearInterval(checkInterval);
+        await refreshTrelloStatus();
+    }
+}, 1500);
             } else {
                 showToast('Lỗi khởi tạo kết nối: ' + (data.message || 'Không rõ'), false);
             }
@@ -3394,14 +3394,18 @@ async function disconnectPlatform(platform) {
 }
 
 async function refreshTrelloStatus() {
+    if (!currentEmail) {
+        console.warn('refreshTrelloStatus: chưa đăng nhập');
+        return;
+    }
     try {
         const url = `${CLOUD_FUNCTION_URL}?action=trelloStatus&email=${encodeURIComponent(currentEmail)}`;
         const res = await fetch(url);
         const data = await res.json();
+        console.log('Trello status:', data);
         if (data.status === 200) {
             connections.trello = data.connected;
             if (data.connected && !data.board_id) {
-                // Đã kết nối nhưng chưa chọn board → mở modal chọn board
                 await openBoardSelectionModal();
             } else if (data.connected && data.board_id) {
                 showToast(`Đã kết nối Trello (Board: ${data.board_name})`, true);
@@ -4660,6 +4664,20 @@ async function selectBoard(boardId, boardName) {
         showToast('Lỗi: ' + err.message, false);
     }
 }
+        // ========================================================================
+//  LẮNG NGHE MESSAGE TỪ POPUP TRELLO
+// ========================================================================
+window.addEventListener('message', async function(event) {
+    // Bảo mật: chỉ chấp nhận message có type phù hợp
+    if (!event.data || event.data.type !== 'trello_connect') return;
+
+    if (event.data.status === 'success') {
+        showToast('Kết nối Trello thành công!', true);
+        await refreshTrelloStatus();
+    } else {
+        showToast('Kết nối Trello thất bại: ' + (event.data.reason || 'Không rõ'), false);
+    }
+});
     </script>
 </body>
 </html>
