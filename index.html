@@ -2258,6 +2258,21 @@
 
     </div>
 
+    <!-- ========== MODAL: CHỌN BOARD TRELLO ========== -->
+<div id="trelloBoardModal" class="modal-overlay">
+    <div class="modal-box settings-container">
+        <div class="modal-header">
+            <h2 class="modal-title">Chọn Board Trello</h2>
+            <button class="modal-close" onclick="closeBoardModal()"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <p style="font-size: 13px; color: var(--muted); margin-bottom: 16px;">
+            Chọn một Board để PopMinutes tạo task. Nếu Board chưa có list "PopMinutes", hệ thống sẽ tự tạo.
+        </p>
+        <div id="boardListContainer" style="max-height: 60vh; overflow-y: auto;">
+            <p style="text-align: center; padding: 20px;">Đang tải...</p>
+        </div>
+    </div>
+</div>
     <!-- BUTTON CÀI ĐẶT PWA -->
     <button id="btnInstall" style="display:none; background-color:#28a745; position:fixed; bottom:20px; right:20px; z-index:9999; padding:10px 15px; border:none; border-radius:30px; color:white; font-weight:bold; cursor:pointer;">
         📥 Cài đặt Ứng dụng PopMinutes
@@ -3275,15 +3290,23 @@
             trello: false
         };
 
-        function loadConnectionStatus() {
-            const saved = localStorage.getItem('popminutes_connections');
-            if (saved) {
-                try {
-                    connections = JSON.parse(saved);
-                } catch (e) {}
-            }
-            updateSettingsUI();
+        async function loadConnectionStatus() {
+    try {
+        // Load từ backend thay vì localStorage
+        if (currentEmail) {
+            const url = `${CLOUD_FUNCTION_URL}?action=trelloStatus&email=${encodeURIComponent(currentEmail)}`;
+            const res = await fetch(url);
+            const data = await res.json();
+            connections.trello = (data.status === 200 && data.connected);
         }
+        // Google vẫn để false (chưa làm)
+        connections.google = false;
+    } catch (e) {
+        console.error('loadConnectionStatus error:', e);
+        connections = { google: false, trello: false };
+    }
+    updateSettingsUI();
+}
 
         function saveConnectionStatus() {
             localStorage.setItem('popminutes_connections', JSON.stringify(connections));
@@ -3302,7 +3325,6 @@
                 settingsTrelloBtn.className = 'settings-btn ' + (connections.trello ? 'disconnect' : 'connect');
             }
 
-            saveConnectionStatus();
             renderTasks();
         }
 
@@ -3313,25 +3335,83 @@
             return false;
         }
 
-        function connectPlatform(platform) {
-            if (platform === 'google') {
-                connections.google = true;
-            } else if (platform === 'trello') {
-                connections.trello = true;
+async function connectPlatform(platform) {
+    if (platform === 'google') {
+        showToast('Google integration chưa được triển khai', false);
+        return;
+    }
+    if (platform === 'trello') {
+        try {
+            const url = `${CLOUD_FUNCTION_URL}?action=trelloOAuthStart&email=${encodeURIComponent(currentEmail)}`;
+            const res = await fetch(url);
+            const data = await res.json();
+            if (data.status === 200 && data.authorizeUrl) {
+                // Mở popup để authorize
+                const w = 600, h = 700;
+                const left = (screen.width - w) / 2;
+                const top = (screen.height - h) / 2;
+                const popup = window.open(data.authorizeUrl, 'TrelloAuth', `width=${w},height=${h},left=${left},top=${top}`);
+                // Đợi user authorize xong, kiểm tra mỗi 1s
+                const checkInterval = setInterval(async () => {
+                    if (popup.closed) {
+                        clearInterval(checkInterval);
+                        await refreshTrelloStatus();
+                    }
+                }, 1000);
+            } else {
+                showToast('Lỗi khởi tạo kết nối: ' + (data.message || 'Không rõ'), false);
             }
-            updateSettingsUI();
-            showToast(`${t('connect_toast')}${platform}`, true);
+        } catch (err) {
+            console.error(err);
+            showToast('Lỗi kết nối: ' + err.message, false);
         }
+    }
+}
 
-        function disconnectPlatform(platform) {
-            if (platform === 'google') {
-                connections.google = false;
-            } else if (platform === 'trello') {
+async function disconnectPlatform(platform) {
+    if (platform === 'google') {
+        connections.google = false;
+        updateSettingsUI();
+        showToast('Đã ngắt kết nối google', false);
+        return;
+    }
+    if (platform === 'trello') {
+        try {
+            const url = `${CLOUD_FUNCTION_URL}?action=trelloDisconnect&email=${encodeURIComponent(currentEmail)}`;
+            const res = await fetch(url);
+            const data = await res.json();
+            if (data.status === 200) {
                 connections.trello = false;
+                updateSettingsUI();
+                showToast('Đã ngắt kết nối Trello', false);
+            } else {
+                showToast('Lỗi ngắt kết nối: ' + (data.message || 'Không rõ'), false);
+            }
+        } catch (err) {
+            showToast('Lỗi: ' + err.message, false);
+        }
+    }
+}
+
+async function refreshTrelloStatus() {
+    try {
+        const url = `${CLOUD_FUNCTION_URL}?action=trelloStatus&email=${encodeURIComponent(currentEmail)}`;
+        const res = await fetch(url);
+        const data = await res.json();
+        if (data.status === 200) {
+            connections.trello = data.connected;
+            if (data.connected && !data.board_id) {
+                // Đã kết nối nhưng chưa chọn board → mở modal chọn board
+                await openBoardSelectionModal();
+            } else if (data.connected && data.board_id) {
+                showToast(`Đã kết nối Trello (Board: ${data.board_name})`, true);
             }
             updateSettingsUI();
-            showToast(`${t('disconnect_toast')}${platform}`, false);
         }
+    } catch (err) {
+        console.error('refreshTrelloStatus error:', err);
+    }
+}
 
         // ========================================================================
         //  TASK MANAGER
@@ -4226,7 +4306,7 @@ function groupAndSortTasks(taskList, groupByType = 'client') {
                 alert(t('toast_login_required'));
                 return;
             }
-            loadConnectionStatus();
+            await loadConnectionStatus();
             connectionsModal.classList.add('active');
         }
 
@@ -4459,6 +4539,19 @@ function groupAndSortTasks(taskList, groupByType = 'client') {
         //  KHỞI CHẠY
         // ========================================================================
         document.addEventListener('DOMContentLoaded', async function() {
+            // Kiểm tra URL params từ callback Trello
+const urlParams = new URLSearchParams(window.location.search);
+const trelloConnectStatus = urlParams.get('trello_connect');
+if (trelloConnectStatus) {
+    if (trelloConnectStatus === 'success') {
+        showToast('Kết nối Trello thành công!', true);
+    } else {
+        const reason = urlParams.get('reason') || 'unknown';
+        showToast('Kết nối Trello thất bại: ' + reason, false);
+    }
+    // Xóa param khỏi URL để tránh hiện lại khi refresh
+    window.history.replaceState({}, document.title, window.location.pathname);
+}
             await tryAutoLogin();
             applyLanguage(currentLang);
             loginItems.forEach(item => {
@@ -4475,7 +4568,7 @@ function groupAndSortTasks(taskList, groupByType = 'client') {
             const savedMode = localStorage.getItem('popminutes_output_mode') || 'auto';
             document.getElementById('outputMode').value = savedMode;
             toggleLanguageTarget();
-            loadConnectionStatus();
+            await loadConnectionStatus();
             initTaskData();
             groupBy = localStorage.getItem('popminutes_groupby') || 'client';
             document.getElementById('groupBySelect').value = groupBy;
@@ -4494,6 +4587,79 @@ function groupAndSortTasks(taskList, groupByType = 'client') {
             // Đồng bộ trạng thái nút kết nối
             updateSettingsUI();
         });
+        // ========================================================================
+//  MODAL CHỌN BOARD TRELLO
+// ========================================================================
+async function openBoardSelectionModal() {
+    const modal = document.getElementById('trelloBoardModal');
+    const container = document.getElementById('boardListContainer');
+    modal.classList.add('active');
+    container.innerHTML = '<p style="text-align: center; padding: 20px;">Đang tải...</p>';
+
+    try {
+        const url = `${CLOUD_FUNCTION_URL}?action=trelloBoards&email=${encodeURIComponent(currentEmail)}`;
+        const res = await fetch(url);
+        const data = await res.json();
+
+        if (data.status !== 200 || !data.boards || data.boards.length === 0) {
+            container.innerHTML = '<p style="text-align: center; padding: 20px; color: var(--muted);">Không tìm thấy Board nào trong tài khoản Trello của bạn.</p>';
+            return;
+        }
+
+        // Nhóm theo Workspace
+        const grouped = {};
+        data.boards.forEach(b => {
+            if (!grouped[b.org_name]) grouped[b.org_name] = [];
+            grouped[b.org_name].push(b);
+        });
+
+        let html = '';
+        Object.keys(grouped).forEach(orgName => {
+            html += `<div style="margin-bottom: 16px;">`;
+            html += `<div style="font-size: 12px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; padding: 4px 0;">
+                        📁 ${escapeHtml(orgName)}
+                    </div>`;
+            grouped[orgName].forEach(board => {
+                html += `
+                    <div onclick="selectBoard('${board.id}', '${escapeHtml(board.name).replace(/'/g, "\\'")}')" 
+                         style="padding: 12px 16px; background: white; border: 1px solid var(--border); border-radius: 12px; margin-bottom: 8px; cursor: pointer; transition: all 0.2s;"
+                         onmouseover="this.style.borderColor='var(--navy)'"
+                         onmouseout="this.style.borderColor='var(--border)'">
+                        <div style="font-weight: 600; color: var(--text);">${escapeHtml(board.name)}</div>
+                    </div>
+                `;
+            });
+            html += `</div>`;
+        });
+
+        container.innerHTML = html;
+    } catch (err) {
+        console.error(err);
+        container.innerHTML = '<p style="text-align: center; padding: 20px; color: var(--danger);">Lỗi tải danh sách Board.</p>';
+    }
+}
+
+function closeBoardModal() {
+    document.getElementById('trelloBoardModal').classList.remove('active');
+}
+
+async function selectBoard(boardId, boardName) {
+    try {
+        const url = `${CLOUD_FUNCTION_URL}?action=trelloSelectBoard&email=${encodeURIComponent(currentEmail)}&boardId=${encodeURIComponent(boardId)}&boardName=${encodeURIComponent(boardName)}`;
+        const res = await fetch(url);
+        const data = await res.json();
+        if (data.status === 200) {
+            showToast(`Đã chọn Board: ${boardName}`, true);
+            closeBoardModal();
+            connections.trello = true;
+            updateSettingsUI();
+        } else {
+            showToast('Lỗi: ' + (data.message || 'Không rõ'), false);
+        }
+    } catch (err) {
+        showToast('Lỗi: ' + err.message, false);
+    }
+}
     </script>
 </body>
 </html>
