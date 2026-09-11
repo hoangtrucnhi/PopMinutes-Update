@@ -2829,6 +2829,7 @@
 
                     document.getElementById('login-screen').classList.add('hidden');
                     document.getElementById('dashboard-screen').classList.remove('hidden');
+                    await loadConnectionStatus();
 
                     document.getElementById('user-name-display').textContent = currentSalesName;
                     document.getElementById('company-name-display').textContent = currentCompanyName;
