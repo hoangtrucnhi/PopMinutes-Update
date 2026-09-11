@@ -544,6 +544,17 @@
             }
         }
 
+        .task-modal .modal-box {
+    overflow: visible;
+    max-height: none;
+    padding: 20px;
+}
+        .task-modal .modal-box {
+    overflow-y: auto;
+    overflow-x: visible;
+    max-height: 90vh;
+    padding: 20px;
+}
         .modal-header {
             display: flex;
             justify-content: space-between;
@@ -777,6 +788,8 @@
     margin: 14px 0 18px;
     flex-wrap: wrap;
     align-items: center;
+    position: relative;
+    overflow: visible;
 }
         .task-tab {
     padding: 6px 12px;
@@ -815,19 +828,27 @@
     color: var(--muted);
     white-space: nowrap;
     flex-shrink: 0;
+    position: relative;
+    overflow: visible;
 }
 
 .task-group-select select {
-    padding: 4px 6px;
-    border-radius: 14px;
+    padding: 3px 20px 3px 8px;
+    border-radius: 12px;
     border: 1px solid var(--border);
     font-family: inherit;
     font-size: 11.5px;
-    background: white;
+    background: white url("data:image/svg+xml;charset=US-ASCII,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8' viewBox='0 0 8 8'%3E%3Cpath fill='%2364748B' d='M4 6L0 2h8z'/%3E%3C/svg%3E") no-repeat right 6px center;
+    background-size: 8px;
     outline: none;
     cursor: pointer;
     color: var(--text);
-    min-width: 85px;
+    width: auto;
+    min-width: 60px;
+    max-width: 80px;
+    -webkit-appearance: none;
+    appearance: none;
+    text-overflow: ellipsis;
 }
         .task-group-select select {
             padding: 4px 8px;
@@ -1441,14 +1462,19 @@
         padding: 0 6px;
         font-size: 10px;
     }
-    .task-group-select {
-        font-size: 11px;
-    }
     .task-group-select select {
         font-size: 11px;
         padding: 3px 6px;
         max-width: 80px;
         min-width: 60px;
+    }
+}
+        @media (max-width: 480px) {
+    .task-group-select {
+        margin-left: 0;
+        width: 100%;
+        justify-content: flex-start;
+        margin-top: 4px;
     }
 }
     </style>
@@ -1757,7 +1783,7 @@
                     <div class="task-group-select">
     <i class="fa-solid fa-filter" style="font-size: 11px; color: var(--muted);"></i>
     <select id="groupBySelect" aria-label="Nhóm">
-        <option value="client" data-i18n="group_by_client">Khách hàng</option>
+        <option value="client" data-i18n="group_by_client">Khách</option>
         <option value="due" data-i18n="group_by_due">Ngày</option>
     </select>
 </div>
@@ -2456,7 +2482,7 @@
                 status_unknown: 'Chưa rõ',
                 target_lang2_label: 'Ngôn ngữ 2:',
                 delete_error: '❌ Lỗi xóa task: ',
-                group_by_client: 'Khách hàng',
+                group_by_client: 'Khách',
                 group_by_due: 'Ngày',
                 due_today: 'Hôm nay',
                 due_tomorrow: 'Ngày mai',
