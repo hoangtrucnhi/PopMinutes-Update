@@ -4301,7 +4301,7 @@ function groupAndSortTasks(taskList, groupByType = 'client') {
         const connectionsModal = document.getElementById('connectionsModal');
         const closeConnectionsBtn = document.getElementById('closeConnectionsBtn');
 
-        function openConnectionsModal() {
+        async function openConnectionsModal() {
             if (!currentEmail) {
                 alert(t('toast_login_required'));
                 return;
