@@ -778,91 +778,118 @@
             display: none !important;
         }
 
-        /* ===== TASK MODAL ===== */
-        .task-modal .modal-box {
-            padding: 20px;
-        }
-        .task-tabs {
+        /* ===== TASK MODAL — LAYOUT CHUẨN ===== */
+.task-modal .modal-box {
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    max-height: 85vh;
+    overflow: hidden;
+}
+
+.task-modal .modal-header {
+    flex-shrink: 0;
+    margin-bottom: 0;
+}
+
+.task-modal .task-tabs {
     display: flex;
     gap: 6px;
-    margin: 14px 0 18px;
-    flex-wrap: wrap;
+    margin: 16px 0 8px;
     align-items: center;
-    position: relative;
-    overflow: visible;
+    flex-shrink: 0;
 }
-        .task-tab {
-    padding: 6px 12px;
+
+.task-tab {
+    padding: 7px 14px;
     border-radius: 20px;
     font-weight: 700;
-    font-size: 12.5px;
+    font-size: 13px;
     cursor: pointer;
     background: transparent;
     color: var(--muted);
     border: none;
     transition: all 0.2s;
     white-space: nowrap;
-    flex-shrink: 0;
 }
-        .task-tab.active {
-            background: var(--navy);
-            color: white;
-        }
-        .task-tab .badge {
-    background: rgba(255, 255, 255, 0.3);
+
+.task-tab.active {
+    background: var(--navy);
+    color: white;
+}
+
+.task-tab .badge {
+    background: rgba(0, 0, 0, 0.08);
     border-radius: 12px;
-    padding: 0 6px;
-    font-size: 10.5px;
-    margin-left: 4px;
+    padding: 1px 7px;
+    font-size: 11px;
+    margin-left: 5px;
+    font-weight: 700;
 }
-        .task-tab.active .badge {
-            background: rgba(255, 255, 255, 0.25);
-        }
-        .task-group-select {
-    margin-left: auto;
+
+.task-tab.active .badge {
+    background: rgba(255, 255, 255, 0.25);
+    color: white;
+}
+
+/* Hàng filter — căn phải, riêng biệt */
+.task-filter-row {
     display: flex;
+    justify-content: flex-end;
     align-items: center;
-    gap: 4px;
-    font-size: 11.5px;
-    font-weight: 500;
-    color: var(--muted);
-    white-space: nowrap;
+    margin-bottom: 14px;
     flex-shrink: 0;
-    position: relative;
-    overflow: visible;
+}
+
+.task-group-select {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--muted);
 }
 
 .task-group-select select {
-    padding: 3px 20px 3px 8px;
-    border-radius: 12px;
+    padding: 5px 22px 5px 10px;
+    border-radius: 14px;
     border: 1px solid var(--border);
     font-family: inherit;
-    font-size: 11.5px;
-    background: white url("data:image/svg+xml;charset=US-ASCII,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8' viewBox='0 0 8 8'%3E%3Cpath fill='%2364748B' d='M4 6L0 2h8z'/%3E%3C/svg%3E") no-repeat right 6px center;
-    background-size: 8px;
+    font-size: 12px;
+    font-weight: 600;
+    background-color: white;
+    background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 10 10'%3E%3Cpath fill='%2364748B' d='M5 7L1 3h8z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 8px center;
+    background-size: 10px;
     outline: none;
     cursor: pointer;
     color: var(--text);
-    width: auto;
-    min-width: 60px;
-    max-width: 80px;
     -webkit-appearance: none;
     appearance: none;
-    text-overflow: ellipsis;
+    min-width: 90px;
 }
-        .task-group-select select {
-            padding: 4px 8px;
-            border-radius: 16px;
-            border: 1px solid var(--border);
-            font-family: inherit;
-            font-size: 13px;
-            background: white;
-            outline: none;
-            cursor: pointer;
-            color: var(--text);
-            width: auto;
-            min-width: 70px;
-        }
+
+/* Content scroll được, không bị cắt */
+.task-tab-content {
+    display: none;
+    flex: 1;
+    overflow-y: auto;
+    min-height: 0;
+    padding-right: 4px;
+    margin-right: -4px;
+}
+
+.task-tab-content.active {
+    display: block;
+}
+
+.task-tab-content::-webkit-scrollbar {
+    width: 4px;
+}
+.task-tab-content::-webkit-scrollbar-thumb {
+    background: #CBD5E1;
+    border-radius: 2px;
+}
         .task-list {
             display: flex;
             flex-direction: column;
@@ -1777,17 +1804,23 @@
                 </div>
 
                 <div class="task-tabs">
-                    <button class="task-tab active" data-tab="suggested"><span data-i18n="tab_suggested">Đề xuất</span> <span class="badge" id="suggestedCount">0</span></button>
-                    <button class="task-tab" data-tab="confirmed"><span data-i18n="tab_confirmed">Đã xác nhận</span> <span class="badge" id="confirmedCount">0</span></button>
-
-                    <div class="task-group-select">
-    <i class="fa-solid fa-filter" style="font-size: 11px; color: var(--muted);"></i>
-    <select id="groupBySelect" aria-label="Nhóm">
-        <option value="client" data-i18n="group_by_client">Khách</option>
-        <option value="due" data-i18n="group_by_due">Ngày</option>
-    </select>
+    <button class="task-tab active" data-tab="suggested">
+        <span data-i18n="tab_suggested">Đề xuất</span> <span class="badge" id="suggestedCount">0</span>
+    </button>
+    <button class="task-tab" data-tab="confirmed">
+        <span data-i18n="tab_confirmed">Xác nhận</span> <span class="badge" id="confirmedCount">0</span>
+    </button>
 </div>
-                </div>
+
+<div class="task-filter-row">
+    <div class="task-group-select">
+        <i class="fa-solid fa-filter" style="font-size: 11px; color: var(--muted);"></i>
+        <select id="groupBySelect" aria-label="Nhóm">
+            <option value="client" data-i18n="group_by_client">Khách</option>
+            <option value="due" data-i18n="group_by_due">Ngày</option>
+        </select>
+    </div>
+</div>
 
                 <div id="taskTabSuggested" class="task-tab-content active">
                     <div class="task-list" id="suggestedTaskList"></div>
