@@ -833,8 +833,9 @@
     outline: none;
     cursor: pointer;
     color: var(--text);
-    min-width: 70px;
-    max-width: 100px;
+    min-width: 90px;
+    max-width: none;
+    white-space: nowrap;
 }
         .task-group-select select {
             padding: 4px 8px;
@@ -1762,12 +1763,12 @@
                     <button class="task-tab" data-tab="confirmed"><span data-i18n="tab_confirmed">Đã xác nhận</span> <span class="badge" id="confirmedCount">0</span></button>
 
                     <div class="task-group-select">
-                        <span data-i18n="group_label">Nhóm</span>
-                        <select id="groupBySelect">
-                            <option value="client" data-i18n="group_by_client">Khách hàng</option>
-                            <option value="due" data-i18n="group_by_due">Ngày</option>
-                        </select>
-                    </div>
+    <i class="fa-solid fa-filter" style="font-size: 11px; color: var(--muted);"></i>
+    <select id="groupBySelect" aria-label="Nhóm">
+        <option value="client" data-i18n="group_by_client">Khách hàng</option>
+        <option value="due" data-i18n="group_by_due">Ngày</option>
+    </select>
+</div>
                 </div>
 
                 <div id="taskTabSuggested" class="task-tab-content active">
