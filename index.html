@@ -4249,7 +4249,7 @@ function groupAndSortTasks(taskList, groupByType = 'client') {
                 tasks.confirmed.push(task);
                 saveTasksToStorage();
                 renderTasks();
-                showToast('' + t('action_success') + task.title, true);
+                showToast('' + t('action_success'), true);
             } catch (error) {
                 console.error('Confirm task error:', error);
                 if (confirmBtn) {
