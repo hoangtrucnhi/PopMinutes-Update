@@ -779,21 +779,20 @@
         .task-modal .modal-box {
             padding: 20px 20px 28px;
         }
-        .task-tabs {
+                .task-tabs {
             display: flex;
-            gap: 8px;
+            flex-direction: column;
+            gap: 12px;
             margin: 16px 0 20px;
-            flex-wrap: wrap;
-            align-items: center;
-            justify-content: space-between;
+            align-items: stretch;
         }
         .task-tabs-left {
             display: flex;
-            gap: 4px;
+            gap: 8px;
             align-items: center;
         }
         .task-tab {
-            padding: 8px 16px;
+            padding: 8px 18px;
             border-radius: 30px;
             font-weight: 700;
             font-size: 14px;
@@ -811,38 +810,40 @@
             background: rgba(255, 255, 255, 0.3);
             border-radius: 20px;
             padding: 0 8px;
-            font-size: 11px;
+            font-size: 12px;
+            font-weight: 700;
             margin-left: 6px;
         }
         .task-tab.active .badge {
             background: rgba(255, 255, 255, 0.25);
         }
 
-        /* Nhóm chọn dạng pill (thay dropdown) */
+        /* Nhóm chọn dạng pill (dòng riêng, căn trái) */
         .task-group-select {
             display: flex;
             align-items: center;
-            gap: 6px;
-            font-size: 12px;
-            font-weight: 600;
+            gap: 10px;
+            font-size: 14px;
+            font-weight: 700;
             color: var(--muted);
             white-space: nowrap;
+            justify-content: flex-start;
         }
         .group-pills {
             display: inline-flex;
             background: #F1F5F9;
-            border-radius: 20px;
+            border-radius: 22px;
             padding: 3px;
             gap: 2px;
         }
         .group-pill {
-            padding: 5px 12px;
-            border-radius: 16px;
+            padding: 6px 18px;
+            border-radius: 18px;
             border: none;
             background: transparent;
             color: var(--muted);
             font-family: inherit;
-            font-size: 12px;
+            font-size: 14px;
             font-weight: 700;
             cursor: pointer;
             transition: all 0.15s;
@@ -1424,12 +1425,11 @@
                 border-radius: 24px 24px 0 0;
             }
             .task-tabs {
-                flex-wrap: wrap;
-                gap: 8px;
+                gap: 10px;
             }
             .task-group-select {
                 width: 100%;
-                justify-content: flex-end;
+                justify-content: flex-start;
             }
             .settings-item {
                 flex-wrap: nowrap;
@@ -2462,6 +2462,7 @@
                 unsupported_platform: 'Không hỗ trợ kết nối cho nền tảng này',
                 delete_confirm_msg: 'Bạn có chắc muốn xóa nhiệm vụ này?',
                 task_deleted_toast: 'Đã xóa nhiệm vụ',
+                action_success: 'Thành công',
                 connect_toast: 'Đã kết nối ',
                 disconnect_toast: 'Đã ngắt kết nối ',
                 events_feature_alert: '📅 Tính năng Sự kiện sẽ được phát triển sau!',
@@ -2624,6 +2625,7 @@
                 unsupported_platform: 'Connection not supported for this platform',
                 delete_confirm_msg: 'Are you sure you want to delete this task?',
                 task_deleted_toast: 'Task deleted',
+                action_success: 'Success',
                 connect_toast: 'Connected ',
                 disconnect_toast: 'Disconnected ',
                 events_feature_alert: 'The Events feature is coming soon!',
@@ -4003,7 +4005,7 @@ function groupAndSortTasks(taskList, groupByType = 'client') {
         }
     }
 
-    showToast('' + t('task_updated_toast'), true);
+    showToast('' + t('action_success'), true);
 }
 
         closeEditTaskBtn.addEventListener('click', closeEditTaskModal);
@@ -4178,7 +4180,7 @@ function groupAndSortTasks(taskList, groupByType = 'client') {
                 tasks.confirmed.push(task);
                 saveTasksToStorage();
                 renderTasks();
-                showToast('' + t('task_confirmed_toast') + task.title, true);
+                showToast('' + t('action_success') + task.title, true);
             } catch (error) {
                 console.error('Confirm task error:', error);
                 if (confirmBtn) {
@@ -4226,7 +4228,7 @@ function groupAndSortTasks(taskList, groupByType = 'client') {
                     }
                     saveTasksToStorage();
                     renderTasks();
-                    showToast(t('task_deleted_toast'), false);
+                    showToast(t('action_success'), false);
                 } else {
                     showToast('❌ ' + (result.message || t('delete_error') + 'Không rõ lỗi'), false);
                 }
