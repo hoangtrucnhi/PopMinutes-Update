@@ -3744,7 +3744,6 @@ function groupAndSortTasks(taskList, groupByType = 'client') {
             result.push({ groupName: key, tasks: tasksInGroup });
         });
         return result;
-    }
         } else if (groupByType === 'platform') {
         // Nhóm theo từng nền tảng mà task được sync lên
         const grouped = {};
