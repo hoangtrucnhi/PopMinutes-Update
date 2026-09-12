@@ -498,16 +498,17 @@
             font-weight: 500;
         }
 
-        /* ===== CÁC MODAL - ĐỀU CĂN GIỮA ===== */
+        /* ===== CÁC MODAL - BOTTOM SHEET (TRƯỢT TỪ DƯỚI LÊN) ===== */
         .modal-overlay {
             position: fixed;
             inset: 0;
             background: rgba(15, 23, 42, 0.65);
             backdrop-filter: blur(8px);
             display: none;
-            align-items: center;
+            align-items: flex-end;
             justify-content: center;
             z-index: 100;
+            padding-top: 40px;
         }
         .modal-overlay.active {
             display: flex;
@@ -524,18 +525,22 @@
 
         .modal-box {
             background: var(--surface);
-            border-radius: var(--radius-xl);
+            border-radius: var(--radius-xl) var(--radius-xl) 0 0;
             width: 100%;
             max-width: 500px;
-            max-height: 90vh;
+            max-height: calc(100vh - 40px);
             overflow-y: auto;
+            overflow-x: hidden;
+            -webkit-overflow-scrolling: touch;
+            overscroll-behavior: contain;
             padding: 24px 24px 32px;
-            box-shadow: 0 20px 48px rgba(0, 0, 0, 0.25);
-            animation: slideUp 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+            box-shadow: 0 -20px 48px rgba(0, 0, 0, 0.25);
+            animation: slideUp 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
+            position: relative;
         }
         @keyframes slideUp {
             from {
-                transform: translateY(30px);
+                transform: translateY(100%);
                 opacity: 0;
             }
             to {
@@ -839,6 +844,7 @@
             display: flex;
             flex-direction: column;
             gap: 8px;
+            overflow: hidden;
         }
         .task-item .task-header {
             display: flex;
@@ -855,51 +861,59 @@
             font-size: 15px;
             color: var(--text);
             margin-bottom: 4px;
+            white-space: nowrap;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: thin;
         }
         .task-item .task-desc {
             font-size: 13px;
             color: var(--muted);
             line-height: 1.5;
-            white-space: pre-wrap;
-            word-break: break-word;
+            white-space: nowrap;
+            overflow-x: auto;
+            overflow-y: hidden;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: thin;
             margin-bottom: 4px;
+            word-break: normal;
+            overflow-wrap: normal;
+            padding-bottom: 2px;
         }
         .task-item .task-desc.collapsed {
-            display: -webkit-box;
-            -webkit-line-clamp: 1;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
+            /* mô tả giờ luôn 1 dòng cuộn ngang, không còn clamp dọc */
+            display: block;
         }
         .task-item .desc-toggle {
-            background: none;
-            border: none;
-            color: var(--navy-light);
-            font-size: 12px;
-            font-weight: 600;
-            cursor: pointer;
-            padding: 0;
-            margin-top: 2px;
-            margin-bottom: 6px;
+            /* Ẩn nút "Xem thêm" vì mô tả đã là 1 dòng cuộn ngang */
+            display: none;
         }
         .task-item .task-meta {
             font-size: 13px;
             color: var(--muted);
             display: flex;
-            flex-wrap: wrap;
+            flex-wrap: nowrap;
             gap: 12px;
             align-items: center;
             margin-top: 4px;
+            white-space: nowrap;
+            overflow-x: auto;
+            overflow-y: hidden;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: thin;
+            padding-bottom: 2px;
         }
         .task-item .task-meta span {
             display: inline-flex;
             align-items: center;
             gap: 4px;
+            flex-shrink: 0;
         }
         .task-item .task-actions {
             display: flex;
             gap: 6px;
             align-items: center;
-            flex-wrap: wrap;
+            flex-wrap: nowrap;
             flex-shrink: 0;
         }
         .task-item .task-actions button {
@@ -1382,9 +1396,15 @@
                 padding-left: 16px;
                 padding-right: 16px;
             }
+            .modal-overlay {
+                padding-top: 32px;
+            }
             .modal-box {
-                margin: 16px;
-                padding: 20px;
+                margin: 0;
+                padding: 20px 20px 32px;
+                max-width: 100%;
+                max-height: calc(100vh - 32px);
+                border-radius: 24px 24px 0 0;
             }
             .task-group-select {
                 margin-left: 0;
