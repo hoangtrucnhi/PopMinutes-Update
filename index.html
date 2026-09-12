@@ -498,7 +498,7 @@
             font-weight: 500;
         }
 
-        /* ===== CÁC MODAL - BOTTOM SHEET (TRƯỢT TỪ DƯỚI LÊN) ===== */
+        /* ===== CÁC MODAL - BOTTOM SHEET ===== */
         .modal-overlay {
             position: fixed;
             inset: 0;
@@ -508,7 +508,7 @@
             align-items: flex-end;
             justify-content: center;
             z-index: 100;
-            padding-top: 40px;
+            overflow: hidden;
         }
         .modal-overlay.active {
             display: flex;
@@ -528,12 +528,15 @@
             border-radius: var(--radius-xl) var(--radius-xl) 0 0;
             width: 100%;
             max-width: 500px;
-            max-height: calc(100vh - 40px);
+            /* Dùng dvh để chắc chắn không bao giờ chạm đáy viewport */
+            max-height: 85vh;
+            max-height: 85dvh;
             overflow-y: auto;
             overflow-x: hidden;
             -webkit-overflow-scrolling: touch;
             overscroll-behavior: contain;
             padding: 24px 24px 32px;
+            padding-bottom: calc(32px + env(safe-area-inset-bottom, 0px));
             box-shadow: 0 -20px 48px rgba(0, 0, 0, 0.25);
             animation: slideUp 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
             position: relative;
@@ -774,7 +777,7 @@
 
         /* ===== TASK MODAL ===== */
         .task-modal .modal-box {
-            padding: 20px;
+            padding: 20px 20px 28px;
         }
         .task-tabs {
             display: flex;
@@ -782,9 +785,15 @@
             margin: 16px 0 20px;
             flex-wrap: wrap;
             align-items: center;
+            justify-content: space-between;
+        }
+        .task-tabs-left {
+            display: flex;
+            gap: 4px;
+            align-items: center;
         }
         .task-tab {
-            padding: 8px 18px;
+            padding: 8px 16px;
             border-radius: 30px;
             font-weight: 700;
             font-size: 14px;
@@ -808,29 +817,42 @@
         .task-tab.active .badge {
             background: rgba(255, 255, 255, 0.25);
         }
+
+        /* Nhóm chọn dạng pill (thay dropdown) */
         .task-group-select {
-            margin-left: auto;
             display: flex;
             align-items: center;
-            gap: 4px;
-            font-size: 13px;
-            font-weight: 500;
+            gap: 6px;
+            font-size: 12px;
+            font-weight: 600;
             color: var(--muted);
             white-space: nowrap;
         }
-        .task-group-select select {
-            padding: 4px 8px;
-            border-radius: 16px;
-            border: 1px solid var(--border);
-            font-family: inherit;
-            font-size: 13px;
-            background: white;
-            outline: none;
-            cursor: pointer;
-            color: var(--text);
-            width: auto;
-            min-width: 70px;
+        .group-pills {
+            display: inline-flex;
+            background: #F1F5F9;
+            border-radius: 20px;
+            padding: 3px;
+            gap: 2px;
         }
+        .group-pill {
+            padding: 5px 12px;
+            border-radius: 16px;
+            border: none;
+            background: transparent;
+            color: var(--muted);
+            font-family: inherit;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .group-pill.active {
+            background: var(--navy);
+            color: white;
+            box-shadow: 0 2px 6px rgba(27, 43, 122, 0.25);
+        }
+
         .task-list {
             display: flex;
             flex-direction: column;
@@ -843,8 +865,7 @@
             border: 1px solid var(--border);
             display: flex;
             flex-direction: column;
-            gap: 8px;
-            overflow: hidden;
+            gap: 6px;
         }
         .task-item .task-header {
             display: flex;
@@ -852,69 +873,66 @@
             align-items: flex-start;
             gap: 12px;
         }
-        .task-info {
-            flex: 1;
-            min-width: 0;
-        }
         .task-item .task-title {
             font-weight: 700;
             font-size: 15px;
             color: var(--text);
-            margin-bottom: 4px;
-            white-space: nowrap;
-            overflow-x: auto;
-            -webkit-overflow-scrolling: touch;
-            scrollbar-width: thin;
+            flex: 1;
+            min-width: 0;
+            line-height: 1.4;
+            word-break: break-word;
         }
+        .task-item .task-actions {
+            display: flex;
+            gap: 4px;
+            align-items: center;
+            flex-shrink: 0;
+        }
+        /* Mô tả: full width của task-item, wrap xuống dòng tự nhiên */
         .task-item .task-desc {
             font-size: 13px;
             color: var(--muted);
             line-height: 1.5;
-            white-space: nowrap;
-            overflow-x: auto;
-            overflow-y: hidden;
-            -webkit-overflow-scrolling: touch;
-            scrollbar-width: thin;
-            margin-bottom: 4px;
-            word-break: normal;
-            overflow-wrap: normal;
-            padding-bottom: 2px;
+            width: 100%;
+            word-break: break-word;
+            overflow-wrap: anywhere;
+            margin-top: 2px;
         }
         .task-item .task-desc.collapsed {
-            /* mô tả giờ luôn 1 dòng cuộn ngang, không còn clamp dọc */
-            display: block;
+            display: -webkit-box;
+            -webkit-line-clamp: 1;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            white-space: normal;
+            text-overflow: ellipsis;
         }
         .task-item .desc-toggle {
-            /* Ẩn nút "Xem thêm" vì mô tả đã là 1 dòng cuộn ngang */
-            display: none;
+            background: none;
+            border: none;
+            color: var(--navy-light);
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            padding: 0;
+            margin: 0;
+            align-self: flex-start;
+            text-decoration: underline;
+            text-decoration-thickness: 1px;
+            text-underline-offset: 2px;
         }
         .task-item .task-meta {
             font-size: 13px;
             color: var(--muted);
             display: flex;
-            flex-wrap: nowrap;
+            flex-wrap: wrap;
             gap: 12px;
             align-items: center;
-            margin-top: 4px;
-            white-space: nowrap;
-            overflow-x: auto;
-            overflow-y: hidden;
-            -webkit-overflow-scrolling: touch;
-            scrollbar-width: thin;
-            padding-bottom: 2px;
+            margin-top: 2px;
         }
         .task-item .task-meta span {
             display: inline-flex;
             align-items: center;
             gap: 4px;
-            flex-shrink: 0;
-        }
-        .task-item .task-actions {
-            display: flex;
-            gap: 6px;
-            align-items: center;
-            flex-wrap: nowrap;
-            flex-shrink: 0;
         }
         .task-item .task-actions button {
             background: none;
@@ -1396,18 +1414,20 @@
                 padding-left: 16px;
                 padding-right: 16px;
             }
-            .modal-overlay {
-                padding-top: 32px;
-            }
             .modal-box {
                 margin: 0;
-                padding: 20px 20px 32px;
+                padding: 20px 20px 28px;
+                padding-bottom: calc(28px + env(safe-area-inset-bottom, 0px));
                 max-width: 100%;
-                max-height: calc(100vh - 32px);
+                max-height: 88vh;
+                max-height: 88dvh;
                 border-radius: 24px 24px 0 0;
             }
+            .task-tabs {
+                flex-wrap: wrap;
+                gap: 8px;
+            }
             .task-group-select {
-                margin-left: 0;
                 width: 100%;
                 justify-content: flex-end;
             }
@@ -1741,15 +1761,17 @@
                 </div>
 
                 <div class="task-tabs">
-                    <button class="task-tab active" data-tab="suggested"><span data-i18n="tab_suggested">Đề xuất</span> <span class="badge" id="suggestedCount">0</span></button>
-                    <button class="task-tab" data-tab="confirmed"><span data-i18n="tab_confirmed">Đã xác nhận</span> <span class="badge" id="confirmedCount">0</span></button>
+                    <div class="task-tabs-left">
+                        <button class="task-tab active" data-tab="suggested"><span data-i18n="tab_suggested">Đề xuất</span> <span class="badge" id="suggestedCount">0</span></button>
+                        <button class="task-tab" data-tab="confirmed"><span data-i18n="tab_confirmed">Đã xác nhận</span> <span class="badge" id="confirmedCount">0</span></button>
+                    </div>
 
                     <div class="task-group-select">
                         <span data-i18n="group_label">Nhóm</span>
-                        <select id="groupBySelect">
-                            <option value="client" data-i18n="group_by_client">Khách hàng</option>
-                            <option value="due" data-i18n="group_by_due">Ngày</option>
-                        </select>
+                        <div class="group-pills" id="groupPills">
+                            <button class="group-pill active" data-group="client" data-i18n="group_by_client">Khách</button>
+                            <button class="group-pill" data-group="due" data-i18n="group_by_due">Ngày</button>
+                        </div>
                     </div>
                 </div>
 
@@ -2446,7 +2468,7 @@
                 status_unknown: 'Chưa rõ',
                 target_lang2_label: 'Ngôn ngữ 2:',
                 delete_error: '❌ Lỗi xóa task: ',
-                group_by_client: 'Khách hàng',
+                group_by_client: 'Khách',
                 group_by_due: 'Ngày',
                 due_today: 'Hôm nay',
                 due_tomorrow: 'Ngày mai',
@@ -2462,7 +2484,7 @@
                 date_time_format: 'Ngày giờ',
                 app_connections: 'Ứng dụng',
                 show_more: 'Xem thêm',
-                collapse: 'Thu gọn',
+                collapse: 'Ẩn',
                 loading: 'Đang tải...',
             },
             en: {
@@ -2609,7 +2631,7 @@
                 target_lang2_label: 'Language 2:',
                 delete_error: '❌ Error deleting task: ',
                 group_by_client: 'Client',
-                group_by_due: 'Due date',
+                group_by_due: 'Date',
                 due_today: 'Today',
                 due_tomorrow: 'Tomorrow',
                 due_this_week: 'This week',
@@ -2624,7 +2646,7 @@
                 date_time_format: 'Date & Time',
                 app_connections: 'Apps',
                 show_more: 'Show more',
-                collapse: 'Collapse',
+                collapse: 'Hide',
                 loading: 'Loading...',
             }
         };
@@ -3771,7 +3793,6 @@ function groupAndSortTasks(taskList, groupByType = 'client') {
                     const platformBtnIcon = hasSelection ? 'fa-solid fa-check-double' : 'fa-solid fa-layer-group';
                     const platformBtnText = hasSelection ? selectedPlatforms.length : '';
                     const desc = task.description || '';
-                    const descCollapsed = desc.length > 0 ? 'collapsed' : '';
                     const descToggle = desc.length > 0 ?
                         `<button class="desc-toggle" onclick="toggleDesc('${task.id}')">${t('show_more')}</button>` :
                         '';
@@ -3781,14 +3802,7 @@ function groupAndSortTasks(taskList, groupByType = 'client') {
                     html += `
                     <div class="task-item" data-id="${task.id}">
                         <div class="task-header">
-                            <div class="task-info">
-                                <div class="task-title">${task.title}</div>
-                                ${desc ? `<div class="task-desc ${descCollapsed}" id="desc_${task.id}">${desc}</div>${descToggle}` : ''}
-                                <div class="task-meta">
-                                    <span><i class="fa-regular fa-calendar"></i> ${dueDisplay}</span>
-                                    <span><i class="fa-regular fa-user"></i> ${assignee}</span>
-                                </div>
-                            </div>
+                            <div class="task-title">${task.title}</div>
                             <div class="task-actions">
                                 <button class="platform-btn ${hasSelection ? 'connected' : ''}" onclick="togglePlatformDropdown('${task.id}')" title="${t('platform_tooltip')}">
                                     <i class="${platformBtnIcon}"></i> ${platformBtnText}
@@ -3797,6 +3811,11 @@ function groupAndSortTasks(taskList, groupByType = 'client') {
                                 <button class="confirm-btn" onclick="confirmTask('${task.id}')" title="${t('confirm_tooltip')}" ${!hasSelection ? 'disabled' : ''}><i class="fa-regular fa-circle-check"></i></button>
                                 <button class="delete-btn" onclick="deleteSuggestedTask('${task.id}')" title="${t('delete_tooltip')}"><i class="fa-regular fa-trash-can"></i></button>
                             </div>
+                        </div>
+                        ${desc ? `<div class="task-desc collapsed" id="desc_${task.id}">${desc}</div>${descToggle}` : ''}
+                        <div class="task-meta">
+                            <span><i class="fa-regular fa-calendar"></i> ${dueDisplay}</span>
+                            <span><i class="fa-regular fa-user"></i> ${assignee}</span>
                         </div>
                         <div class="platform-dropdown" id="platformDropdown_${task.id}">
                             ${connectedPlatforms.map(platform => `
@@ -3848,7 +3867,6 @@ function groupAndSortTasks(taskList, groupByType = 'client') {
                 group.tasks.forEach(task => {
                     const platformNames = (task.platforms || []).map(p => displayPlatform(p.platform)).join(', ');
                     const desc = task.description || '';
-                    const descCollapsed = desc.length > 0 ? 'collapsed' : '';
                     const descToggle = desc.length > 0 ?
                         `<button class="desc-toggle" onclick="toggleDesc('${task.id}')">${t('show_more')}</button>` :
                         '';
@@ -3858,19 +3876,17 @@ function groupAndSortTasks(taskList, groupByType = 'client') {
                     html += `
                     <div class="task-item">
                         <div class="task-header">
-                            <div class="task-info">
-                                <div class="task-title">${task.title}</div>
-                                ${desc ? `<div class="task-desc ${descCollapsed}" id="desc_${task.id}">${desc}</div>${descToggle}` : ''}
-                                <div class="task-meta">
-                                    <span><i class="fa-regular fa-calendar"></i> ${dueDisplay}</span>
-                                    <span><i class="fa-regular fa-user"></i> ${assignee}</span>
-                                    ${platformNames ? `<span><i class="fa-solid fa-layer-group"></i> ${platformNames}</span>` : ''}
-                                </div>
-                            </div>
+                            <div class="task-title">${task.title}</div>
                             <div class="task-actions">
                                 <button class="edit-btn" onclick="openEditTaskModal('${task.id}')" title="${t('edit_tooltip')}"><i class="fa-regular fa-pen-to-square"></i></button>
                                 <button class="delete-btn" onclick="deleteConfirmedTask('${task.id}')" title="${t('delete_tooltip')}"><i class="fa-regular fa-trash-can"></i></button>
                             </div>
+                        </div>
+                        ${desc ? `<div class="task-desc collapsed" id="desc_${task.id}">${desc}</div>${descToggle}` : ''}
+                        <div class="task-meta">
+                            <span><i class="fa-regular fa-calendar"></i> ${dueDisplay}</span>
+                            <span><i class="fa-regular fa-user"></i> ${assignee}</span>
+                            ${platformNames ? `<span><i class="fa-solid fa-layer-group"></i> ${platformNames}</span>` : ''}
                         </div>
                     </div>
                     `;
@@ -4304,12 +4320,21 @@ function groupAndSortTasks(taskList, groupByType = 'client') {
         }
 
         // ========================================================================
-        //  SỰ KIỆN CHO DROPDOWN NHÓM
+        //  SỰ KIỆN CHO GROUP PILLS (Khách / Ngày)
         // ========================================================================
-        document.getElementById('groupBySelect').addEventListener('change', function() {
-            groupBy = this.value;
-            localStorage.setItem('popminutes_groupby', groupBy);
-            renderTasks();
+        function updateGroupPills() {
+            document.querySelectorAll('#groupPills .group-pill').forEach(p => {
+                p.classList.toggle('active', p.dataset.group === groupBy);
+            });
+        }
+
+        document.querySelectorAll('#groupPills .group-pill').forEach(pill => {
+            pill.addEventListener('click', function() {
+                groupBy = this.dataset.group;
+                localStorage.setItem('popminutes_groupby', groupBy);
+                updateGroupPills();
+                renderTasks();
+            });
         });
 
         // ========================================================================
@@ -4324,7 +4349,7 @@ function groupAndSortTasks(taskList, groupByType = 'client') {
                 return;
             }
             taskModal.classList.add('active');
-            document.getElementById('groupBySelect').value = groupBy;
+            updateGroupPills();
             fetchTasksFromGAS();
         });
 
@@ -4649,7 +4674,7 @@ if (trelloConnectStatus) {
             await loadConnectionStatus();
             initTaskData();
             groupBy = localStorage.getItem('popminutes_groupby') || 'client';
-            document.getElementById('groupBySelect').value = groupBy;
+            updateGroupPills();
             dateFormat = localStorage.getItem('popminutes_date_format') || 'DD/MM/YY';
             timezone = localStorage.getItem('popminutes_timezone') || 'Asia/Ho_Chi_Minh';
             applySettingsUI();
