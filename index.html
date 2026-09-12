@@ -775,25 +775,120 @@
             display: none !important;
         }
 
-        /* ===== TASK MODAL ===== */
+                /* ===== TASK MODAL ===== */
         .task-modal .modal-box {
             padding: 20px 20px 28px;
         }
-                .task-tabs {
+
+        /* Header actions (filter + close) */
+        .modal-header-actions {
             display: flex;
-            flex-direction: column;
-            gap: 12px;
-            margin: 16px 0 20px;
-            align-items: stretch;
-        }
-        .task-tabs-left {
-            display: flex;
-            gap: 8px;
             align-items: center;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+        .modal-header {
+            position: relative;
+        }
+
+        /* Nút filter icon-only */
+        .filter-btn {
+            width: 36px;
+            height: 36px;
+            background: #F1F5F9;
+            border: none;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            color: var(--navy);
+            cursor: pointer;
+            transition: background 0.15s, color 0.15s, transform 0.1s;
+        }
+        .filter-btn:hover {
+            background: #E2E8F0;
+        }
+        .filter-btn:active {
+            transform: scale(0.9);
+        }
+        .filter-btn.has-active {
+            background: var(--navy);
+            color: #fff;
+        }
+        .filter-btn.has-active:hover {
+            background: var(--navy-deep);
+        }
+
+        /* Popover dropdown */
+        .filter-popover {
+            position: absolute;
+            top: calc(100% + 4px);
+            right: 0;
+            background: #fff;
+            border-radius: 14px;
+            box-shadow: 0 12px 32px rgba(15, 23, 42, 0.18), 0 2px 6px rgba(15, 23, 42, 0.06);
+            padding: 6px;
+            min-width: 180px;
+            z-index: 200;
+            display: none;
+            transform-origin: top right;
+        }
+        .filter-popover.active {
+            display: block;
+            animation: popoverIn 0.16s cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+        @keyframes popoverIn {
+            from { opacity: 0; transform: translateY(-6px) scale(0.96); }
+            to   { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        .filter-popover-title {
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            padding: 8px 12px 6px;
+        }
+        .filter-option {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 12px;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text);
+            cursor: pointer;
+            transition: background 0.12s;
+            white-space: nowrap;
+        }
+        .filter-option:hover {
+            background: #F1F5F9;
+        }
+        .filter-option:active {
+            background: #E2E8F0;
+        }
+        .filter-option i {
+            width: 18px;
+            text-align: center;
+            color: var(--navy);
+            font-size: 14px;
+        }
+
+        /* Segmented control: 2 tab chia đều full width */
+        .task-tabs {
+            display: flex;
+            background: #F1F5F9;
+            border-radius: 30px;
+            padding: 4px;
+            gap: 4px;
+            margin: 16px 0 20px;
         }
         .task-tab {
-            padding: 8px 18px;
-            border-radius: 30px;
+            flex: 1;
+            padding: 10px 14px;
+            border-radius: 26px;
             font-weight: 700;
             font-size: 14px;
             cursor: pointer;
@@ -801,57 +896,32 @@
             color: var(--muted);
             border: none;
             transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            white-space: nowrap;
+            font-family: inherit;
         }
         .task-tab.active {
             background: var(--navy);
-            color: white;
+            color: #fff;
+            box-shadow: 0 2px 8px rgba(27, 43, 122, 0.25);
         }
         .task-tab .badge {
-            background: rgba(255, 255, 255, 0.3);
+            background: rgba(15, 23, 42, 0.08);
+            color: inherit;
             border-radius: 20px;
-            padding: 0 8px;
+            padding: 2px 8px;
             font-size: 12px;
             font-weight: 700;
-            margin-left: 6px;
+            min-width: 20px;
+            text-align: center;
+            line-height: 1.4;
         }
         .task-tab.active .badge {
             background: rgba(255, 255, 255, 0.25);
-        }
-
-        /* Nhóm chọn dạng pill (dòng riêng, căn trái) */
-        .task-group-select {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-size: 14px;
-            font-weight: 700;
-            color: var(--muted);
-            white-space: nowrap;
-            justify-content: flex-start;
-        }
-        .group-pills {
-            display: inline-flex;
-            background: #F1F5F9;
-            border-radius: 22px;
-            padding: 3px;
-            gap: 2px;
-        }
-        .group-pill {
-            padding: 6px 18px;
-            border-radius: 18px;
-            border: none;
-            background: transparent;
-            color: var(--muted);
-            font-family: inherit;
-            font-size: 14px;
-            font-weight: 700;
-            cursor: pointer;
-            transition: all 0.15s;
-        }
-        .group-pill.active {
-            background: var(--navy);
-            color: white;
-            box-shadow: 0 2px 6px rgba(27, 43, 122, 0.25);
+            color: #fff;
         }
 
         .task-list {
@@ -1424,13 +1494,6 @@
                 max-height: 88dvh;
                 border-radius: 24px 24px 0 0;
             }
-            .task-tabs {
-                gap: 10px;
-            }
-            .task-group-select {
-                width: 100%;
-                justify-content: flex-start;
-            }
             .settings-item {
                 flex-wrap: nowrap;
                 gap: 6px;
@@ -1752,27 +1815,33 @@
             </div>
         </div>
 
-        <!-- ========== TASK MODAL ========== -->
+                <!-- ========== TASK MODAL ========== -->
         <div id="taskModal" class="modal-overlay task-modal">
             <div class="modal-box">
                 <div class="modal-header">
                     <h2 class="modal-title" data-i18n="task_modal_title">Quản lý nhiệm vụ</h2>
-                    <button class="modal-close" id="closeTaskModalBtn"><i class="fa-solid fa-xmark"></i></button>
+                    <div class="modal-header-actions">
+                        <button class="filter-btn" id="taskFilterBtn" title="Nhóm theo">
+                            <i class="fa-solid fa-filter"></i>
+                        </button>
+                        <button class="modal-close" id="closeTaskModalBtn"><i class="fa-solid fa-xmark"></i></button>
+                    </div>
+                    <!-- Popover filter -->
+                    <div class="filter-popover" id="taskFilterPopover">
+                        <div class="filter-popover-title" data-i18n="group_label">Nhóm theo</div>
+                        <div id="filterOptionsContainer"></div>
+                    </div>
                 </div>
 
                 <div class="task-tabs">
-                    <div class="task-tabs-left">
-                        <button class="task-tab active" data-tab="suggested"><span data-i18n="tab_suggested">Đề xuất</span> <span class="badge" id="suggestedCount">0</span></button>
-                        <button class="task-tab" data-tab="confirmed"><span data-i18n="tab_confirmed">Đã xác nhận</span> <span class="badge" id="confirmedCount">0</span></button>
-                    </div>
-
-                    <div class="task-group-select">
-                        <span data-i18n="group_label">Nhóm</span>
-                        <div class="group-pills" id="groupPills">
-                            <button class="group-pill active" data-group="client" data-i18n="group_by_client">Khách</button>
-                            <button class="group-pill" data-group="due" data-i18n="group_by_due">Ngày</button>
-                        </div>
-                    </div>
+                    <button class="task-tab active" data-tab="suggested">
+                        <span data-i18n="tab_suggested">Đề xuất</span>
+                        <span class="badge" id="suggestedCount">0</span>
+                    </button>
+                    <button class="task-tab" data-tab="confirmed">
+                        <span data-i18n="tab_confirmed">Đã xác nhận</span>
+                        <span class="badge" id="confirmedCount">0</span>
+                    </button>
                 </div>
 
                 <div id="taskTabSuggested" class="task-tab-content active">
@@ -2479,7 +2548,7 @@
                 overdue: 'Quá hạn',
                 date_format_label: 'Định dạng ngày',
                 timezone_label: 'Múi giờ',
-                group_label: 'Nhóm',
+                group_label: 'Nhóm theo',
                 connections_label: 'Kết nối ứng dụng',
                 format_label: 'Định dạng',
                 date_time_format: 'Ngày giờ',
@@ -2642,7 +2711,7 @@
                 overdue: 'Overdue',
                 date_format_label: 'Date format',
                 timezone_label: 'Timezone',
-                group_label: 'Group',
+                group_label: 'Group by',
                 connections_label: 'App connections',
                 format_label: 'Format',
                 date_time_format: 'Date & Time',
@@ -4321,22 +4390,78 @@ function groupAndSortTasks(taskList, groupByType = 'client') {
             }, 5000);
         }
 
+               // ========================================================================
+        //  FILTER POPOVER — Nhóm theo Khách / Ngày (icon-only)
         // ========================================================================
-        //  SỰ KIỆN CHO GROUP PILLS (Khách / Ngày)
-        // ========================================================================
-        function updateGroupPills() {
-            document.querySelectorAll('#groupPills .group-pill').forEach(p => {
-                p.classList.toggle('active', p.dataset.group === groupBy);
+        const filterBtn = document.getElementById('taskFilterBtn');
+        const filterPopover = document.getElementById('taskFilterPopover');
+        const filterOptionsContainer = document.getElementById('filterOptionsContainer');
+
+        function groupLabel(key) {
+            return key === 'client' ? t('group_by_client') : t('group_by_due');
+        }
+        function groupIcon(key) {
+            return key === 'client' ? 'fa-regular fa-user' : 'fa-regular fa-calendar';
+        }
+
+        // Build popover: chỉ hiện những nhóm KHÁC nhóm đang dùng
+        function updateFilterPopover() {
+            if (!filterOptionsContainer) return;
+            const allGroups = ['client', 'due'];
+            const otherGroups = allGroups.filter(g => g !== groupBy);
+
+            filterOptionsContainer.innerHTML = otherGroups.map(g => `
+                <div class="filter-option" data-group="${g}">
+                    <i class="${groupIcon(g)}"></i>
+                    <span>${groupLabel(g)}</span>
+                </div>
+            `).join('');
+
+            filterOptionsContainer.querySelectorAll('.filter-option').forEach(opt => {
+                opt.addEventListener('click', function() {
+                    groupBy = this.dataset.group;
+                    localStorage.setItem('popminutes_groupby', groupBy);
+                    closeFilterPopover();
+                    renderTasks();
+                });
             });
         }
 
-        document.querySelectorAll('#groupPills .group-pill').forEach(pill => {
-            pill.addEventListener('click', function() {
-                groupBy = this.dataset.group;
-                localStorage.setItem('popminutes_groupby', groupBy);
-                updateGroupPills();
-                renderTasks();
+        function updateFilterBtnState() {
+            if (!filterBtn) return;
+            // Không phải mặc định (client) → đánh dấu active
+            filterBtn.classList.toggle('has-active', groupBy !== 'client');
+        }
+
+        function openFilterPopover() {
+            updateFilterPopover();
+            filterPopover.classList.add('active');
+            updateFilterBtnState();
+        }
+        function closeFilterPopover() {
+            filterPopover.classList.remove('active');
+        }
+        function toggleFilterPopover() {
+            if (filterPopover.classList.contains('active')) {
+                closeFilterPopover();
+            } else {
+                openFilterPopover();
+            }
+        }
+
+        if (filterBtn) {
+            filterBtn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                toggleFilterPopover();
             });
+        }
+
+        // Click ra ngoài → tự đóng
+        document.addEventListener('click', function(e) {
+            if (!filterPopover || !filterPopover.classList.contains('active')) return;
+            if (filterPopover.contains(e.target)) return;
+            if (filterBtn.contains(e.target)) return;
+            closeFilterPopover();
         });
 
         // ========================================================================
@@ -4350,13 +4475,15 @@ function groupAndSortTasks(taskList, groupByType = 'client') {
                 alert(t('toast_login_required'));
                 return;
             }
+            closeFilterPopover();
+            updateFilterBtnState();
             taskModal.classList.add('active');
-            updateGroupPills();
             fetchTasksFromGAS();
         });
 
-        function closeTaskModal() {
+                function closeTaskModal() {
             taskModal.classList.remove('active');
+            closeFilterPopover();
         }
 
         closeTaskModalBtn.addEventListener('click', closeTaskModal);
@@ -4676,7 +4803,7 @@ if (trelloConnectStatus) {
             await loadConnectionStatus();
             initTaskData();
             groupBy = localStorage.getItem('popminutes_groupby') || 'client';
-            updateGroupPills();
+            updateFilterBtnState();
             dateFormat = localStorage.getItem('popminutes_date_format') || 'DD/MM/YY';
             timezone = localStorage.getItem('popminutes_timezone') || 'Asia/Ho_Chi_Minh';
             applySettingsUI();
