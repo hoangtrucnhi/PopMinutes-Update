@@ -2540,6 +2540,7 @@
                 delete_error: '❌ Lỗi xóa task: ',
                 group_by_client: 'Khách',
                 group_by_due: 'Ngày',
+                group_by_platform: 'Ứng dụng',
                 due_today: 'Hôm nay',
                 due_tomorrow: 'Ngày mai',
                 due_this_week: 'Tuần này',
@@ -2703,6 +2704,7 @@
                 delete_error: '❌ Error deleting task: ',
                 group_by_client: 'Client',
                 group_by_due: 'Date',
+                group_by_platform: 'App',
                 due_today: 'Today',
                 due_tomorrow: 'Tomorrow',
                 due_this_week: 'This week',
@@ -3742,6 +3744,40 @@ function groupAndSortTasks(taskList, groupByType = 'client') {
             result.push({ groupName: key, tasks: tasksInGroup });
         });
         return result;
+    }
+        } else if (groupByType === 'platform') {
+        // Nhóm theo từng nền tảng mà task được sync lên
+        const grouped = {};
+        taskList.forEach(task => {
+            const platforms = task.platforms || [];
+            if (platforms.length === 0) {
+                const key = 'PopMinutes';
+                if (!grouped[key]) grouped[key] = [];
+                grouped[key].push(task);
+                return;
+            }
+            platforms.forEach(p => {
+                const key = displayPlatform(p.platform);
+                if (!grouped[key]) grouped[key] = [];
+                // Tránh trùng nếu task đã có trong group này
+                if (!grouped[key].some(t => t.id === task.id)) {
+                    grouped[key].push(task);
+                }
+            });
+        });
+        const sortedKeys = Object.keys(grouped).sort((a, b) => a.localeCompare(b));
+        const result = [];
+        sortedKeys.forEach(key => {
+            const tasksInGroup = grouped[key].sort((a, b) => {
+                const da = parseDueString(a.due);
+                const db = parseDueString(b.due);
+                if (!da) return 1;
+                if (!db) return -1;
+                return da - db;
+            });
+            result.push({ groupName: key, tasks: tasksInGroup });
+        });
+        return result;
     } else {
         const now = new Date();
         const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
@@ -4398,16 +4434,22 @@ function groupAndSortTasks(taskList, groupByType = 'client') {
         const filterOptionsContainer = document.getElementById('filterOptionsContainer');
 
         function groupLabel(key) {
-            return key === 'client' ? t('group_by_client') : t('group_by_due');
+            if (key === 'client')   return t('group_by_client');
+            if (key === 'due')      return t('group_by_due');
+            if (key === 'platform') return t('group_by_platform');
+            return key;
         }
         function groupIcon(key) {
-            return key === 'client' ? 'fa-regular fa-user' : 'fa-regular fa-calendar';
+            if (key === 'client')   return 'fa-regular fa-user';
+            if (key === 'due')      return 'fa-regular fa-calendar';
+            if (key === 'platform') return 'fa-solid fa-layer-group';
+            return 'fa-solid fa-tag';
         }
 
         // Build popover: chỉ hiện những nhóm KHÁC nhóm đang dùng
         function updateFilterPopover() {
             if (!filterOptionsContainer) return;
-            const allGroups = ['client', 'due'];
+            const allGroups = ['client', 'due', 'platform'];
             const otherGroups = allGroups.filter(g => g !== groupBy);
 
             filterOptionsContainer.innerHTML = otherGroups.map(g => `
