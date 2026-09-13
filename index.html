@@ -4075,8 +4075,7 @@ function groupAndSortTasks(taskList, groupByType = 'client') {
                                 </button>
                                 <button class="edit-btn" onclick="editTask('${task.id}')" title="${t('edit_tooltip')}"><i class="fa-regular fa-pen-to-square"></i></button>
                                 <button class="confirm-btn" onclick="confirmTask('${task.id}')" title="${t('confirm_tooltip')}" ${!hasSelection ? 'disabled' : ''}><i class="fa-regular fa-circle-check"></i></button>
-                                <button class="delete-btn" onclick="deleteSuggestedTask('${task.id}')" title="${t('delete_tooltip')}"><i class="fa-regular fa-trash-can"></i></button>
-                            </div>
+                                <button class="delete-btn" onclick="deleteSuggestedTask('${task.id}', this)" title="${t('delete_tooltip')}"><i class="fa-regular fa-trash-can"></i></button>                            </div>
                         </div>
                         ${desc ? `<div class="task-desc collapsed" id="desc_${task.id}">${desc}</div>${descToggle}` : ''}
                         <div class="task-meta">
@@ -4145,8 +4144,7 @@ function groupAndSortTasks(taskList, groupByType = 'client') {
                             <div class="task-title">${task.title}</div>
                             <div class="task-actions">
                                 <button class="edit-btn" onclick="openEditTaskModal('${task.id}')" title="${t('edit_tooltip')}"><i class="fa-regular fa-pen-to-square"></i></button>
-                                <button class="delete-btn" onclick="deleteConfirmedTask('${task.id}')" title="${t('delete_tooltip')}"><i class="fa-regular fa-trash-can"></i></button>
-                            </div>
+                                <button class="delete-btn" onclick="deleteConfirmedTask('${task.id}', this)" title="${t('delete_tooltip')}"><i class="fa-regular fa-trash-can"></i></button>                            </div>
                         </div>
                         ${desc ? `<div class="task-desc collapsed" id="desc_${task.id}">${desc}</div>${descToggle}` : ''}
                         <div class="task-meta">
@@ -4518,34 +4516,29 @@ showToast('' + t('action_success'), true);
         // ========================================================================
         //  HÀM XÓA TASK
         // ========================================================================
-        async function deleteTaskById(taskId, fromArray) {
+        async function deleteTaskById(taskId, fromArray, deleteBtn = null) {
     const taskList = fromArray === 'suggested' ? tasks.suggested : tasks.confirmed;
     const task = taskList.find(t => t.id === taskId);
     if (!task) return;
 
-    // ⭐ TAB ĐỀ XUẤT: chưa sync → xóa thẳng
+    // TAB ĐỀ XUẤT: chưa sync → xóa thẳng
     if (fromArray === 'suggested') {
-        await performFullDelete(taskId, fromArray);
+        await performFullDelete(taskId, fromArray, deleteBtn);
         return;
     }
 
-    // ⭐ TAB ĐÃ XÁC NHẬN: đếm TỔNG platforms (bao gồm PopMinutes)
+    // TAB ĐÃ XÁC NHẬN
     const allPlatforms = task.platforms || [];
-    
-    // Nếu chỉ có 1 platform → xóa thẳng (không có gì để chọn)
     if (allPlatforms.length <= 1) {
-        await performFullDelete(taskId, fromArray);
+        await performFullDelete(taskId, fromArray, deleteBtn);
         return;
     }
 
-    // ⭐ Có ≥ 2 platform → hiện modal
-    // Trong modal: chỉ show option "xóa từng external platform đã sync thật"
-    // (PopMinutes không xóa riêng được vì nó là local — xóa luôn cùng task)
     const externalPlatforms = allPlatforms.filter(p => 
         p.platform !== 'PopMinutes' && p.externalId
     );
     
-    showDeleteTaskModal(taskId, fromArray, task, externalPlatforms, allPlatforms.length);
+    showDeleteTaskModal(taskId, fromArray, task, externalPlatforms, allPlatforms.length, deleteBtn);
 }
 // ============ Thực hiện xóa toàn bộ (giữ logic cũ) ============
 async function performFullDelete(taskId, fromArray, deleteBtnFromModal = null) {
@@ -4607,12 +4600,11 @@ async function performFullDelete(taskId, fromArray, deleteBtnFromModal = null) {
 }
 
 // ============ Hiện modal chọn xóa platform ============
-function showDeleteTaskModal(taskId, fromArray, task, externalPlatforms, totalPlatforms) {
+function showDeleteTaskModal(taskId, fromArray, task, externalPlatforms, totalPlatforms, deleteBtn = null) {
     const modal = document.getElementById('deleteTaskModal');
     const container = document.getElementById('deleteTaskOptions');
 
     // ⭐ Tìm nút delete NGAY BÂY GIỜ (trước khi modal đóng) để chắc chắn có element
-    const deleteBtn = getTaskDeleteButton(taskId);
 
     let html = `
         <div class="delete-task-option danger" data-action="all">
@@ -4758,12 +4750,12 @@ function closeDeleteTaskModal() {
     document.getElementById('deleteTaskModal').classList.remove('active');
 }
 // ============ Wrapper functions cho nút delete ============
-function deleteSuggestedTask(id) {
-    deleteTaskById(id, 'suggested');
+function deleteSuggestedTask(id, btn) {
+    deleteTaskById(id, 'suggested', btn);
 }
 
-function deleteConfirmedTask(id) {
-    deleteTaskById(id, 'confirmed');
+function deleteConfirmedTask(id, btn) {
+    deleteTaskById(id, 'confirmed', btn);
 }
 
         // ========================================================================
