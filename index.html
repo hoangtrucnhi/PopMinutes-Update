@@ -1538,7 +1538,7 @@
             position: fixed;
             bottom: calc(20px + env(safe-area-inset-bottom, 0px));
             left: 50%;
-            margin-left: -270px;                    /* ⭐ Căn giữa bằng margin thay vì transform */
+            margin-left: -270px;                    /* Căn giữa bằng margin thay vì transform */
             display: none;
             gap: 4px;
             padding: 8px;
@@ -1555,7 +1555,7 @@
                 inset 0 1px 0 rgba(255, 255, 255, 0.9),
                 inset 0 0 0 1px rgba(226, 232, 240, 0.6);
             z-index: 90;
-            /* ⭐ Chỉ dùng transform cho việc ẩn/hiện — KHÔNG dùng cho căn giữa */
+            /* Chỉ dùng transform cho việc ẩn/hiện — KHÔNG dùng cho căn giữa */
             transform: translateY(0);
             opacity: 1;
             transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.25s ease;
@@ -1570,7 +1570,7 @@
             transform: translateY(140%);
             opacity: 0;
             pointer-events: none;
-            animation: none;                        /* ⭐ Tắt animation để không conflict */
+            animation: none;
         }
         @keyframes bottomNavIn {
             from {
@@ -3216,11 +3216,6 @@
             if (nav) nav.classList.add('visible');
             document.body.classList.add('has-bottom-nav');
         }
-
-        function hideBottomNav() {
-            const nav = document.getElementById('bottomNav');
-            if (nav) nav.classList.remove('visible');
-            document.body.classList.remove('has-bottom-nav');
                 // ========================================================================
         //  AUTO-HIDE BOTTOM NAV KHI SCROLL
         // ========================================================================
@@ -3230,8 +3225,14 @@
         const SCROLL_THRESHOLD = 8;
         const SHOW_DELAY = 250;
 
-        // Hàm lấy scroll position — works với mọi container
+        // Detect scroll container thực sự (window hoặc .app)
         function getScrollY() {
+            const app = document.querySelector('.app');
+            // Nếu .app có scroll (scrollHeight > clientHeight) → dùng scrollTop của .app
+            if (app && app.scrollHeight > app.clientHeight + 1) {
+                return app.scrollTop;
+            }
+            // Fallback: window / document
             return window.scrollY ||
                    window.pageYOffset ||
                    document.documentElement.scrollTop ||
@@ -3267,7 +3268,7 @@
                 navHiddenByScroll = false;
             }
 
-            // Dù scroll lên hay xuống, sau khi dừng 250ms đều hiện lại
+            // Sau khi dừng scroll 250ms → luôn hiện
             if (scrollTimeout) clearTimeout(scrollTimeout);
             scrollTimeout = setTimeout(function() {
                 if (navHiddenByScroll) {
@@ -3279,9 +3280,19 @@
             lastScrollY = currentScrollY;
         }
 
-        // Gắn listener trên CẢ window VÀ document (một số browser dùng document)
+        // Gắn listener trên NHIỀU target để chắc chắn bắt được scroll
         window.addEventListener('scroll', onScrollHandler, { passive: true });
-        document.addEventListener('scroll', onScrollHandler, { passive: true });
+        document.addEventListener('scroll', onScrollHandler, { passive: true, capture: true });
+        // Gắn trực tiếp vào .app (đây là scroll container thực sự)
+        const appScrollEl = document.querySelector('.app');
+        if (appScrollEl) {
+            appScrollEl.addEventListener('scroll', onScrollHandler, { passive: true });
+        }
+
+        function hideBottomNav() {
+            const nav = document.getElementById('bottomNav');
+            if (nav) nav.classList.remove('visible');
+            document.body.classList.remove('has-bottom-nav');
         }
         
         function handleLogout() {
@@ -3603,7 +3614,7 @@
             resetRecorder();
         }
         closeModalBtn.addEventListener('click', closeModal);
-        // ⭐ Click ra ngoài backdrop để đóng modal
+        // Click ra ngoài backdrop để đóng modal
         modal.addEventListener('click', function(e) {
             if (e.target === modal) {
                 closeModal();
@@ -4051,7 +4062,7 @@ function getDateTimeValue(dueISO) {
             localStorage.setItem('popminutes_timezone', timezone);
             renderTasks();
 
-            // 2. ⭐ Đồng bộ lên Firestore (async, không block UI)
+            // 2. Đồng bộ lên Firestore (async, không block UI)
             if (!currentEmail) return;
             try {
                 const formData = new URLSearchParams();
@@ -4627,7 +4638,7 @@ if (deleteTaskModal) {
     editingTaskId = null;
     renderTasks();
 
-    // ⭐ SYNC lên Sheet (giống saveEditedTask của tab Confirmed)
+    // SYNC lên Sheet (giống saveEditedTask của tab Confirmed)
     try {
         await fetch(APPS_SCRIPT_URL, {
             method: 'POST',
@@ -4773,7 +4784,7 @@ if (deleteTaskModal) {
                     }
                 }
 
-                // ⭐ BƯỚC QUAN TRỌNG: Force update Status = 'synced' vào sheet TASKS
+                // BƯỚC QUAN TRỌNG: Force update Status = 'synced' vào sheet TASKS
 // (Backend cũng tự update, nhưng đôi khi fail silently → task quay về suggested)
 let finalStatus = 'synced';
 for (const p of selectedPlatforms) {
@@ -4903,7 +4914,7 @@ function showDeleteTaskModal(taskId, fromArray, task, externalPlatforms, totalPl
     const modal = document.getElementById('deleteTaskModal');
     const container = document.getElementById('deleteTaskOptions');
 
-    // ⭐ Tìm nút delete NGAY BÂY GIỜ (trước khi modal đóng) để chắc chắn có element
+    // Tìm nút delete NGAY BÂY GIỜ (trước khi modal đóng) để chắc chắn có element
 
     let html = `
         <div class="delete-task-option danger" data-action="all">
