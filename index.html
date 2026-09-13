@@ -1533,19 +1533,46 @@
                 max-width: none;
             }
         }
+                /* Mobile nhỏ < 380px — thu nhỏ nav */
+        @media (max-width: 380px) {
+            nav.bottom-nav {
+                min-width: 0 !important;
+                padding: 5px 6px !important;
+                gap: 0 !important;
+            }
+            nav.bottom-nav .nav-item {
+                width: 42px !important;
+                height: 42px !important;
+            }
+            nav.bottom-nav .nav-item i {
+                font-size: 17px !important;
+                width: 17px !important;
+                height: 17px !important;
+            }
+            nav.bottom-nav .nav-item.nav-scan i {
+                width: 48px !important;
+                height: 48px !important;
+                font-size: 20px !important;
+                margin-top: -20px !important;
+                border-width: 3px !important;
+            }
+        }
                 /* ===== BOTTOM NAVIGATION — Floating Pill (icon-only) ===== */
         nav.bottom-nav {
             position: fixed !important;
-            bottom: calc(20px + env(safe-area-inset-bottom, 0px)) !important;
+            bottom: calc(16px + env(safe-area-inset-bottom, 0px)) !important;
             left: 50% !important;
             right: auto !important;
             transform: translateX(-50%) translateY(0);
             display: none;
             flex-direction: row !important;
-            gap: 6px !important;
-            padding: 8px !important;
-            width: calc(100% - 24px) !important;
-            max-width: 480px !important;
+            align-items: center !important;
+            justify-content: space-around !important;    /*  Phân bổ đều */
+            gap: 0 !important;
+            padding: 6px 8px !important;
+            width: auto !important;                       /*  Auto theo content */
+            min-width: 320px !important;                  /*  Đủ chỗ tối thiểu */
+            max-width: calc(100% - 24px) !important;
             background: rgba(255, 255, 255, 0.92) !important;
             backdrop-filter: blur(24px) saturate(180%) !important;
             -webkit-backdrop-filter: blur(24px) saturate(180%) !important;
@@ -1571,60 +1598,62 @@
             animation: none !important;
         }
 
-        /* ===== NAV ITEM — Icon only ===== */
+                /* ===== NAV ITEM — Icon only, không bị nén ===== */
         nav.bottom-nav .nav-item {
-            flex: 1 !important;
+            flex: 0 0 auto !important;                    /*  Không co giãn */
+            width: 48px !important;                       /*  Width cố định */
+            height: 48px !important;
             background: none !important;
             border: none !important;
             cursor: pointer;
             display: flex !important;
-            flex-direction: row !important;               /*  Chỉ icon, không stack */
             align-items: center !important;
             justify-content: center !important;
-            gap: 0 !important;
-            padding: 10px 6px !important;
+            padding: 0 !important;
             color: var(--muted) !important;
             font-family: inherit !important;
-            transition: color 0.2s ease, background 0.25s ease !important;
+            transition: color 0.2s ease, background 0.25s ease, transform 0.15s ease !important;
             position: relative !important;
-            min-width: 0 !important;
-            height: 48px !important;                       /*  Chiều cao cố định */
-            border-radius: 26px !important;
-            outline: none !important;                      /*  Bỏ outline */
-            -webkit-tap-highlight-color: transparent !important; /*  Bỏ highlight tap trên mobile */
+            border-radius: 50% !important;
+            outline: none !important;
+            -webkit-tap-highlight-color: transparent !important;
             -webkit-touch-callout: none !important;
             user-select: none !important;
             appearance: none !important;
             -webkit-appearance: none !important;
         }
-        /*  Bỏ focus/active outline hoàn toàn */
         nav.bottom-nav .nav-item:focus,
         nav.bottom-nav .nav-item:focus-visible,
         nav.bottom-nav .nav-item:active {
             outline: none !important;
-            outline-offset: 0 !important;
-            box-shadow: none !important;                   /* Reset, sẽ ghi đè ở .active */
+            box-shadow: none !important;
         }
 
         nav.bottom-nav .nav-item i {
             font-size: 20px !important;
             line-height: 1 !important;
             color: inherit !important;
-            display: inline-block !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            flex-shrink: 0 !important;                    /*  KHÔNG cho icon bị nén */
+            width: 20px !important;                        /*  Width cứng */
+            height: 20px !important;
             transition: transform 0.2s ease !important;
         }
-        /*  Ẩn tất cả các label */
+        /* Ẩn label */
         nav.bottom-nav .nav-item > span:not(.nav-badge) {
             display: none !important;
         }
 
-        /* Active state */
+        /* Active state — nền navy tròn */
         nav.bottom-nav .nav-item.active {
             background: linear-gradient(135deg, var(--navy-light) 0%, var(--navy) 100%) !important;
             color: #fff !important;
             box-shadow:
                 0 2px 8px rgba(27, 43, 122, 0.3),
                 inset 0 1px 0 rgba(255, 255, 255, 0.15) !important;
+            transform: scale(1.02) !important;
         }
         nav.bottom-nav .nav-item.active:focus,
         nav.bottom-nav .nav-item.active:focus-visible,
@@ -1661,21 +1690,21 @@
         body.has-bottom-nav .app {
             padding-bottom: calc(140px + env(safe-area-inset-bottom, 0px)) !important;
         }
-                /* ===== SCAN QR — Nút nổi bật ở giữa (icon-only) ===== */
+                /* ===== SCAN QR — Nút nổi bật ở giữa ===== */
         nav.bottom-nav .nav-item.nav-scan {
-            flex: 1 !important;
+            flex: 0 0 auto !important;
+            width: 48px !important;                       /* Bằng với các item khác */
+            height: 48px !important;
             background: none !important;
             border: none !important;
             cursor: pointer;
             display: flex !important;
-            flex-direction: row !important;
             align-items: center !important;
             justify-content: center !important;
             padding: 0 !important;
             color: var(--navy) !important;
             transition: transform 0.15s ease !important;
             position: relative !important;
-            min-width: 0 !important;
             overflow: visible !important;
             border-radius: 50% !important;
             outline: none !important;
@@ -1690,16 +1719,16 @@
             box-shadow: none !important;
         }
         nav.bottom-nav .nav-item.nav-scan:active i {
-            transform: translateY(-4px) scale(0.96) !important;
+            transform: translateY(-3px) scale(0.94) !important;
         }
-        /* Vòng tròn lớn nhô lên */
         nav.bottom-nav .nav-item.nav-scan i {
             display: flex !important;
             align-items: center !important;
             justify-content: center !important;
-            width: 60px !important;
-            height: 60px !important;
-            font-size: 26px !important;
+            flex-shrink: 0 !important;                    /*  Không nén */
+            width: 56px !important;                        /*  Cứng */
+            height: 56px !important;
+            font-size: 24px !important;
             color: #fff !important;
             background: linear-gradient(135deg, #2D3FA6 0%, #1B2B7A 55%, #131F5C 100%) !important;
             border-radius: 50% !important;
@@ -1709,19 +1738,11 @@
                 0 8px 24px rgba(27, 43, 122, 0.25),
                 0 12px 36px rgba(27, 43, 122, 0.15),
                 inset 0 1px 0 rgba(255, 255, 255, 0.25) !important;
-            margin-top: -26px !important;
+            margin-top: -24px !important;                  /* Nhô lên khỏi nav */
             transform: translateY(-2px) !important;
             transition: transform 0.2s ease, box-shadow 0.2s ease !important;
             position: relative !important;
             z-index: 2 !important;
-        }
-        nav.bottom-nav .nav-item.nav-scan:hover i {
-            transform: translateY(-5px) scale(1.05) !important;
-            box-shadow:
-                0 6px 16px rgba(27, 43, 122, 0.4),
-                0 12px 32px rgba(27, 43, 122, 0.3),
-                0 16px 48px rgba(27, 43, 122, 0.2),
-                inset 0 1px 0 rgba(255, 255, 255, 0.25) !important;
         }
         nav.bottom-nav .nav-item.nav-scan.active i {
             background: linear-gradient(135deg, #3749B8 0%, #243086 55%, #1B2B7A 100%) !important;
