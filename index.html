@@ -4467,9 +4467,8 @@ if (deleteTaskModal) {
 }
 
 // ============ Thực hiện xóa toàn bộ (giữ logic cũ) ============
-async function performFullDelete(taskId, fromArray) {
-    if (!confirm(t('delete_confirm_msg'))) return;
-
+async function performFullDelete(taskId, fromArray, skipConfirm = false) {
+    if (!skipConfirm && !confirm(t('delete_confirm_msg'))) return;
     const deleteBtn = document.querySelector(
             `.task-item .delete-btn[onclick*="deleteTaskById('${taskId}')"]`) ||
         document.querySelector(`.task-item .delete-btn[onclick*="deleteSuggestedTask('${taskId}')"]`) ||
@@ -4558,7 +4557,7 @@ function showDeleteTaskModal(taskId, fromArray, task, platforms) {
             closeDeleteTaskModal();
             
             if (action === 'all') {
-                await performFullDelete(taskId, fromArray);
+                await performFullDelete(taskId, fromArray, true);
             } else if (action === 'one') {
                 await performPlatformDelete(taskId, fromArray, platform);
             }
@@ -4614,6 +4613,14 @@ async function performPlatformDelete(taskId, fromArray, platform) {
 // ============ Đóng modal ============
 function closeDeleteTaskModal() {
     document.getElementById('deleteTaskModal').classList.remove('active');
+}
+// ============ Wrapper functions cho nút delete ============
+function deleteSuggestedTask(id) {
+    deleteTaskById(id, 'suggested');
+}
+
+function deleteConfirmedTask(id) {
+    deleteTaskById(id, 'confirmed');
 }
 
         // ========================================================================
