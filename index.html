@@ -1750,6 +1750,151 @@
         nav.bottom-nav .nav-item.nav-scan.active i {
             background: #1B2B7A !important;                /* Vẫn navy khi active */
         }
+
+                /* ===== NOTIFICATIONS MODAL ===== */
+        .notifications-modal .modal-box {
+            max-width: 500px;
+        }
+        .notif-item {
+            display: flex;
+            gap: 12px;
+            padding: 14px 0;
+            border-bottom: 1px solid var(--border);
+        }
+        .notif-item:last-child {
+            border-bottom: none;
+        }
+        .notif-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+        }
+        .notif-icon.danger  { background: #FEF2F2; color: #EF4444; }
+        .notif-icon.warning { background: #FFFBEB; color: #D97706; }
+        .notif-icon.success { background: #D1FAE5; color: #10B981; }
+        .notif-icon.info    { background: #EFF6FF; color: #3B82F6; }
+        .notif-body { flex: 1; min-width: 0; }
+        .notif-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 3px;
+            line-height: 1.35;
+        }
+        .notif-desc {
+            font-size: 12.5px;
+            color: var(--muted);
+            line-height: 1.5;
+            margin-bottom: 4px;
+        }
+        .notif-time {
+            font-size: 11.5px;
+            color: var(--muted);
+            font-weight: 500;
+        }
+        .notif-empty {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--muted);
+            font-size: 14px;
+        }
+        .notif-empty i {
+            font-size: 36px;
+            color: #CBD5E1;
+            margin-bottom: 12px;
+            display: block;
+        }
+
+        /* ===== PROFILE MODAL ===== */
+        .profile-modal .modal-box {
+            max-width: 480px;
+        }
+        .profile-avatar-wrap {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 4px 0 20px;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 20px;
+        }
+        .profile-avatar {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--navy-light), var(--navy));
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            flex-shrink: 0;
+            box-shadow: 0 4px 12px rgba(27, 43, 122, 0.25);
+        }
+        .profile-name-display {
+            font-size: 15px;
+            font-weight: 800;
+            color: var(--text);
+            margin-bottom: 2px;
+        }
+        .profile-email-display {
+            font-size: 12.5px;
+            color: var(--muted);
+            font-weight: 500;
+            word-break: break-all;
+        }
+        .profile-form {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            margin-bottom: 20px;
+        }
+        .profile-field {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .profile-label {
+            font-size: 11.5px;
+            font-weight: 700;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .profile-actions {
+            margin-bottom: 16px;
+        }
+        .profile-danger-zone {
+            padding-top: 16px;
+            border-top: 1px solid var(--border);
+        }
+        .profile-danger-btn {
+            width: 100%;
+            padding: 12px;
+            background: transparent;
+            border: 1.5px solid var(--border);
+            border-radius: 12px;
+            font-family: inherit;
+            font-size: 13.5px;
+            font-weight: 600;
+            color: var(--text);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.2s;
+        }
+        .profile-danger-btn:hover {
+            background: #FEF2F2;
+            border-color: #FECACA;
+            color: var(--danger);
+        }
+        
         /* ===== DELETE TASK MODAL ===== */
         .delete-task-modal .modal-box {
             max-width: 460px;
@@ -2660,7 +2805,75 @@
                 </div>
             </div>
         </div>
-        
+                <!-- ========== NOTIFICATIONS MODAL ========== -->
+        <div id="notificationsModal" class="modal-overlay notifications-modal">
+            <div class="modal-box">
+                <div class="modal-header">
+                    <h2 class="modal-title" data-i18n="notif_title">Thông báo</h2>
+                    <button class="modal-close" id="closeNotificationsBtn"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+                <div id="notificationsList">
+                    <p style="text-align:center; padding:20px; color:var(--muted);" data-i18n="loading">Đang tải...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========== PROFILE MODAL ========== -->
+        <div id="profileModal" class="modal-overlay profile-modal">
+            <div class="modal-box">
+                <div class="modal-header">
+                    <h2 class="modal-title" data-i18n="profile_title">Thông tin cá nhân</h2>
+                    <button class="modal-close" id="closeProfileBtn"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+
+                <div class="profile-avatar-wrap">
+                    <div class="profile-avatar" id="profileAvatar"><i class="fa-solid fa-user"></i></div>
+                    <div>
+                        <div class="profile-name-display" id="profileNameDisplay">—</div>
+                        <div class="profile-email-display" id="profileEmailDisplay">—</div>
+                    </div>
+                </div>
+
+                <div class="profile-form">
+                    <div class="profile-field">
+                        <label class="profile-label" data-i18n="profile_fullname">Họ tên</label>
+                        <input type="text" id="pfFullname" class="modal-input" placeholder="Nguyễn Văn A">
+                    </div>
+                    <div class="profile-field">
+                        <label class="profile-label" data-i18n="profile_company">Công ty</label>
+                        <input type="text" id="pfCompany" class="modal-input" placeholder="Công ty ABC">
+                    </div>
+                    <div class="profile-field">
+                        <label class="profile-label" data-i18n="profile_dob">Ngày sinh</label>
+                        <input type="date" id="pfDob" class="modal-input">
+                    </div>
+                    <div class="profile-field">
+                        <label class="profile-label" data-i18n="profile_position">Chức vụ</label>
+                        <input type="text" id="pfPosition" class="modal-input" placeholder="Sales Manager">
+                    </div>
+                    <div class="profile-field">
+                        <label class="profile-label" data-i18n="profile_address">Địa chỉ</label>
+                        <input type="text" id="pfAddress" class="modal-input" placeholder="123 Đường ABC, Q1, HCM">
+                    </div>
+                    <div class="profile-field">
+                        <label class="profile-label" data-i18n="profile_phone">Số điện thoại</label>
+                        <input type="tel" id="pfPhone" class="modal-input" placeholder="0901 234 567">
+                    </div>
+                </div>
+
+                <div class="profile-actions">
+                    <button class="btn-primary" id="saveProfileBtn">
+                        <i class="fa-solid fa-floppy-disk"></i> <span data-i18n="save_btn">Lưu</span>
+                    </button>
+                </div>
+
+                <div class="profile-danger-zone">
+                    <button class="profile-danger-btn" id="changeUserIdBtn">
+                        <i class="fa-solid fa-key"></i> <span data-i18n="profile_change_id">Đổi User ID</span>
+                    </button>
+                </div>
+            </div>
+        </div>
         <!-- ========== HISTORY MODAL ========== -->
         <div id="historyModal" class="modal-overlay history-modal">
             <div class="modal-box">
@@ -2901,6 +3114,22 @@
                 nav_gift_coming: 'Sắp ra mắt',
                 nav_scan_coming: 'Sắp ra mắt',
                 nav_no_notif: 'Chưa có',
+                notif_title: 'Thông báo',
+                notif_empty: 'Chưa có thông báo nào',
+                notif_task_due: 'Sắp đến hạn',
+                notif_task_overdue: 'Quá hạn',
+                notif_record_done: 'Biên bản đã xong',
+                notif_task_done: 'Nhiệm vụ hoàn thành',
+                profile_title: 'Thông tin cá nhân',
+                profile_fullname: 'Họ tên',
+                profile_company: 'Công ty',
+                profile_dob: 'Ngày sinh',
+                profile_position: 'Chức vụ',
+                profile_address: 'Địa chỉ',
+                profile_phone: 'Số điện thoại',
+                profile_change_id: 'Đổi User ID',
+                profile_saved: 'Đã lưu thông tin',
+                gift_coming: 'Sắp ra mắt',
             },
             en: {
                 login_title: 'Smart Meeting Minutes AI',
@@ -3080,6 +3309,22 @@
                 nav_gift_coming: 'Coming soon',
                 nav_scan_coming: 'Coming soon',
                 nav_no_notif: 'No new notifications',
+                notif_title: 'Notifications',
+                notif_empty: 'No notifications yet',
+                notif_task_due: 'Task due soon',
+                notif_task_overdue: 'Overdue task',
+                notif_record_done: 'Minutes completed',
+                notif_task_done: 'Task completed',
+                profile_title: 'Profile',
+                profile_fullname: 'Full name',
+                profile_company: 'Company',
+                profile_dob: 'Date of birth',
+                profile_position: 'Position',
+                profile_address: 'Address',
+                profile_phone: 'Phone number',
+                profile_change_id: 'Change User ID',
+                profile_saved: 'Profile saved',
+                gift_coming: 'Coming soon',
             }
         };
 
@@ -3331,11 +3576,12 @@
         // ========================================================================
         //  BOTTOM NAVIGATION
         // ========================================================================
-            function switchBottomNav(page) {
-            // Blur button vừa bấm để bỏ focus ring
+                    function switchBottomNav(page) {
+            // Blur button để bỏ focus ring
             if (document.activeElement && document.activeElement.blur) {
                 document.activeElement.blur();
             }
+
             // Update active state
             document.querySelectorAll('.bottom-nav .nav-item').forEach(item => {
                 item.classList.toggle('active', item.dataset.page === page);
@@ -3347,27 +3593,208 @@
                     break;
 
                 case 'gift':
-                    showToast(t('nav_gift_coming'), false);
+                    // ⭐ Giống QR — báo nâng cấp gói
+                    alert(t('toast_upgrade_required'));
                     break;
 
                 case 'scan':
                     if (typeof qrCheckinBtn !== 'undefined' && qrCheckinBtn) {
                         qrCheckinBtn.click();
                     } else {
-                        showToast(t('nav_scan_coming'), false);
+                        alert(t('toast_upgrade_required'));
                     }
                     break;
 
                 case 'notifications':
-                    showToast(t('nav_no_notif'), false);
+                    openNotificationsModal();
                     break;
 
                 case 'me':
-                    showUserMenu();
+                    openProfileModal();
                     break;
             }
         }
 
+        // ========================================================================
+        //  NOTIFICATIONS
+        // ========================================================================
+        async function openNotificationsModal() {
+            if (!currentEmail) {
+                alert(t('toast_login_required'));
+                return;
+            }
+            const modal = document.getElementById('notificationsModal');
+            const list = document.getElementById('notificationsList');
+            list.innerHTML = `<p style="text-align:center; padding:20px; color:var(--muted);">${t('loading')}</p>`;
+            modal.classList.add('active');
+
+            const notifs = [];
+
+            // 1. Lấy task sắp đến hạn / quá hạn từ tasks hiện có
+            try {
+                const now = new Date();
+                const in3Days = new Date(now.getTime() + 3 * 24 * 60 * 60 * 1000);
+                const allTasks = [...(tasks.confirmed || [])];
+                allTasks.forEach(task => {
+                    if (!task.due) return;
+                    const due = parseDueString(task.due);
+                    if (!due) return;
+                    const dueTime = due.getTime();
+                    if (dueTime < now.getTime()) {
+                        notifs.push({
+                            type: 'danger',
+                            icon: 'fa-triangle-exclamation',
+                            title: `${t('notif_task_overdue')}: ${task.title}`,
+                            desc: formatDueDate(task.due),
+                            timestamp: dueTime
+                        });
+                    } else if (dueTime < in3Days.getTime()) {
+                        notifs.push({
+                            type: 'warning',
+                            icon: 'fa-clock',
+                            title: `${t('notif_task_due')}: ${task.title}`,
+                            desc: formatDueDate(task.due),
+                            timestamp: dueTime
+                        });
+                    }
+                });
+            } catch (e) { console.warn('Load task notifications:', e); }
+
+            // 2. Lấy biên bản đã xong gần đây
+            try {
+                const response = await fetch(APPS_SCRIPT_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: new URLSearchParams({
+                        action: 'getUserHistory',
+                        salesEmail: currentEmail
+                    }).toString()
+                });
+                const history = await response.json();
+                if (Array.isArray(history)) {
+                    history.slice(0, 5).forEach(rec => {
+                        if (rec.status === 'Done') {
+                            notifs.push({
+                                type: 'success',
+                                icon: 'fa-circle-check',
+                                title: `${t('notif_record_done')}: ${rec.clientName || ''}`,
+                                desc: rec.createdAt || '',
+                                timestamp: Date.now() - 1000
+                            });
+                        }
+                    });
+                }
+            } catch (e) { console.warn('Load history notifications:', e); }
+
+            // Sort mới nhất trước
+            notifs.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+
+            if (notifs.length === 0) {
+                list.innerHTML = `
+                    <div class="notif-empty">
+                        <i class="fa-regular fa-bell-slash"></i>
+                        ${t('notif_empty')}
+                    </div>
+                `;
+                return;
+            }
+
+            list.innerHTML = notifs.map(n => `
+                <div class="notif-item">
+                    <div class="notif-icon ${n.type}"><i class="fa-solid ${n.icon}"></i></div>
+                    <div class="notif-body">
+                        <div class="notif-title">${escapeHtml(n.title)}</div>
+                        <div class="notif-desc">${escapeHtml(n.desc)}</div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function closeNotificationsModal() {
+            document.getElementById('notificationsModal').classList.remove('active');
+        }
+
+        // ========================================================================
+        //  PROFILE
+        // ========================================================================
+        async function openProfileModal() {
+            if (!currentEmail) {
+                alert(t('toast_login_required'));
+                return;
+            }
+            const modal = document.getElementById('profileModal');
+            modal.classList.add('active');
+
+            // Set display name & email
+            document.getElementById('profileNameDisplay').textContent = currentSalesName || '—';
+            document.getElementById('profileEmailDisplay').textContent = currentEmail || '—';
+
+            // Load profile từ Firestore
+            try {
+                const url = `${CLOUD_FUNCTION_URL}?action=getUserProfile&email=${encodeURIComponent(currentEmail)}`;
+                const res = await fetch(url);
+                const data = await res.json();
+                if (data.status === 200 && data.profile) {
+                    const p = data.profile;
+                    document.getElementById('pfFullname').value = p.fullname || currentSalesName || '';
+                    document.getElementById('pfCompany').value  = p.company  || currentCompanyName || '';
+                    document.getElementById('pfDob').value      = p.dob      || '';
+                    document.getElementById('pfPosition').value = p.position || '';
+                    document.getElementById('pfAddress').value  = p.address  || '';
+                    document.getElementById('pfPhone').value    = p.phone    || '';
+                } else {
+                    // Default
+                    document.getElementById('pfFullname').value = currentSalesName || '';
+                    document.getElementById('pfCompany').value  = currentCompanyName || '';
+                }
+            } catch (e) {
+                console.warn('Load profile error:', e);
+            }
+        }
+
+        function closeProfileModal() {
+            document.getElementById('profileModal').classList.remove('active');
+        }
+
+        async function saveUserProfile() {
+            const btn = document.getElementById('saveProfileBtn');
+            btn.disabled = true;
+            const originalHTML = btn.innerHTML;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+
+            const profile = {
+                fullname: document.getElementById('pfFullname').value.trim(),
+                company:  document.getElementById('pfCompany').value.trim(),
+                dob:      document.getElementById('pfDob').value,
+                position: document.getElementById('pfPosition').value.trim(),
+                address:  document.getElementById('pfAddress').value.trim(),
+                phone:    document.getElementById('pfPhone').value.trim()
+            };
+
+            try {
+                const res = await fetch(CLOUD_FUNCTION_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: 'saveUserProfile',
+                        email: currentEmail,
+                        profile: profile
+                    })
+                });
+                const data = await res.json();
+                if (data.status === 200) {
+                    showToast('✅ ' + t('profile_saved'), true);
+                    closeProfileModal();
+                } else {
+                    showToast('❌ ' + (data.message || 'Error'), false);
+                }
+            } catch (e) {
+                showToast('❌ ' + e.message, false);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = originalHTML;
+            }
+        }
         function showUserMenu() {
             // Đơn giản: hiển thị toast hoặc mở modal tùy chỉnh
             // Ở đây mở modal nhỏ với thông tin user
@@ -3930,6 +4357,33 @@
         }
 
         document.getElementById('checkinBtn').addEventListener('click', () => alert(t('toast_upgrade_required')));
+                // ============ NOTIFICATIONS + PROFILE MODAL EVENTS ============
+        const notificationsModalEl = document.getElementById('notificationsModal');
+        const closeNotificationsBtn = document.getElementById('closeNotificationsBtn');
+        if (closeNotificationsBtn) closeNotificationsBtn.addEventListener('click', closeNotificationsModal);
+        if (notificationsModalEl) {
+            notificationsModalEl.addEventListener('click', function(e) {
+                if (e.target === notificationsModalEl) closeNotificationsModal();
+            });
+        }
+
+        const profileModalEl = document.getElementById('profileModal');
+        const closeProfileBtn = document.getElementById('closeProfileBtn');
+        const saveProfileBtn = document.getElementById('saveProfileBtn');
+        if (closeProfileBtn) closeProfileBtn.addEventListener('click', closeProfileModal);
+        if (saveProfileBtn) saveProfileBtn.addEventListener('click', saveUserProfile);
+        if (profileModalEl) {
+            profileModalEl.addEventListener('click', function(e) {
+                if (e.target === profileModalEl) closeProfileModal();
+            });
+        }
+
+        const changeUserIdBtn = document.getElementById('changeUserIdBtn');
+        if (changeUserIdBtn) {
+            changeUserIdBtn.addEventListener('click', function() {
+                alert(t('profile_change_id') + ' - ' + t('toast_upgrade_required'));
+            });
+        }
         const qrCheckinBtn = document.getElementById('qrCheckinBtn');
 if (qrCheckinBtn) {
     qrCheckinBtn.addEventListener('click', () => alert(t('toast_upgrade_required')));
