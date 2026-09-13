@@ -1538,7 +1538,7 @@
             position: fixed;
             bottom: calc(20px + env(safe-area-inset-bottom, 0px));
             left: 50%;
-            margin-left: -270px;                    /* Căn giữa bằng margin thay vì transform */
+            margin-left: -270px;                    /* Căn giữa bằng margin */
             display: none;
             gap: 4px;
             padding: 8px;
@@ -1555,32 +1555,36 @@
                 inset 0 1px 0 rgba(255, 255, 255, 0.9),
                 inset 0 0 0 1px rgba(226, 232, 240, 0.6);
             z-index: 90;
-            /* Chỉ dùng transform cho việc ẩn/hiện — KHÔNG dùng cho căn giữa */
+            /* Chỉ dùng transform cho ẩn/hiện, KHÔNG dùng để căn giữa */
             transform: translateY(0);
             opacity: 1;
-            transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.25s ease;
+            transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.3s ease;
             will-change: transform, opacity;
+        }
+        /* Ở màn hình nhỏ hơn 540px + 24px margin */
+        @media (max-width: 600px) {
+            .bottom-nav {
+                left: 12px;
+                right: 12px;
+                margin-left: 0;
+                width: auto;
+                max-width: none;
+            }
         }
         .bottom-nav.visible {
             display: flex;
-            animation: bottomNavIn 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
-        }
-        /* Hide khi scroll xuống */
-        .bottom-nav.hidden-by-scroll {
-            transform: translateY(140%);
-            opacity: 0;
-            pointer-events: none;
-            animation: none;
+            animation: bottomNavIn 0.45s cubic-bezier(0.2, 0.8, 0.2, 1);
         }
         @keyframes bottomNavIn {
-            from {
-                transform: translateY(100px);
-                opacity: 0;
-            }
-            to {
-                transform: translateY(0);
-                opacity: 1;
-            }
+            from { transform: translateY(120%); opacity: 0; }
+            to   { transform: translateY(0);    opacity: 1; }
+        }
+        /* Hide khi scroll — CHỈ translateY */
+        .bottom-nav.hidden-by-scroll {
+            transform: translateY(140%);            /* Không còn translateX */
+            opacity: 0;
+            pointer-events: none;
+            animation: none;                        /* Chặn animation ghi đè */
         }
         /* ===== DELETE TASK MODAL ===== */
         .delete-task-modal .modal-box {
@@ -3217,22 +3221,20 @@
             document.body.classList.add('has-bottom-nav');
         }
                 // ========================================================================
-        //  AUTO-HIDE BOTTOM NAV KHI SCROLL
+        //  AUTO-HIDE BOTTOM NAV — Ẩn khi scroll, hiện khi dừng lâu
         // ========================================================================
-        let lastScrollY = 0;
-        let scrollTimeout = null;
+        let scrollHideTimeout = null;
         let navHiddenByScroll = false;
-        const SCROLL_THRESHOLD = 8;
-        const SHOW_DELAY = 250;
+        const HIDE_DEBOUNCE = 100;   // ms: coi là "đang scroll" nếu events trong khoảng này
+        const SHOW_DELAY = 900;      // ms: dừng scroll bao lâu thì hiện nav lại
+        const SCROLL_MIN = 60;       // px: bỏ qua scroll gần đầu trang
 
-        // Detect scroll container thực sự (window hoặc .app)
+        // Lấy scroll position — works với mọi container
         function getScrollY() {
             const app = document.querySelector('.app');
-            // Nếu .app có scroll (scrollHeight > clientHeight) → dùng scrollTop của .app
             if (app && app.scrollHeight > app.clientHeight + 1) {
                 return app.scrollTop;
             }
-            // Fallback: window / document
             return window.scrollY ||
                    window.pageYOffset ||
                    document.documentElement.scrollTop ||
@@ -3240,55 +3242,57 @@
                    0;
         }
 
-        function onScrollHandler() {
+        // Core: ẩn khi scroll, hiện sau khi dừng
+        function triggerNavHide() {
             const nav = document.getElementById('bottomNav');
             if (!nav || !nav.classList.contains('visible')) return;
 
             const currentScrollY = getScrollY();
-            const delta = currentScrollY - lastScrollY;
 
-            // Ở đầu trang → luôn hiện nav
-            if (currentScrollY < 100) {
+            // Gần đầu trang → luôn hiện, không ẩn
+            if (currentScrollY < SCROLL_MIN) {
                 if (navHiddenByScroll) {
                     nav.classList.remove('hidden-by-scroll');
                     navHiddenByScroll = false;
                 }
-                lastScrollY = currentScrollY;
                 return;
             }
 
-            // Scroll xuống đủ xa → ẩn
-            if (delta > SCROLL_THRESHOLD && !navHiddenByScroll) {
+            // Đang scroll → ẩn nav
+            if (!navHiddenByScroll) {
                 nav.classList.add('hidden-by-scroll');
                 navHiddenByScroll = true;
             }
-            // Scroll lên → hiện ngay
-            else if (delta < -SCROLL_THRESHOLD && navHiddenByScroll) {
-                nav.classList.remove('hidden-by-scroll');
-                navHiddenByScroll = false;
-            }
 
-            // Sau khi dừng scroll 250ms → luôn hiện
-            if (scrollTimeout) clearTimeout(scrollTimeout);
-            scrollTimeout = setTimeout(function() {
+            // Reset timer mỗi lần scroll
+            if (scrollHideTimeout) clearTimeout(scrollHideTimeout);
+            scrollHideTimeout = setTimeout(function() {
                 if (navHiddenByScroll) {
                     nav.classList.remove('hidden-by-scroll');
                     navHiddenByScroll = false;
                 }
             }, SHOW_DELAY);
+        }
 
-            lastScrollY = currentScrollY;
+        // Wrapper cho event — chỉ xử lý khi thực sự scroll
+        let scrollActiveTimer = null;
+        function onAnyScroll() {
+            // Đánh dấu "đang scroll"
+            if (scrollActiveTimer) clearTimeout(scrollActiveTimer);
+            scrollActiveTimer = setTimeout(() => {
+                scrollActiveTimer = null;
+            }, HIDE_DEBOUNCE);
+
+            triggerNavHide();
         }
 
         // Gắn listener trên NHIỀU target để chắc chắn bắt được scroll
-        window.addEventListener('scroll', onScrollHandler, { passive: true });
-        document.addEventListener('scroll', onScrollHandler, { passive: true, capture: true });
-        // Gắn trực tiếp vào .app (đây là scroll container thực sự)
+        window.addEventListener('scroll', onAnyScroll, { passive: true });
+        document.addEventListener('scroll', onAnyScroll, { passive: true, capture: true });
         const appScrollEl = document.querySelector('.app');
         if (appScrollEl) {
-            appScrollEl.addEventListener('scroll', onScrollHandler, { passive: true });
+            appScrollEl.addEventListener('scroll', onAnyScroll, { passive: true });
         }
-
         function hideBottomNav() {
             const nav = document.getElementById('bottomNav');
             if (nav) nav.classList.remove('visible');
