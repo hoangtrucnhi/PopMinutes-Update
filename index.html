@@ -1524,21 +1524,21 @@
         .delete-loading i {
             animation: spin 1s linear infinite;
         }
-                        /* ===== BOTTOM NAVIGATION — Floating Pill ===== */
+                 /* ===== BOTTOM NAVIGATION — Floating Pill ===== */
         .bottom-nav {
             position: fixed;
-            bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+            bottom: calc(20px + env(safe-area-inset-bottom, 0px));
             left: 50%;
             transform: translateX(-50%);
             display: none;
-            gap: 2px;
-            padding: 6px;
-            width: calc(100% - 32px);
-            max-width: 460px;
-            background: rgba(255, 255, 255, 0.82);
+            gap: 4px;
+            padding: 8px;
+            width: calc(100% - 24px);
+            max-width: 540px;
+            background: rgba(255, 255, 255, 0.86);
             backdrop-filter: blur(24px) saturate(180%);
             -webkit-backdrop-filter: blur(24px) saturate(180%);
-            border-radius: 28px;
+            border-radius: 32px;
             box-shadow:
                 0 1px 2px rgba(15, 23, 42, 0.04),
                 0 4px 12px rgba(15, 23, 42, 0.08),
@@ -1546,10 +1546,18 @@
                 inset 0 1px 0 rgba(255, 255, 255, 0.9),
                 inset 0 0 0 1px rgba(226, 232, 240, 0.6);
             z-index: 90;
-            animation: bottomNavIn 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+            transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.25s ease;
+            will-change: transform, opacity;
         }
         .bottom-nav.visible {
             display: flex;
+            animation: bottomNavIn 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+        /* Hide khi scroll xuống */
+        .bottom-nav.hidden-by-scroll {
+            transform: translateX(-50%) translateY(120%);
+            opacity: 0;
+            pointer-events: none;
         }
         @keyframes bottomNavIn {
             from {
@@ -1571,27 +1579,27 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            gap: 3px;
-            padding: 8px 4px 6px;
+            gap: 4px;
+            padding: 10px 6px 8px;
             color: var(--muted);
             font-family: inherit;
-            font-size: 10px;
+            font-size: 11.5px;
             font-weight: 600;
             letter-spacing: 0.1px;
             transition: color 0.2s ease, background 0.25s ease, transform 0.15s ease;
             position: relative;
             min-width: 0;
-            border-radius: 22px;
+            border-radius: 26px;
             -webkit-tap-highlight-color: transparent;
         }
         .nav-item i {
-            font-size: 17px;
+            font-size: 20px;
             line-height: 1;
             transition: transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1), color 0.2s;
         }
         .nav-item span:not(.nav-badge) {
-            font-size: 10px;
-            line-height: 1.15;
+            font-size: 11.5px;
+            line-height: 1.2;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
@@ -1618,7 +1626,7 @@
             color: var(--navy);
         }
         .nav-item.nav-scan i {
-            font-size: 19px;
+            font-size: 22px;
         }
         .nav-item.nav-scan.active {
             color: #fff;
@@ -1627,15 +1635,15 @@
         /* Badge thông báo */
         .nav-badge {
             position: absolute;
-            top: 4px;
-            right: calc(50% - 16px);
+            top: 5px;
+            right: calc(50% - 18px);
             background: var(--danger);
             color: #fff;
-            font-size: 9px;
+            font-size: 10px;
             font-weight: 700;
             border-radius: 20px;
-            padding: 1px 5px;
-            min-width: 16px;
+            padding: 1px 6px;
+            min-width: 18px;
             text-align: center;
             line-height: 1.4;
             box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.9);
@@ -1646,25 +1654,29 @@
 
         /* Đảm bảo nội dung không bị che bởi nav */
         body.has-bottom-nav .app {
-            padding-bottom: calc(120px + env(safe-area-inset-bottom, 0px));
+            padding-bottom: calc(140px + env(safe-area-inset-bottom, 0px));
         }
 
-        /* Responsive — mobile nhỏ hơn */
+        /* Responsive — mobile rất nhỏ */
         @media (max-width: 380px) {
             .bottom-nav {
-                width: calc(100% - 24px);
-                bottom: calc(12px + env(safe-area-inset-bottom, 0px));
-                padding: 5px;
+                width: calc(100% - 16px);
+                bottom: calc(14px + env(safe-area-inset-bottom, 0px));
+                padding: 7px;
+                gap: 2px;
             }
             .nav-item {
-                font-size: 9px;
-                padding: 7px 2px 5px;
+                font-size: 10.5px;
+                padding: 9px 3px 7px;
             }
             .nav-item i {
-                font-size: 16px;
+                font-size: 18px;
             }
             .nav-item span:not(.nav-badge) {
-                font-size: 9px;
+                font-size: 10.5px;
+            }
+            .nav-item.nav-scan i {
+                font-size: 20px;
             }
         }
         /* ===== DELETE TASK MODAL ===== */
@@ -2591,28 +2603,28 @@
             </div>
         </div>
     </div>
-        <!-- ========== BOTTOM NAVIGATION ========== -->
+                <!-- ========== BOTTOM NAVIGATION ========== -->
         <nav class="bottom-nav" id="bottomNav">
             <button class="nav-item active" data-page="home" onclick="switchBottomNav('home')">
                 <i class="fa-solid fa-house"></i>
-                <span>Trang chủ</span>
+                <span data-i18n="nav_home">Trang chủ</span>
             </button>
             <button class="nav-item" data-page="gift" onclick="switchBottomNav('gift')">
                 <i class="fa-solid fa-gift"></i>
-                <span>Quà</span>
+                <span data-i18n="nav_gift">Quà</span>
             </button>
             <button class="nav-item nav-scan" data-page="scan" onclick="switchBottomNav('scan')">
                 <i class="fa-solid fa-qrcode"></i>
-                <span>Quét QR</span>
+                <span data-i18n="nav_scan">Quét QR</span>
             </button>
             <button class="nav-item" data-page="notifications" onclick="switchBottomNav('notifications')">
                 <i class="fa-regular fa-bell"></i>
-                <span>Thông báo</span>
+                <span data-i18n="nav_notifications">Thông báo</span>
                 <span class="nav-badge hidden" id="navNotifBadge">0</span>
             </button>
             <button class="nav-item" data-page="me" onclick="switchBottomNav('me')">
                 <i class="fa-regular fa-user"></i>
-                <span>Tôi</span>
+                <span data-i18n="nav_me">Tôi</span>
             </button>
         </nav>
     <!-- ========== MODAL: CHỌN BOARD TRELLO ========== -->
@@ -2810,6 +2822,14 @@
                 delete_only_platform: 'Chỉ xóa khỏi',
                 recording_stop_before_close: 'Vui lòng dừng ghi âm trước khi đóng',
                 confirm_close_recorder: 'Bạn có file chưa gửi. Bạn có chắc muốn đóng không?',
+                nav_home: 'Trang chủ',
+                nav_gift: 'Quà',
+                nav_scan: 'Quét QR',
+                nav_notifications: 'Thông báo',
+                nav_me: 'Tôi',
+                nav_gift_coming: 'Sắp ra mắt',
+                nav_scan_coming: 'Sắp ra mắt',
+                nav_no_notif: 'Chưa có',
             },
             en: {
                 login_title: 'Smart Meeting Minutes AI',
@@ -2981,6 +3001,14 @@
                 delete_only_platform: 'Remove from',
                 recording_stop_before_close: 'Please stop recording before closing',
                 confirm_close_recorder: 'You have an unsent file. Are you sure you want to close?',
+                nav_home: 'Home',
+                nav_gift: 'Gifts',
+                nav_scan: 'Scan QR',
+                nav_notifications: 'Alerts',
+                nav_me: 'Me',
+                nav_gift_coming: 'Coming soon',
+                nav_scan_coming: 'Coming soon',
+                nav_no_notif: 'No new notifications',
             }
         };
 
@@ -3229,10 +3257,10 @@
                 document.getElementById('login-loader').style.display = 'none';
             }
         }
-                // ========================================================================
+        // ========================================================================
         //  BOTTOM NAVIGATION
         // ========================================================================
-                function switchBottomNav(page) {
+                        function switchBottomNav(page) {
             // Update active state
             document.querySelectorAll('.bottom-nav .nav-item').forEach(item => {
                 item.classList.toggle('active', item.dataset.page === page);
@@ -3244,19 +3272,19 @@
                     break;
 
                 case 'gift':
-                    showToast('🎁 Tính năng Quà sắp ra mắt', false);
+                    showToast(t('nav_gift_coming'), false);
                     break;
 
                 case 'scan':
                     if (typeof qrCheckinBtn !== 'undefined' && qrCheckinBtn) {
                         qrCheckinBtn.click();
                     } else {
-                        showToast('📷 Tính năng Quét QR sắp ra mắt', false);
+                        showToast(t('nav_scan_coming'), false);
                     }
                     break;
 
                 case 'notifications':
-                    showToast('🔔 Chưa có thông báo mới', false);
+                    showToast(t('nav_no_notif'), false);
                     break;
 
                 case 'me':
@@ -3291,6 +3319,49 @@
             if (nav) nav.classList.remove('visible');
             document.body.classList.remove('has-bottom-nav');
         }
+                // ========================================================================
+        //  AUTO-HIDE BOTTOM NAV KHI SCROLL
+        // ========================================================================
+        let lastScrollY = 0;
+        let scrollTimeout = null;
+        let navHiddenByScroll = false;
+        const SCROLL_THRESHOLD = 10;   // px tối thiểu để coi là "đang scroll"
+        const SHOW_DELAY = 300;        // ms sau khi dừng scroll mới hiện nav
+
+        window.addEventListener('scroll', function() {
+            const nav = document.getElementById('bottomNav');
+            if (!nav || !nav.classList.contains('visible')) return;
+
+            const currentScrollY = window.scrollY;
+            const delta = currentScrollY - lastScrollY;
+
+            // Ở gần đầu trang → luôn hiện nav
+            if (currentScrollY < 80) {
+                if (navHiddenByScroll) {
+                    nav.classList.remove('hidden-by-scroll');
+                    navHiddenByScroll = false;
+                }
+                lastScrollY = currentScrollY;
+                return;
+            }
+
+            // Scroll xuống với delta đủ lớn → ẩn nav
+            if (delta > SCROLL_THRESHOLD && !navHiddenByScroll) {
+                nav.classList.add('hidden-by-scroll');
+                navHiddenByScroll = true;
+            }
+
+            // Clear timeout cũ, set timeout mới để hiện lại sau khi dừng scroll
+            if (scrollTimeout) clearTimeout(scrollTimeout);
+            scrollTimeout = setTimeout(function() {
+                if (navHiddenByScroll) {
+                    nav.classList.remove('hidden-by-scroll');
+                    navHiddenByScroll = false;
+                }
+            }, SHOW_DELAY);
+
+            lastScrollY = currentScrollY;
+        }, { passive: true });
         function handleLogout() {
             hideBottomNav();
             localStorage.removeItem(AUTH_STORAGE_KEY);
