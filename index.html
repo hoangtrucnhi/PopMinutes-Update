@@ -1603,10 +1603,10 @@
             flex: 0 0 auto !important;
             width: 48px !important;
             height: 48px !important;
-            background: transparent !important;            /* ⭐ Trong suốt */
-            border: 0 !important;                          /* ⭐ KHÔNG viền */
+            background: transparent !important;            /*Trong suốt */
+            border: 0 !important;                          /*KHÔNG viền */
             outline: 0 !important;
-            box-shadow: none !important;                   /* ⭐ KHÔNG shadow */
+            box-shadow: none !important;                   /*KHÔNG shadow */
             cursor: pointer;
             display: flex !important;
             align-items: center !important;
@@ -3968,8 +3968,49 @@
                     }).toString()
                 });
                 const history = await response.json();
-                if (Array.isArray(history)) {
-                    history.slice(0, 5).forEach(rec => {
+                                if (Array.isArray(history)) {
+                    //Sort mới nhất trước, rồi lấy 8 cái đầu
+                    const sorted = [...history]
+                        .filter(r => r.status === 'Done' || r.status === 'Processing' || r.status === 'Uploaded')
+                        .sort((a, b) => {
+                            const ta = new Date(a.createdAt || 0).getTime() || 0;
+                            const tb = new Date(b.createdAt || 0).getTime() || 0;
+                            return tb - ta;   // Mới nhất trước
+                        })
+                        .slice(0, 8);
+
+                    sorted.forEach((rec, idx) => {
+                        const clientName = rec.clientName || '';
+                        const timeStr = rec.createdAt || '';
+                        const baseTs = Date.now() - idx * 1000;
+
+                        if (rec.status === 'Done') {
+                            notifs.push({
+                                type: 'success',
+                                icon: 'fa-circle-check',
+                                title: `${t('notif_record_done')}: ${clientName}`,
+                                desc: timeStr,
+                                timestamp: baseTs
+                            });
+                        } else if (rec.status === 'Processing') {
+                            notifs.push({
+                                type: 'warning',
+                                icon: 'fa-spinner',
+                                title: `${t('notif_record_processing')}: ${clientName}`,
+                                desc: timeStr,
+                                timestamp: baseTs
+                            });
+                        } else if (rec.status === 'Uploaded') {
+                            notifs.push({
+                                type: 'info',
+                                icon: 'fa-clock',
+                                title: `${t('notif_record_uploaded')}: ${clientName}`,
+                                desc: timeStr,
+                                timestamp: baseTs
+                            });
+                        }
+                    });
+                }
                         if (rec.status === 'Done') {
                             notifs.push({
                                 type: 'success',
