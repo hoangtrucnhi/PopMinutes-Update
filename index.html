@@ -4132,7 +4132,8 @@ function groupAndSortTasks(taskList, groupByType = 'client') {
                         task: {
                             title: task.title,
                             description: task.description || '',
-                            due: task.due || ''
+                            due: task.due || '',
+                            clientName: task.clientName || ''
                         }
                     })
                 });
