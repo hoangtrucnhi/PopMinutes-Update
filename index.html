@@ -3976,7 +3976,7 @@
                             const tb = new Date(b.createdAt || 0).getTime() || 0;
                             return tb - ta;
                         })
-                        .slice(0, 8);
+                        .slice(0, 50);
 
                     sorted.forEach((rec, idx) => {
                         const clientName = rec.clientName || '';
