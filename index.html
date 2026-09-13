@@ -2643,6 +2643,7 @@
                 delete_all_platforms: 'Xóa toàn bộ nhiệm vụ',
                 platforms_count: 'nền tảng',
                 delete_only_platform: 'Chỉ xóa khỏi',
+                recording_stop_before_close: 'Vui lòng dừng ghi âm trước khi đóng',
             },
             en: {
                 login_title: 'Smart Meeting Minutes AI',
@@ -2812,6 +2813,7 @@
                 delete_all_platforms: 'Delete entire task',
                 platforms_count: 'platforms',
                 delete_only_platform: 'Remove from',
+                recording_stop_before_close: 'Please stop recording before closing',
             }
         };
 
@@ -3357,9 +3359,8 @@
         closeModalBtn.addEventListener('click', closeModal);
         modal.addEventListener('click', function(e) {
             if (e.target === modal) {
-                // Đang ghi âm → không cho đóng
                 if (isRecording) {
-                    showToast('Vui lòng dừng ghi âm trước khi đóng', false);
+                    showToast('' + t('recording_stop_before_close'), false);
                     return;
                 }
                 closeModal();
@@ -4456,31 +4457,33 @@ if (deleteTaskModal) {
         //  HÀM XÓA TASK
         // ========================================================================
         async function deleteTaskById(taskId, fromArray) {
-    // Tìm task trong mảng tương ứng
     const taskList = fromArray === 'suggested' ? tasks.suggested : tasks.confirmed;
     const task = taskList.find(t => t.id === taskId);
     if (!task) return;
 
-    // ⭐ TAB ĐỀ XUẤT: chưa sync 3rd party → xóa thẳng, không cần modal
+    // ⭐ TAB ĐỀ XUẤT: chưa sync → xóa thẳng
     if (fromArray === 'suggested') {
         await performFullDelete(taskId, fromArray);
         return;
     }
 
-    // ⭐ TAB ĐÃ XÁC NHẬN: đã sync 3rd party → kiểm tra có nhiều platform không
-    // Chỉ tính platform EXTERNAL (đã sync thật), bỏ PopMinutes và platform chưa sync
-    const externalPlatforms = (task.platforms || []).filter(p => 
-        p.platform !== 'PopMinutes' && p.externalId
-    );
-
-    // Nếu ≤ 1 external platform → xóa thẳng (không có gì để chọn)
-    if (externalPlatforms.length <= 1) {
+    // ⭐ TAB ĐÃ XÁC NHẬN: đếm TỔNG platforms (bao gồm PopMinutes)
+    const allPlatforms = task.platforms || [];
+    
+    // Nếu chỉ có 1 platform → xóa thẳng (không có gì để chọn)
+    if (allPlatforms.length <= 1) {
         await performFullDelete(taskId, fromArray);
         return;
     }
 
-    // Có ≥ 2 external platform → hiện modal cho chọn
-    showDeleteTaskModal(taskId, fromArray, task, externalPlatforms);
+    // ⭐ Có ≥ 2 platform → hiện modal
+    // Trong modal: chỉ show option "xóa từng external platform đã sync thật"
+    // (PopMinutes không xóa riêng được vì nó là local — xóa luôn cùng task)
+    const externalPlatforms = allPlatforms.filter(p => 
+        p.platform !== 'PopMinutes' && p.externalId
+    );
+    
+    showDeleteTaskModal(taskId, fromArray, task, externalPlatforms, allPlatforms.length);
 }
 // ============ Thực hiện xóa toàn bộ (giữ logic cũ) ============
 async function performFullDelete(taskId, fromArray, skipConfirm = false) {
@@ -4533,7 +4536,7 @@ async function performFullDelete(taskId, fromArray, skipConfirm = false) {
 }
 
 // ============ Hiện modal chọn xóa platform ============
-function showDeleteTaskModal(taskId, fromArray, task, externalPlatforms) {
+function showDeleteTaskModal(taskId, fromArray, task, externalPlatforms, totalPlatforms) {
     const modal = document.getElementById('deleteTaskModal');
     const container = document.getElementById('deleteTaskOptions');
     
@@ -4542,13 +4545,13 @@ function showDeleteTaskModal(taskId, fromArray, task, externalPlatforms) {
             <div class="opt-icon"><i class="fa-solid fa-trash"></i></div>
             <div class="opt-text">
                 <div class="opt-title">${t('delete_all_platforms')}</div>
-                <div class="opt-sub">${externalPlatforms.length + 1} ${t('platforms_count')}</div>
+                <div class="opt-sub">${totalPlatforms} ${t('platforms_count')}</div>
             </div>
             <i class="fa-solid fa-chevron-right" style="color:#991B1B; font-size:12px;"></i>
         </div>
     `;
 
-    // Hiện option cho từng external platform (đã sync thật)
+    // Hiện option cho từng external platform đã sync thật
     externalPlatforms.forEach(p => {
         html += `
             <div class="delete-task-option" data-action="one" data-platform="${p.platform}">
@@ -4563,7 +4566,6 @@ function showDeleteTaskModal(taskId, fromArray, task, externalPlatforms) {
 
     container.innerHTML = html;
 
-    // Gán event listener
     container.querySelectorAll('.delete-task-option').forEach(opt => {
         opt.addEventListener('click', async () => {
             const action = opt.dataset.action;
@@ -4580,8 +4582,6 @@ function showDeleteTaskModal(taskId, fromArray, task, externalPlatforms) {
 
     modal.classList.add('active');
 }
-
-// ============ Xóa 1 platform cụ thể ============
 // ============ Xóa 1 platform cụ thể ============
 async function performPlatformDelete(taskId, fromArray, platform) {
     // Tìm nút delete của task để hiện spinner
