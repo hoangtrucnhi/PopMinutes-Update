@@ -1524,6 +1524,70 @@
         .delete-loading i {
             animation: spin 1s linear infinite;
         }
+                /* ===== DELETE TASK MODAL ===== */
+        .delete-task-modal .modal-box {
+            max-width: 460px;
+            padding: 24px;
+        }
+        .delete-task-option {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px 16px;
+            border-radius: 12px;
+            border: 1.5px solid var(--border);
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: all 0.15s;
+            background: #fff;
+        }
+        .delete-task-option:hover {
+            border-color: var(--navy-light);
+            background: var(--navy-pale);
+        }
+        .delete-task-option.danger {
+            border-color: #FECACA;
+            background: #FEF2F2;
+        }
+        .delete-task-option.danger:hover {
+            border-color: var(--danger);
+            background: #FEE2E2;
+        }
+        .delete-task-option .opt-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 15px;
+            flex-shrink: 0;
+        }
+        .delete-task-option.danger .opt-icon {
+            background: #FECACA;
+            color: #991B1B;
+        }
+        .delete-task-option:not(.danger) .opt-icon {
+            background: var(--navy-pale);
+            color: var(--navy);
+        }
+        .delete-task-option .opt-text {
+            flex: 1;
+        }
+        .delete-task-option .opt-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 2px;
+        }
+        .delete-task-option.danger .opt-title {
+            color: #991B1B;
+        }
+        .delete-task-option .opt-sub {
+            font-size: 12px;
+            color: var(--muted);
+            font-weight: 500;
+        }
     </style>
 </head>
 <body>
@@ -2354,6 +2418,23 @@
             </div>
         </div>
 
+                <!-- ========== DELETE TASK MODAL ========== -->
+        <div id="deleteTaskModal" class="modal-overlay delete-task-modal">
+            <div class="modal-box">
+                <div class="modal-header">
+                    <h2 class="modal-title" data-i18n="delete_task_modal_title">Xóa nhiệm vụ</h2>
+                    <button class="modal-close" id="closeDeleteTaskBtn"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+                <p style="font-size:13px; color:var(--muted); margin-bottom:16px;" data-i18n="delete_task_hint">
+                    Chọn cách xóa nhiệm vụ:
+                </p>
+                <div id="deleteTaskOptions"></div>
+                <div class="edit-actions" style="margin-top:16px;">
+                    <button class="cancel-edit" id="cancelDeleteTaskBtn" data-i18n="cancel_btn">Hủy</button>
+                </div>
+            </div>
+        </div>
+        
         <!-- ========== HISTORY MODAL ========== -->
         <div id="historyModal" class="modal-overlay history-modal">
             <div class="modal-box">
@@ -2557,6 +2638,12 @@
                 show_more: 'Xem thêm',
                 collapse: 'Ẩn',
                 loading: 'Đang tải...',
+                delete_task_modal_title: 'Xóa nhiệm vụ',
+                delete_task_hint: 'Chọn cách xóa nhiệm vụ:',
+                delete_all_platforms: 'Xóa toàn bộ nhiệm vụ',
+                platforms_count: 'nền tảng',
+                delete_only_platform: 'Chỉ xóa khỏi',
+                keep_other_platforms: 'Giữ các nền tảng khác',
             },
             en: {
                 login_title: 'Smart Meeting Minutes AI',
@@ -2721,6 +2808,12 @@
                 show_more: 'Show more',
                 collapse: 'Hide',
                 loading: 'Loading...',
+                delete_task_modal_title: 'Delete Task',
+                delete_task_hint: 'Choose how to delete:',
+                delete_all_platforms: 'Delete entire task',
+                platforms_count: 'platforms',
+                delete_only_platform: 'Remove from',
+                keep_other_platforms: 'Keep other platforms',
             }
         };
 
@@ -4164,6 +4257,19 @@ function groupAndSortTasks(taskList, groupByType = 'client') {
             if (e.target === editTaskModal) closeEditTaskModal();
         });
 
+        // ============ DELETE TASK MODAL EVENTS ============
+const deleteTaskModal = document.getElementById('deleteTaskModal');
+const closeDeleteTaskBtn = document.getElementById('closeDeleteTaskBtn');
+const cancelDeleteTaskBtn = document.getElementById('cancelDeleteTaskBtn');
+
+if (closeDeleteTaskBtn) closeDeleteTaskBtn.addEventListener('click', closeDeleteTaskModal);
+if (cancelDeleteTaskBtn) cancelDeleteTaskBtn.addEventListener('click', closeDeleteTaskModal);
+if (deleteTaskModal) {
+    deleteTaskModal.addEventListener('click', function(e) {
+        if (e.target === deleteTaskModal) closeDeleteTaskModal();
+    });
+}
+
         // ========================================================================
         //  TASK FUNCTIONS
         // ========================================================================
@@ -4342,62 +4448,173 @@ function groupAndSortTasks(taskList, groupByType = 'client') {
         //  HÀM XÓA TASK
         // ========================================================================
         async function deleteTaskById(taskId, fromArray) {
-            if (!confirm(t('delete_confirm_msg'))) return;
+    // Tìm task trong mảng tương ứng
+    const taskList = fromArray === 'suggested' ? tasks.suggested : tasks.confirmed;
+    const task = taskList.find(t => t.id === taskId);
+    if (!task) return;
 
-            const deleteBtn = document.querySelector(
-                    `.task-item .delete-btn[onclick*="deleteTaskById('${taskId}')"]`) ||
-                document.querySelector(`.task-item .delete-btn[onclick*="deleteSuggestedTask('${taskId}')"]`) ||
-                document.querySelector(`.task-item .delete-btn[onclick*="deleteConfirmedTask('${taskId}')"]`);
-            if (deleteBtn) {
-                deleteBtn.disabled = true;
-                deleteBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
-                deleteBtn.classList.add('delete-loading');
+    // Lấy danh sách platforms hiện có
+    const platforms = (task.platforms || []).map(p => p.platform);
+    
+    // Nếu chỉ có 1 platform → xóa luôn như cũ
+    if (platforms.length <= 1) {
+        await performFullDelete(taskId, fromArray);
+        return;
+    }
+
+    // Có ≥ 2 platform → hiện modal cho chọn
+    showDeleteTaskModal(taskId, fromArray, task, platforms);
+}
+
+// ============ Thực hiện xóa toàn bộ (giữ logic cũ) ============
+async function performFullDelete(taskId, fromArray) {
+    if (!confirm(t('delete_confirm_msg'))) return;
+
+    const deleteBtn = document.querySelector(
+            `.task-item .delete-btn[onclick*="deleteTaskById('${taskId}')"]`) ||
+        document.querySelector(`.task-item .delete-btn[onclick*="deleteSuggestedTask('${taskId}')"]`) ||
+        document.querySelector(`.task-item .delete-btn[onclick*="deleteConfirmedTask('${taskId}')"]`);
+    if (deleteBtn) {
+        deleteBtn.disabled = true;
+        deleteBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+        deleteBtn.classList.add('delete-loading');
+    }
+
+    try {
+        const formData = new URLSearchParams();
+        formData.append('action', 'deleteTask');
+        formData.append('taskId', taskId);
+        formData.append('userEmail', currentEmail);
+
+        const response = await fetch(APPS_SCRIPT_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: formData.toString()
+        });
+        const result = await response.json();
+
+        if (result.status === 200) {
+            if (fromArray === 'suggested') {
+                tasks.suggested = tasks.suggested.filter(t => t.id !== taskId);
+            } else if (fromArray === 'confirmed') {
+                tasks.confirmed = tasks.confirmed.filter(t => t.id !== taskId);
             }
+            saveTasksToStorage();
+            renderTasks();
+            showToast('✅ ' + t('action_success'), true);
+        } else {
+            showToast('❌ ' + (result.message || 'Không rõ lỗi'), false);
+        }
+    } catch (error) {
+        console.error('Lỗi xóa task:', error);
+        showToast(t('delete_error') + error.message, false);
+    } finally {
+        if (deleteBtn) {
+            deleteBtn.disabled = false;
+            deleteBtn.innerHTML = '<i class="fa-regular fa-trash-can"></i>';
+            deleteBtn.classList.remove('delete-loading');
+        }
+    }
+}
 
-            try {
-                const formData = new URLSearchParams();
-                formData.append('action', 'deleteTask');
-                formData.append('taskId', taskId);
-                formData.append('userEmail', currentEmail);
+// ============ Hiện modal chọn xóa platform ============
+function showDeleteTaskModal(taskId, fromArray, task, platforms) {
+    const modal = document.getElementById('deleteTaskModal');
+    const container = document.getElementById('deleteTaskOptions');
+    
+    let html = `
+        <div class="delete-task-option danger" data-action="all">
+            <div class="opt-icon"><i class="fa-solid fa-trash"></i></div>
+            <div class="opt-text">
+                <div class="opt-title">${t('delete_all_platforms')}</div>
+                <div class="opt-sub">${platforms.length} ${t('platforms_count')}</div>
+            </div>
+            <i class="fa-solid fa-chevron-right" style="color:#991B1B; font-size:12px;"></i>
+        </div>
+    `;
 
-                const response = await fetch(APPS_SCRIPT_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                    body: formData.toString()
-                });
-                const result = await response.json();
+    // Hiện option cho từng platform (trừ PopMinutes)
+    platforms.forEach(p => {
+        if (p === 'PopMinutes') return; // PopMinutes không xóa riêng vì nó là local
+        html += `
+            <div class="delete-task-option" data-action="one" data-platform="${p}">
+                <div class="opt-icon"><i class="fa-solid fa-layer-group"></i></div>
+                <div class="opt-text">
+                    <div class="opt-title">${t('delete_only_platform')} ${displayPlatform(p)}</div>
+                    <div class="opt-sub">${t('keep_other_platforms')}</div>
+                </div>
+                <i class="fa-solid fa-chevron-right" style="color:var(--navy-light); font-size:12px;"></i>
+            </div>
+        `;
+    });
 
-                if (result.status === 200) {
+    container.innerHTML = html;
+
+    // Gán event listener
+    container.querySelectorAll('.delete-task-option').forEach(opt => {
+        opt.addEventListener('click', async () => {
+            const action = opt.dataset.action;
+            const platform = opt.dataset.platform;
+            closeDeleteTaskModal();
+            
+            if (action === 'all') {
+                await performFullDelete(taskId, fromArray);
+            } else if (action === 'one') {
+                await performPlatformDelete(taskId, fromArray, platform);
+            }
+        });
+    });
+
+    modal.classList.add('active');
+}
+
+// ============ Xóa 1 platform cụ thể ============
+async function performPlatformDelete(taskId, fromArray, platform) {
+    try {
+        const formData = new URLSearchParams();
+        formData.append('action', 'deleteTaskPlatform');
+        formData.append('taskId', taskId);
+        formData.append('platform', platform);
+        formData.append('userEmail', currentEmail);
+
+        const response = await fetch(APPS_SCRIPT_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: formData.toString()
+        });
+        const result = await response.json();
+
+        if (result.status === 200) {
+            // Update local state: xóa platform khỏi task
+            const taskList = fromArray === 'suggested' ? tasks.suggested : tasks.confirmed;
+            const task = taskList.find(t => t.id === taskId);
+            if (task) {
+                task.platforms = (task.platforms || []).filter(p => p.platform !== platform);
+                // Nếu không còn platform nào → xóa task khỏi list
+                if (task.platforms.length === 0) {
                     if (fromArray === 'suggested') {
                         tasks.suggested = tasks.suggested.filter(t => t.id !== taskId);
-                    } else if (fromArray === 'confirmed') {
+                    } else {
                         tasks.confirmed = tasks.confirmed.filter(t => t.id !== taskId);
                     }
-                    saveTasksToStorage();
-                    renderTasks();
-                    showToast(t('action_success'), false);
-                } else {
-                    showToast('❌ ' + (result.message || t('delete_error') + 'Không rõ lỗi'), false);
-                }
-            } catch (error) {
-                console.error('Lỗi xóa task:', error);
-                showToast(t('delete_error') + error.message, false);
-            } finally {
-                if (deleteBtn) {
-                    deleteBtn.disabled = false;
-                    deleteBtn.innerHTML = '<i class="fa-regular fa-trash-can"></i>';
-                    deleteBtn.classList.remove('delete-loading');
                 }
             }
+            saveTasksToStorage();
+            renderTasks();
+            showToast('✅ ' + t('action_success'), true);
+        } else {
+            showToast('❌ ' + (result.message || 'Không rõ lỗi'), false);
         }
+    } catch (error) {
+        console.error('Lỗi xóa platform:', error);
+        showToast('❌ ' + error.message, false);
+    }
+}
 
-        function deleteSuggestedTask(id) {
-            deleteTaskById(id, 'suggested');
-        }
-
-        function deleteConfirmedTask(id) {
-            deleteTaskById(id, 'confirmed');
-        }
+// ============ Đóng modal ============
+function closeDeleteTaskModal() {
+    document.getElementById('deleteTaskModal').classList.remove('active');
+}
 
         // ========================================================================
         //  FETCH TASKS FROM GAS & POLLING
