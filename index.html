@@ -4500,7 +4500,7 @@ async function performFullDelete(taskId, fromArray, skipConfirm = false) {
             }
             saveTasksToStorage();
             renderTasks();
-            showToast('✅ ' + t('action_success'), true);
+            showToast('' + t('action_success'), true);
         } else {
             showToast('❌ ' + (result.message || 'Không rõ lỗi'), false);
         }
@@ -4600,7 +4600,7 @@ async function performPlatformDelete(taskId, fromArray, platform) {
             }
             saveTasksToStorage();
             renderTasks();
-            showToast('✅ ' + t('action_success'), true);
+            showToast('' + t('action_success'), true);
         } else {
             showToast('❌ ' + (result.message || 'Không rõ lỗi'), false);
         }
