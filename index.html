@@ -4140,8 +4140,8 @@ function groupAndSortTasks(taskList, groupByType = 'client') {
                     const assignee = task.assignee || t('task_unassigned');
 
                     html += `
-                    <div class="task-item">
-                        <div class="task-header">
+                    <div class="task-item" data-id="${task.id}">
+    <div class="task-header">
                             <div class="task-title">${task.title}</div>
                             <div class="task-actions">
                                 <button class="edit-btn" onclick="openEditTaskModal('${task.id}')" title="${t('edit_tooltip')}"><i class="fa-regular fa-pen-to-square"></i></button>
@@ -4548,13 +4548,15 @@ showToast('' + t('action_success'), true);
     showDeleteTaskModal(taskId, fromArray, task, externalPlatforms, allPlatforms.length);
 }
 // ============ Thực hiện xóa toàn bộ (giữ logic cũ) ============
-async function performFullDelete(taskId, fromArray, skipConfirm = false) {
-    if (!skipConfirm && !confirm(t('delete_confirm_msg'))) return;
-    const deleteBtn = document.querySelector(
-            `.task-item .delete-btn[onclick*="deleteTaskById('${taskId}')"]`) ||
-        document.querySelector(`.task-item .delete-btn[onclick*="deleteSuggestedTask('${taskId}')"]`) ||
-        document.querySelector(`.task-item .delete-btn[onclick*="deleteConfirmedTask('${taskId}')"]`);
+async function performFullDelete(taskId, fromArray, deleteBtnFromModal = null) {
+    if (!confirm(t('delete_confirm_msg'))) return;
+
+    // Ưu tiên dùng nút từ modal, fallback query lại
+    const deleteBtn = deleteBtnFromModal || getTaskDeleteButton(taskId);
+    
+    let originalHTML = '';
     if (deleteBtn) {
+        originalHTML = deleteBtn.innerHTML;
         deleteBtn.disabled = true;
         deleteBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
         deleteBtn.classList.add('delete-loading');
@@ -4566,11 +4568,14 @@ async function performFullDelete(taskId, fromArray, skipConfirm = false) {
         formData.append('taskId', taskId);
         formData.append('userEmail', currentEmail);
 
-        const response = await fetch(APPS_SCRIPT_URL, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: formData.toString()
-        });
+        const response = await withMinDelay(
+            fetch(APPS_SCRIPT_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: formData.toString()
+            }),
+            500
+        );
         const result = await response.json();
 
         if (result.status === 200) {
@@ -4584,14 +4589,18 @@ async function performFullDelete(taskId, fromArray, skipConfirm = false) {
             showToast('' + t('action_success'), true);
         } else {
             showToast('❌ ' + (result.message || 'Không rõ lỗi'), false);
+            if (deleteBtn) {
+                deleteBtn.disabled = false;
+                deleteBtn.innerHTML = originalHTML;
+                deleteBtn.classList.remove('delete-loading');
+            }
         }
     } catch (error) {
         console.error('Lỗi xóa task:', error);
         showToast(t('delete_error') + error.message, false);
-    } finally {
         if (deleteBtn) {
             deleteBtn.disabled = false;
-            deleteBtn.innerHTML = '<i class="fa-regular fa-trash-can"></i>';
+            deleteBtn.innerHTML = originalHTML;
             deleteBtn.classList.remove('delete-loading');
         }
     }
@@ -4601,7 +4610,10 @@ async function performFullDelete(taskId, fromArray, skipConfirm = false) {
 function showDeleteTaskModal(taskId, fromArray, task, externalPlatforms, totalPlatforms) {
     const modal = document.getElementById('deleteTaskModal');
     const container = document.getElementById('deleteTaskOptions');
-    
+
+    // ⭐ Tìm nút delete NGAY BÂY GIỜ (trước khi modal đóng) để chắc chắn có element
+    const deleteBtn = getTaskDeleteButton(taskId);
+
     let html = `
         <div class="delete-task-option danger" data-action="all">
             <div class="opt-icon"><i class="fa-solid fa-trash"></i></div>
@@ -4613,13 +4625,13 @@ function showDeleteTaskModal(taskId, fromArray, task, externalPlatforms, totalPl
         </div>
     `;
 
-    // Hiện option cho từng external platform đã sync thật
     externalPlatforms.forEach(p => {
         html += `
             <div class="delete-task-option" data-action="one" data-platform="${p.platform}">
                 <div class="opt-icon"><i class="fa-solid fa-layer-group"></i></div>
                 <div class="opt-text">
                     <div class="opt-title">${t('delete_only_platform')} ${displayPlatform(p.platform)}</div>
+                    <div class="opt-sub">${t('keep_other_platforms')}</div>
                 </div>
                 <i class="fa-solid fa-chevron-right" style="color:var(--navy-light); font-size:12px;"></i>
             </div>
@@ -4635,9 +4647,9 @@ function showDeleteTaskModal(taskId, fromArray, task, externalPlatforms, totalPl
             closeDeleteTaskModal();
             
             if (action === 'all') {
-                await performFullDelete(taskId, fromArray);
+                await performFullDelete(taskId, fromArray, deleteBtn);      // ← pass deleteBtn
             } else if (action === 'one') {
-                await performPlatformDelete(taskId, fromArray, platform);
+                await performPlatformDelete(taskId, fromArray, platform, deleteBtn);  // ← pass deleteBtn
             }
         });
     });
@@ -4646,19 +4658,19 @@ function showDeleteTaskModal(taskId, fromArray, task, externalPlatforms, totalPl
 }
 // ============ Xóa 1 platform cụ thể ============
 async function performPlatformDelete(taskId, fromArray, platform) {
-    // Tìm nút delete của task để hiện spinner
-    const deleteBtn = document.querySelector(
-            `.task-item .delete-btn[onclick*="deleteTaskById('${taskId}')"]`) ||
-        document.querySelector(`.task-item .delete-btn[onclick*="deleteSuggestedTask('${taskId}')"]`) ||
-        document.querySelector(`.task-item .delete-btn[onclick*="deleteConfirmedTask('${taskId}')"]`);
-
-    // Lưu HTML gốc để restore
+async function performPlatformDelete(taskId, fromArray, platform, deleteBtnFromModal = null) {
+    // Ưu tiên dùng nút được truyền vào, fallback query lại
+    const deleteBtn = deleteBtnFromModal || getTaskDeleteButton(taskId);
+    
     let originalHTML = '';
     if (deleteBtn) {
         originalHTML = deleteBtn.innerHTML;
         deleteBtn.disabled = true;
         deleteBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
         deleteBtn.classList.add('delete-loading');
+        console.log(`🗑️ Spinner ON for task ${taskId}`);
+    } else {
+        console.warn(`⚠️ Không tìm thấy nút delete cho task ${taskId}`);
     }
 
     try {
@@ -4668,20 +4680,21 @@ async function performPlatformDelete(taskId, fromArray, platform) {
         formData.append('platform', platform);
         formData.append('userEmail', currentEmail);
 
-        const response = await fetch(APPS_SCRIPT_URL, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: formData.toString()
-        });
+        const response = await withMinDelay(
+            fetch(APPS_SCRIPT_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: formData.toString()
+            }),
+            500
+        );
         const result = await response.json();
 
         if (result.status === 200) {
-            // Update local state: xóa platform khỏi task
             const taskList = fromArray === 'suggested' ? tasks.suggested : tasks.confirmed;
             const task = taskList.find(t => t.id === taskId);
             if (task) {
                 task.platforms = (task.platforms || []).filter(p => p.platform !== platform);
-                // Nếu không còn platform nào → xóa task khỏi list
                 if (task.platforms.length === 0) {
                     if (fromArray === 'suggested') {
                         tasks.suggested = tasks.suggested.filter(t => t.id !== taskId);
@@ -4695,7 +4708,6 @@ async function performPlatformDelete(taskId, fromArray, platform) {
             showToast('' + t('action_success'), true);
         } else {
             showToast('❌ ' + (result.message || 'Không rõ lỗi'), false);
-            // Restore button khi lỗi
             if (deleteBtn) {
                 deleteBtn.disabled = false;
                 deleteBtn.innerHTML = originalHTML;
@@ -4705,7 +4717,6 @@ async function performPlatformDelete(taskId, fromArray, platform) {
     } catch (error) {
         console.error('Lỗi xóa platform:', error);
         showToast('❌ ' + error.message, false);
-        // Restore button khi lỗi
         if (deleteBtn) {
             deleteBtn.disabled = false;
             deleteBtn.innerHTML = originalHTML;
