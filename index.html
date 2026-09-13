@@ -1533,19 +1533,19 @@
                 max-width: none;
             }
         }
-                 /* ===== BOTTOM NAVIGATION — Floating Pill ===== */
+                /* ===== BOTTOM NAVIGATION — Floating Pill (icon-only) ===== */
         nav.bottom-nav {
             position: fixed !important;
             bottom: calc(20px + env(safe-area-inset-bottom, 0px)) !important;
             left: 50% !important;
             right: auto !important;
-            margin-left: -270px !important;
+            transform: translateX(-50%) translateY(0);
             display: none;
             flex-direction: row !important;
-            gap: 4px !important;
+            gap: 6px !important;
             padding: 8px !important;
             width: calc(100% - 24px) !important;
-            max-width: 540px !important;
+            max-width: 480px !important;
             background: rgba(255, 255, 255, 0.92) !important;
             backdrop-filter: blur(24px) saturate(180%) !important;
             -webkit-backdrop-filter: blur(24px) saturate(180%) !important;
@@ -1557,55 +1557,68 @@
                 inset 0 1px 0 rgba(255, 255, 255, 0.9),
                 inset 0 0 0 1px rgba(226, 232, 240, 0.6) !important;
             z-index: 90 !important;
-            transform: translateY(0);
-            opacity: 1;
+            overflow: visible !important;
             transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.3s ease;
+            will-change: transform, opacity;
         }
         nav.bottom-nav.visible {
             display: flex !important;
         }
         nav.bottom-nav.hidden-by-scroll {
-            transform: translateY(140%) !important;
+            transform: translateX(-50%) translateY(140%) !important;
             opacity: 0 !important;
             pointer-events: none !important;
+            animation: none !important;
         }
 
+        /* ===== NAV ITEM — Icon only ===== */
         nav.bottom-nav .nav-item {
             flex: 1 !important;
             background: none !important;
             border: none !important;
             cursor: pointer;
             display: flex !important;
-            flex-direction: column !important;
+            flex-direction: row !important;               /*  Chỉ icon, không stack */
             align-items: center !important;
             justify-content: center !important;
-            gap: 4px !important;
-            padding: 10px 6px 8px !important;
+            gap: 0 !important;
+            padding: 10px 6px !important;
             color: var(--muted) !important;
             font-family: inherit !important;
-            font-size: 11.5px !important;
-            font-weight: 600 !important;
             transition: color 0.2s ease, background 0.25s ease !important;
             position: relative !important;
             min-width: 0 !important;
+            height: 48px !important;                       /*  Chiều cao cố định */
             border-radius: 26px !important;
-            -webkit-tap-highlight-color: transparent;
+            outline: none !important;                      /*  Bỏ outline */
+            -webkit-tap-highlight-color: transparent !important; /*  Bỏ highlight tap trên mobile */
+            -webkit-touch-callout: none !important;
+            user-select: none !important;
+            appearance: none !important;
+            -webkit-appearance: none !important;
         }
+        /*  Bỏ focus/active outline hoàn toàn */
+        nav.bottom-nav .nav-item:focus,
+        nav.bottom-nav .nav-item:focus-visible,
+        nav.bottom-nav .nav-item:active {
+            outline: none !important;
+            outline-offset: 0 !important;
+            box-shadow: none !important;                   /* Reset, sẽ ghi đè ở .active */
+        }
+
         nav.bottom-nav .nav-item i {
             font-size: 20px !important;
             line-height: 1 !important;
             color: inherit !important;
             display: inline-block !important;
+            transition: transform 0.2s ease !important;
         }
-        nav.bottom-nav .nav-item span:not(.nav-badge) {
-            font-size: 11.5px !important;
-            line-height: 1.2 !important;
-            white-space: nowrap !important;
-            overflow: hidden !important;
-            text-overflow: ellipsis !important;
-            max-width: 100% !important;
-            color: inherit !important;
+        /*  Ẩn tất cả các label */
+        nav.bottom-nav .nav-item > span:not(.nav-badge) {
+            display: none !important;
         }
+
+        /* Active state */
         nav.bottom-nav .nav-item.active {
             background: linear-gradient(135deg, var(--navy-light) 0%, var(--navy) 100%) !important;
             color: #fff !important;
@@ -1613,98 +1626,105 @@
                 0 2px 8px rgba(27, 43, 122, 0.3),
                 inset 0 1px 0 rgba(255, 255, 255, 0.15) !important;
         }
-                /* ===== SCAN QR — Nút nổi bật ở giữa ===== */
+        nav.bottom-nav .nav-item.active:focus,
+        nav.bottom-nav .nav-item.active:focus-visible,
+        nav.bottom-nav .nav-item.active:active {
+            outline: none !important;
+            box-shadow:
+                0 2px 8px rgba(27, 43, 122, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.15) !important;
+        }
+        nav.bottom-nav .nav-item.active i {
+            transform: scale(1.08) !important;
+        }
+
+        /* Badge thông báo */
+        nav.bottom-nav .nav-badge {
+            position: absolute !important;
+            top: 4px !important;
+            right: calc(50% - 16px) !important;
+            background: var(--danger) !important;
+            color: #fff !important;
+            font-size: 10px !important;
+            font-weight: 700 !important;
+            border-radius: 20px !important;
+            padding: 1px 6px !important;
+            min-width: 18px !important;
+            text-align: center !important;
+            line-height: 1.4 !important;
+            box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.9) !important;
+        }
+        nav.bottom-nav .nav-badge.hidden {
+            display: none !important;
+        }
+
+        body.has-bottom-nav .app {
+            padding-bottom: calc(140px + env(safe-area-inset-bottom, 0px)) !important;
+        }
+                /* ===== SCAN QR — Nút nổi bật ở giữa (icon-only) ===== */
         nav.bottom-nav .nav-item.nav-scan {
             flex: 1 !important;
             background: none !important;
             border: none !important;
             cursor: pointer;
             display: flex !important;
-            flex-direction: column !important;
+            flex-direction: row !important;
             align-items: center !important;
-            justify-content: flex-end !important;
-            gap: 4px !important;
-            padding: 0 4px 8px !important;                  /* ⭐ Bỏ padding-top */
+            justify-content: center !important;
+            padding: 0 !important;
             color: var(--navy) !important;
-            font-family: inherit !important;
-            font-size: 11.5px !important;
-            font-weight: 700 !important;
             transition: transform 0.15s ease !important;
             position: relative !important;
             min-width: 0 !important;
-            -webkit-tap-highlight-color: transparent;
-            overflow: visible !important;                    /* ⭐ Cho phép nút trồi lên */
+            overflow: visible !important;
+            border-radius: 50% !important;
+            outline: none !important;
+            -webkit-tap-highlight-color: transparent !important;
+            appearance: none !important;
+            -webkit-appearance: none !important;
         }
+        nav.bottom-nav .nav-item.nav-scan:focus,
+        nav.bottom-nav .nav-item.nav-scan:focus-visible,
         nav.bottom-nav .nav-item.nav-scan:active {
-            transform: scale(0.96) !important;
+            outline: none !important;
+            box-shadow: none !important;
         }
-        /* Vòng tròn lớn nhô lên trên nav */
+        nav.bottom-nav .nav-item.nav-scan:active i {
+            transform: translateY(-4px) scale(0.96) !important;
+        }
+        /* Vòng tròn lớn nhô lên */
         nav.bottom-nav .nav-item.nav-scan i {
             display: flex !important;
             align-items: center !important;
             justify-content: center !important;
-            width: 62px !important;
-            height: 62px !important;
+            width: 60px !important;
+            height: 60px !important;
             font-size: 26px !important;
             color: #fff !important;
             background: linear-gradient(135deg, #2D3FA6 0%, #1B2B7A 55%, #131F5C 100%) !important;
             border-radius: 50% !important;
-            border: 4px solid #ffffff !important;           /* Viền trắng nổi bật */
+            border: 4px solid #ffffff !important;
             box-shadow:
                 0 4px 12px rgba(27, 43, 122, 0.35),
                 0 8px 24px rgba(27, 43, 122, 0.25),
                 0 12px 36px rgba(27, 43, 122, 0.15),
                 inset 0 1px 0 rgba(255, 255, 255, 0.25) !important;
-            margin-top: -26px !important;                    /* ⭐ Nhô lên khỏi nav */
-            margin-bottom: 6px !important;
+            margin-top: -26px !important;
             transform: translateY(-2px) !important;
             transition: transform 0.2s ease, box-shadow 0.2s ease !important;
             position: relative !important;
             z-index: 2 !important;
         }
-        /* Hiệu ứng nhấn nhẹ khi hover (desktop) */
         nav.bottom-nav .nav-item.nav-scan:hover i {
-            transform: translateY(-4px) scale(1.04) !important;
+            transform: translateY(-5px) scale(1.05) !important;
             box-shadow:
                 0 6px 16px rgba(27, 43, 122, 0.4),
                 0 12px 32px rgba(27, 43, 122, 0.3),
                 0 16px 48px rgba(27, 43, 122, 0.2),
                 inset 0 1px 0 rgba(255, 255, 255, 0.25) !important;
         }
-        /* Label "Quét QR" */
-        nav.bottom-nav .nav-item.nav-scan span:not(.nav-badge) {
-            font-size: 11px !important;
-            font-weight: 700 !important;
-            color: var(--navy) !important;
-            line-height: 1.1 !important;
-            margin-top: 0 !important;
-        }
-        /* Khi active — đổi màu nhẹ để phân biệt */
         nav.bottom-nav .nav-item.nav-scan.active i {
             background: linear-gradient(135deg, #3749B8 0%, #243086 55%, #1B2B7A 100%) !important;
-        }
-        nav.bottom-nav .nav-item.nav-scan.active span:not(.nav-badge) {
-            color: var(--navy) !important;
-        }
-                /* Pulse ring quanh nút QR */
-        nav.bottom-nav .nav-item.nav-scan::before {
-            content: '';
-            position: absolute;
-            top: calc(-26px - 4px);      /* Trên nút QR */
-            left: 50%;
-            transform: translateX(-50%);
-            width: 62px;
-            height: 62px;
-            border-radius: 50%;
-            background: rgba(45, 63, 166, 0.35);
-            z-index: 1;
-            pointer-events: none;
-            animation: scanPulse 2.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-        }
-        @keyframes scanPulse {
-            0%   { transform: translateX(-50%) scale(1);   opacity: 0.7; }
-            70%  { transform: translateX(-50%) scale(1.5); opacity: 0; }
-            100% { transform: translateX(-50%) scale(1.5); opacity: 0; }
         }
         /* ===== DELETE TASK MODAL ===== */
         .delete-task-modal .modal-box {
@@ -3287,7 +3307,11 @@
         // ========================================================================
         //  BOTTOM NAVIGATION
         // ========================================================================
-                        function switchBottomNav(page) {
+            function switchBottomNav(page) {
+            // Blur button vừa bấm để bỏ focus ring
+            if (document.activeElement && document.activeElement.blur) {
+                document.activeElement.blur();
+            }
             // Update active state
             document.querySelectorAll('.bottom-nav .nav-item').forEach(item => {
                 item.classList.toggle('active', item.dataset.page === page);
