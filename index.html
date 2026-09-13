@@ -4483,7 +4483,7 @@ tasks.suggested.splice(taskIndex, 1);
 tasks.confirmed.push(task);
 saveTasksToStorage();
 renderTasks();
-showToast('✅ ' + t('action_success'), true);
+showToast('' + t('action_success'), true);
             } catch (error) {
                 console.error('Confirm task error:', error);
                 if (confirmBtn) {
