@@ -4061,7 +4061,7 @@
                 });
                 const data = await res.json();
                 if (data.status === 200) {
-                    showToast('✅ ' + t('profile_saved'), true);
+                    showToast('' + t('profile_saved'), true);
                 } else {
                     showToast('❌ ' + (data.message || 'Error'), false);
                 }
