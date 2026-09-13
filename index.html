@@ -15,7 +15,7 @@
     <!-- FONTS & ICONS -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link rel="icon" type="image/png" href="./launchericon-192x192.png">
     <script src="https://cdn.tailwindcss.com"></script>
@@ -59,7 +59,7 @@
             padding: 0;
         }
         body {
-            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-family: 'Be Vietnam Pro', -apple-system, BlinkMacSystemFont, sans-serif;
             background: #E2E8F0;
             display: flex;
             justify-content: center;
@@ -1524,26 +1524,42 @@
         .delete-loading i {
             animation: spin 1s linear infinite;
         }
-                /* ===== BOTTOM NAVIGATION ===== */
+                        /* ===== BOTTOM NAVIGATION — Floating Pill ===== */
         .bottom-nav {
             position: fixed;
-            bottom: 0;
+            bottom: calc(16px + env(safe-area-inset-bottom, 0px));
             left: 50%;
             transform: translateX(-50%);
-            width: 100%;
-            max-width: 1200px;
-            background: #fff;
-            border-top: 1px solid var(--border);
             display: none;
-            justify-content: space-around;
-            align-items: flex-end;
-            padding: 8px 0 max(8px, env(safe-area-inset-bottom));
-            box-shadow: 0 -4px 20px rgba(15, 23, 42, 0.08);
+            gap: 2px;
+            padding: 6px;
+            width: calc(100% - 32px);
+            max-width: 460px;
+            background: rgba(255, 255, 255, 0.82);
+            backdrop-filter: blur(24px) saturate(180%);
+            -webkit-backdrop-filter: blur(24px) saturate(180%);
+            border-radius: 28px;
+            box-shadow:
+                0 1px 2px rgba(15, 23, 42, 0.04),
+                0 4px 12px rgba(15, 23, 42, 0.08),
+                0 12px 32px rgba(15, 23, 42, 0.12),
+                inset 0 1px 0 rgba(255, 255, 255, 0.9),
+                inset 0 0 0 1px rgba(226, 232, 240, 0.6);
             z-index: 90;
-            height: 68px;
+            animation: bottomNavIn 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
         }
         .bottom-nav.visible {
             display: flex;
+        }
+        @keyframes bottomNavIn {
+            from {
+                transform: translateX(-50%) translateY(100px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(-50%) translateY(0);
+                opacity: 1;
+            }
         }
 
         .nav-item {
@@ -1555,42 +1571,64 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            gap: 4px;
-            padding: 6px 4px;
+            gap: 3px;
+            padding: 8px 4px 6px;
             color: var(--muted);
             font-family: inherit;
             font-size: 10px;
             font-weight: 600;
-            transition: color 0.15s;
+            letter-spacing: 0.1px;
+            transition: color 0.2s ease, background 0.25s ease, transform 0.15s ease;
             position: relative;
             min-width: 0;
+            border-radius: 22px;
             -webkit-tap-highlight-color: transparent;
         }
         .nav-item i {
-            font-size: 20px;
+            font-size: 17px;
             line-height: 1;
-            transition: transform 0.2s, color 0.15s;
+            transition: transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1), color 0.2s;
         }
         .nav-item span:not(.nav-badge) {
             font-size: 10px;
-            letter-spacing: 0.1px;
-            line-height: 1.2;
+            line-height: 1.15;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 100%;
         }
-        .nav-item:active i {
-            transform: scale(0.9);
+        .nav-item:active {
+            transform: scale(0.95);
         }
+
+        /* Active state — nền navy bo tròn */
         .nav-item.active {
-            color: var(--navy);
+            background: linear-gradient(135deg, var(--navy-light) 0%, var(--navy) 100%);
+            color: #fff;
+            box-shadow:
+                0 2px 8px rgba(27, 43, 122, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.15);
         }
         .nav-item.active i {
-            transform: translateY(-1px);
+            transform: translateY(-1px) scale(1.05);
+        }
+
+        /* Scan item — nhấn mạnh bằng màu navy khi không active */
+        .nav-item.nav-scan {
+            color: var(--navy);
+        }
+        .nav-item.nav-scan i {
+            font-size: 19px;
+        }
+        .nav-item.nav-scan.active {
+            color: #fff;
         }
 
         /* Badge thông báo */
         .nav-badge {
             position: absolute;
-            top: 2px;
-            right: calc(50% - 20px);
+            top: 4px;
+            right: calc(50% - 16px);
             background: var(--danger);
             color: #fff;
             font-size: 9px;
@@ -1600,46 +1638,34 @@
             min-width: 16px;
             text-align: center;
             line-height: 1.4;
+            box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.9);
         }
-
-        /* Nút QR ở giữa — NỔI BẬT */
-        .nav-item.nav-center {
-            position: relative;
-            color: var(--navy);
-            padding-top: 0;
-        }
-        .nav-item.nav-center i {
+        .nav-badge.hidden {
             display: none;
         }
-        .nav-item.nav-center .nav-center-btn {
-            width: 56px;
-            height: 56px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, var(--navy-light), var(--navy));
-            color: #fff;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 22px;
-            box-shadow: 0 6px 20px rgba(27, 43, 122, 0.4);
-            margin-top: -26px;
-            margin-bottom: 2px;
-            border: 4px solid #fff;
-            transition: transform 0.2s, box-shadow 0.2s;
-        }
-        .nav-item.nav-center:active .nav-center-btn {
-            transform: scale(0.92);
-            box-shadow: 0 3px 10px rgba(27, 43, 122, 0.3);
-        }
-        .nav-item.nav-center span {
-            font-size: 10px;
-            color: var(--navy);
-            font-weight: 700;
+
+        /* Đảm bảo nội dung không bị che bởi nav */
+        body.has-bottom-nav .app {
+            padding-bottom: calc(120px + env(safe-area-inset-bottom, 0px));
         }
 
-        /* Đảm bảo nội dung không bị che */
-        body.has-bottom-nav .app {
-            padding-bottom: calc(88px + env(safe-area-inset-bottom, 0px));
+        /* Responsive — mobile nhỏ hơn */
+        @media (max-width: 380px) {
+            .bottom-nav {
+                width: calc(100% - 24px);
+                bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+                padding: 5px;
+            }
+            .nav-item {
+                font-size: 9px;
+                padding: 7px 2px 5px;
+            }
+            .nav-item i {
+                font-size: 16px;
+            }
+            .nav-item span:not(.nav-badge) {
+                font-size: 9px;
+            }
         }
         /* ===== DELETE TASK MODAL ===== */
         .delete-task-modal .modal-box {
@@ -2571,14 +2597,12 @@
                 <i class="fa-solid fa-house"></i>
                 <span>Trang chủ</span>
             </button>
-            <button class="nav-item" data-page="news" onclick="switchBottomNav('news')">
-                <i class="fa-regular fa-newspaper"></i>
-                <span>Tin tức</span>
+            <button class="nav-item" data-page="gift" onclick="switchBottomNav('gift')">
+                <i class="fa-solid fa-gift"></i>
+                <span>Quà</span>
             </button>
-            <button class="nav-item nav-center" data-page="scan" onclick="switchBottomNav('scan')">
-                <div class="nav-center-btn">
-                    <i class="fa-solid fa-qrcode"></i>
-                </div>
+            <button class="nav-item nav-scan" data-page="scan" onclick="switchBottomNav('scan')">
+                <i class="fa-solid fa-qrcode"></i>
                 <span>Quét QR</span>
             </button>
             <button class="nav-item" data-page="notifications" onclick="switchBottomNav('notifications')">
@@ -3208,25 +3232,22 @@
                 // ========================================================================
         //  BOTTOM NAVIGATION
         // ========================================================================
-        function switchBottomNav(page) {
+                function switchBottomNav(page) {
             // Update active state
             document.querySelectorAll('.bottom-nav .nav-item').forEach(item => {
                 item.classList.toggle('active', item.dataset.page === page);
             });
 
-            // Handle từng page
             switch (page) {
                 case 'home':
-                    // Scroll lên đầu trang
                     window.scrollTo({ top: 0, behavior: 'smooth' });
                     break;
 
-                case 'news':
-                    showToast('📰 Tính năng Tin tức sắp ra mắt', false);
+                case 'gift':
+                    showToast('🎁 Tính năng Quà sắp ra mắt', false);
                     break;
 
                 case 'scan':
-                    // Mở QR check-in (tái sử dụng hàm có sẵn)
                     if (typeof qrCheckinBtn !== 'undefined' && qrCheckinBtn) {
                         qrCheckinBtn.click();
                     } else {
@@ -3239,7 +3260,6 @@
                     break;
 
                 case 'me':
-                    // Mở menu user (avatar dropdown hoặc modal)
                     showUserMenu();
                     break;
             }
@@ -5324,7 +5344,7 @@ function deleteConfirmedTask(id, btn) {
                 transform: translateX(-50%) translateY(20px);
                 background-color: ${isSuccess ? 'rgba(27,43,122,0.95)' : 'rgba(239,68,68,0.95)'};
                 color: white; padding: 12px 24px; border-radius: 60px;
-                font-size: 14px; font-weight: 600; font-family: 'Plus Jakarta Sans', sans-serif;
+                font-size: 14px; font-weight: 600; font-family: 'Be Vietnam Pro', sans-serif;
                 box-shadow: 0 8px 20px rgba(0,0,0,0.15); z-index: 100000;
                 display: flex; align-items: center; gap: 10px;
                 backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,0.2);
