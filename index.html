@@ -3048,6 +3048,7 @@
                     'undefined_package');
                     document.getElementById('expiry-display').textContent = result.enterprise.expiryDate || t(
                         'undefined_expiry');
+                    await loadUserSettingsFromServer();
                 } else {
                     errorMsg.textContent = t('err_invalid');
                     errorMsg.classList.remove('hidden');
@@ -3133,6 +3134,7 @@
                         'undefined_package');
                     document.getElementById('expiry-display').textContent = result.enterprise.expiryDate || t(
                         'undefined_expiry');
+                    await loadUserSettingsFromServer();
                     saveAuthInfo(result);
                     return true;
                 } else {
@@ -3819,12 +3821,79 @@ function getDateTimeValue(dueISO) {
     if (h === '24') h = '00';
     return `${y}-${mo}-${d}T${h}:${mi}`;
 }
-        function saveDisplaySettings() {
+                async function saveDisplaySettings() {
+            // 1. Lưu localStorage (cache tức thì)
             localStorage.setItem('popminutes_date_format', dateFormat);
             localStorage.setItem('popminutes_timezone', timezone);
             renderTasks();
-        }
 
+            // 2. ⭐ Đồng bộ lên Firestore (async, không block UI)
+            if (!currentEmail) return;
+            try {
+                const formData = new URLSearchParams();
+                formData.append('action', 'saveUserSettings');
+                formData.append('email', currentEmail);
+                formData.append('dateFormat', dateFormat);
+                formData.append('timezone', timezone);
+
+                const res = await fetch(CLOUD_FUNCTION_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: formData.toString()
+                });
+                const data = await res.json();
+                if (data.status === 200) {
+                    console.log(`✅ Settings synced to Firestore`);
+                } else {
+                    console.warn('Sync settings failed:', data.message);
+                }
+            } catch (e) {
+                console.warn('Sync settings error:', e);
+            }
+        }
+        // ============ Load settings từ Firestore ============
+async function loadUserSettingsFromServer() {
+    if (!currentEmail) return;
+    try {
+        const url = `${CLOUD_FUNCTION_URL}?action=getUserSettings&email=${encodeURIComponent(currentEmail)}`;
+        const res = await fetch(url);
+        const data = await res.json();
+        
+        if (data.status === 200 && data.settings) {
+            const s = data.settings;
+            if (s.dateFormat) {
+                dateFormat = s.dateFormat;
+                localStorage.setItem('popminutes_date_format', dateFormat);
+            }
+            if (s.timezone) {
+                timezone = s.timezone;
+                localStorage.setItem('popminutes_timezone', timezone);
+            }
+            // Apply vào UI
+            applySettingsUI();
+            renderTasks();
+            console.log(`✅ Loaded settings from Firestore:`, s);
+        } else {
+            // Lần đầu login, chưa có settings trên server
+            // → Đẩy settings hiện tại từ localStorage lên server
+            console.log('ℹ️ No remote settings found, pushing local to server...');
+            if (currentEmail) {
+                const formData = new URLSearchParams();
+                formData.append('action', 'saveUserSettings');
+                formData.append('email', currentEmail);
+                formData.append('dateFormat', dateFormat);
+                formData.append('timezone', timezone);
+                fetch(CLOUD_FUNCTION_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: formData.toString()
+                }).catch(e => console.warn('Initial push failed:', e));
+            }
+        }
+    } catch (e) {
+        console.warn('Load settings error:', e);
+    }
+}
         function applySettingsUI() {
             document.getElementById('dateFormatSelect').value = dateFormat;
             document.getElementById('timezoneSelect').value = timezone;
