@@ -5025,15 +5025,24 @@ function deleteConfirmedTask(id, btn) {
         const formatModal = document.getElementById('formatModal');
         const closeFormatBtn = document.getElementById('closeFormatBtn');
 
-        function openFormatModal() {
-            if (!currentEmail) {
-                alert(t('toast_login_required'));
-                return;
-            }
-            applySettingsUI();
-            formatModal.classList.add('active');
-        }
+        async function openFormatModal() {
+    if (!currentEmail) {
+        alert(t('toast_login_required'));
+        return;
+    }
 
+    // Mở modal ngay với giá trị hiện tại (từ localStorage)
+    applySettingsUI();
+    formatModal.classList.add('active');
+
+    // Rồi fetch update ngầm
+    try {
+        await loadUserSettingsFromServer();
+        // applySettingsUI() đã được gọi bên trong loadUserSettingsFromServer
+    } catch (e) {
+        console.warn('Load settings error:', e);
+    }
+}
         function closeFormatModal() {
             formatModal.classList.remove('active');
         }
