@@ -4358,6 +4358,7 @@ function groupAndSortTasks(taskList, groupByType = 'client') {
                 const formData = new URLSearchParams();
                 formData.append('action', 'deleteTask');
                 formData.append('taskId', taskId);
+                formData.append('userEmail', currentEmail);
 
                 const response = await fetch(APPS_SCRIPT_URL, {
                     method: 'POST',
