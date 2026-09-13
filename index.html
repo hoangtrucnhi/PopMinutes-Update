@@ -4724,12 +4724,25 @@ async function performPlatformDelete(taskId, fromArray, platform, deleteBtnFromM
     }
 }
 
-// ============ Helper: tìm nút delete theo taskId ============
+// ============ Helper: tìm nút delete theo taskId (robust) ============
 function getTaskDeleteButton(taskId) {
-    return document.querySelector(`.task-item[data-id="${taskId}"] .delete-btn`) ||
-           document.querySelector(`.task-item .delete-btn[onclick*="deleteTaskById('${taskId}')"]`) ||
-           document.querySelector(`.task-item .delete-btn[onclick*="deleteSuggestedTask('${taskId}')"]`) ||
-           document.querySelector(`.task-item .delete-btn[onclick*="deleteConfirmedTask('${taskId}')"]`);
+    // Ưu tiên data-id
+    const byDataId = document.querySelector(`.task-item[data-id="${taskId}"] .delete-btn`);
+    if (byDataId) return byDataId;
+
+    // Fallback: iterate tất cả nút delete, check onclick chứa taskId
+    const buttons = document.querySelectorAll('.task-item .delete-btn');
+    console.log(`🔍 Đang tìm nút delete cho taskId="${taskId}", có ${buttons.length} nút`);
+    for (const btn of buttons) {
+        const onclick = btn.getAttribute('onclick') || '';
+        // Match chính xác taskId trong dấu nháy đơn
+        if (onclick.includes(`'${taskId}'`)) {
+            console.log(`✅ Tìm thấy nút qua onclick: ${onclick}`);
+            return btn;
+        }
+    }
+    console.warn(`⚠️ Không tìm thấy nút delete cho taskId="${taskId}"`);
+    return null;
 }
 
 // ============ Helper: chạy song song với min delay ============
