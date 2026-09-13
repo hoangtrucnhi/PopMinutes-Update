@@ -1599,12 +1599,14 @@
         }
 
                 /* ===== NAV ITEM — Icon only, không bị nén ===== */
-                nav.bottom-nav .nav-item {
+                    nav.bottom-nav .nav-item {
             flex: 0 0 auto !important;
             width: 48px !important;
             height: 48px !important;
-            background: none !important;
-            border: 1.5px solid transparent !important;    /*Placeholder cho active border */
+            background: transparent !important;            /* ⭐ Trong suốt */
+            border: 0 !important;                          /* ⭐ KHÔNG viền */
+            outline: 0 !important;
+            box-shadow: none !important;                   /* ⭐ KHÔNG shadow */
             cursor: pointer;
             display: flex !important;
             align-items: center !important;
@@ -1612,21 +1614,23 @@
             padding: 0 !important;
             color: var(--muted) !important;
             font-family: inherit !important;
-            transition: color 0.2s ease, background 0.25s ease, border-color 0.25s ease, transform 0.15s ease !important;
+            transition: color 0.2s ease, transform 0.15s ease !important;
             position: relative !important;
-            border-radius: 50% !important;
-            outline: none !important;
+            border-radius: 0 !important;
             -webkit-tap-highlight-color: transparent !important;
             -webkit-touch-callout: none !important;
             user-select: none !important;
             appearance: none !important;
             -webkit-appearance: none !important;
         }
-        }
+        /* Reset tất cả trạng thái focus/active */
         nav.bottom-nav .nav-item:focus,
         nav.bottom-nav .nav-item:focus-visible,
-        nav.bottom-nav .nav-item:active {
-            outline: none !important;
+        nav.bottom-nav .nav-item:active,
+        nav.bottom-nav .nav-item:hover {
+            background: transparent !important;
+            border: 0 !important;
+            outline: 0 !important;
             box-shadow: none !important;
         }
 
@@ -1647,23 +1651,26 @@
             display: none !important;
         }
 
-                /* Active state — viền navy, nền trong suốt (outline style) */
+                /* Active state — CHỈ đổi màu icon, không viền, không nền */
         nav.bottom-nav .nav-item.active {
-            background: transparent !important;                /*Nền trong suốt */
-            color: var(--navy) !important;                     /*Icon navy */
-            border: 1.5px solid var(--navy) !important;        /*Viền navy */
-            box-shadow:
-                inset 0 0 0 1px rgba(27, 43, 122, 0.05) !important;   /* Inner glow nhẹ */
+            background: transparent !important;
+            border: 0 !important;
+            outline: 0 !important;
+            box-shadow: none !important;
+            color: var(--navy) !important;
         }
         nav.bottom-nav .nav-item.active:focus,
         nav.bottom-nav .nav-item.active:focus-visible,
-        nav.bottom-nav .nav-item.active:active {
-            outline: none !important;
-            box-shadow:
-                inset 0 0 0 1px rgba(27, 43, 122, 0.05) !important;
+        nav.bottom-nav .nav-item.active:active,
+        nav.bottom-nav .nav-item.active:hover {
+            background: transparent !important;
+            border: 0 !important;
+            outline: 0 !important;
+            box-shadow: none !important;
         }
         nav.bottom-nav .nav-item.active i {
-            transform: scale(1.08) !important;
+            transform: scale(1.12) !important;
+            color: var(--navy) !important;
         }
         /* Badge thông báo */
         nav.bottom-nav .nav-badge {
@@ -3141,12 +3148,12 @@
                 <span data-i18n="nav_scan">Quét QR</span>
             </button>
             <button class="nav-item" data-page="notifications" onclick="switchBottomNav('notifications')">
-                <i class="fa-regular fa-bell"></i>
+                <i class="fa-solid fa-bell"></i>
                 <span data-i18n="nav_notifications">Thông báo</span>
                 <span class="nav-badge hidden" id="navNotifBadge">0</span>
             </button>
             <button class="nav-item" data-page="me" onclick="switchBottomNav('me')">
-                <i class="fa-regular fa-user"></i>
+                <i class="fa-solid fa-user"></i>
                 <span data-i18n="nav_me">Tôi</span>
             </button>
         </nav>
