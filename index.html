@@ -3408,15 +3408,21 @@
 
         async function loadConnectionStatus() {
     try {
-        // Load từ backend thay vì localStorage
         if (currentEmail) {
+            // Trello status
             const url = `${CLOUD_FUNCTION_URL}?action=trelloStatus&email=${encodeURIComponent(currentEmail)}`;
             const res = await fetch(url);
             const data = await res.json();
             connections.trello = (data.status === 200 && data.connected);
+
+            // Google status
+            const gUrl = `${CLOUD_FUNCTION_URL}?action=googleStatus&email=${encodeURIComponent(currentEmail)}`;
+            const gRes = await fetch(gUrl);
+            const gData = await gRes.json();
+            connections.google = (gData.status === 200 && gData.connected);
+        } else {
+            connections.google = false;
         }
-        // Google vẫn để false (chưa làm)
-        connections.google = false;
     } catch (e) {
         console.error('loadConnectionStatus error:', e);
         connections = { google: false, trello: false };
@@ -3452,8 +3458,30 @@
         }
 
 async function connectPlatform(platform) {
-    if (platform === 'google') {
-        showToast('Google integration chưa được triển khai', false);
+        if (platform === 'google') {
+        try {
+            const url = `${CLOUD_FUNCTION_URL}?action=googleOAuthStart&email=${encodeURIComponent(currentEmail)}`;
+            const res = await fetch(url);
+            const data = await res.json();
+            if (data.status === 200 && data.authorizeUrl) {
+                const w = 600, h = 700;
+                const left = (screen.width - w) / 2;
+                const top = (screen.height - h) / 2;
+                const popup = window.open(data.authorizeUrl, 'GoogleAuth', `width=${w},height=${h},left=${left},top=${top}`);
+                // Polling check popup đóng → refresh status
+                const checkInterval = setInterval(async () => {
+                    if (popup && popup.closed) {
+                        clearInterval(checkInterval);
+                        await loadConnectionStatus();
+                    }
+                }, 1500);
+            } else {
+                showToast('Lỗi khởi tạo kết nối Google: ' + (data.message || 'Không rõ'), false);
+            }
+        } catch (err) {
+            console.error(err);
+            showToast('Lỗi kết nối: ' + err.message, false);
+        }
         return;
     }
     if (platform === 'trello') {
@@ -3485,10 +3513,21 @@ const checkInterval = setInterval(async () => {
 }
 
 async function disconnectPlatform(platform) {
-    if (platform === 'google') {
-        connections.google = false;
-        updateSettingsUI();
-        showToast('Đã ngắt kết nối google', false);
+        if (platform === 'google') {
+        try {
+            const url = `${CLOUD_FUNCTION_URL}?action=googleDisconnect&email=${encodeURIComponent(currentEmail)}`;
+            const res = await fetch(url);
+            const data = await res.json();
+            if (data.status === 200) {
+                connections.google = false;
+                updateSettingsUI();
+                showToast('Đã ngắt kết nối Google', false);
+            } else {
+                showToast('Lỗi ngắt kết nối: ' + (data.message || 'Không rõ'), false);
+            }
+        } catch (err) {
+            showToast('Lỗi: ' + err.message, false);
+        }
         return;
     }
     if (platform === 'trello') {
@@ -4945,6 +4984,18 @@ window.addEventListener('message', async function(event) {
         await refreshTrelloStatus();
     } else {
         showToast('Kết nối Trello thất bại: ' + (event.data.reason || 'Không rõ'), false);
+    }
+});
+        // ========================================================================
+//  LẮNG NGHE MESSAGE TỪ POPUP GOOGLE
+// ========================================================================
+window.addEventListener('message', async function(event) {
+    if (!event.data || event.data.type !== 'google_connect') return;
+    if (event.data.status === 'success') {
+        showToast('Kết nối Google thành công!', true);
+        await loadConnectionStatus();
+    } else {
+        showToast('Kết nối Google thất bại: ' + (event.data.reason || 'Không rõ'), false);
     }
 });
     </script>
