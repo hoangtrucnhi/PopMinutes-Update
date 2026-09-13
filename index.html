@@ -1534,57 +1534,125 @@
             }
         }
                  /* ===== BOTTOM NAVIGATION — Floating Pill ===== */
-        .bottom-nav {
-            position: fixed;
-            bottom: calc(20px + env(safe-area-inset-bottom, 0px));
-            left: 50%;
-            margin-left: -270px;                    /* Căn giữa bằng margin */
+        nav.bottom-nav {
+            position: fixed !important;
+            bottom: calc(20px + env(safe-area-inset-bottom, 0px)) !important;
+            left: 50% !important;
+            right: auto !important;
+            margin-left: -270px !important;
             display: none;
-            gap: 4px;
-            padding: 8px;
-            width: calc(100% - 24px);
-            max-width: 540px;
-            background: rgba(255, 255, 255, 0.86);
-            backdrop-filter: blur(24px) saturate(180%);
-            -webkit-backdrop-filter: blur(24px) saturate(180%);
-            border-radius: 32px;
+            flex-direction: row !important;
+            gap: 4px !important;
+            padding: 8px !important;
+            width: calc(100% - 24px) !important;
+            max-width: 540px !important;
+            background: rgba(255, 255, 255, 0.92) !important;
+            backdrop-filter: blur(24px) saturate(180%) !important;
+            -webkit-backdrop-filter: blur(24px) saturate(180%) !important;
+            border-radius: 32px !important;
             box-shadow:
                 0 1px 2px rgba(15, 23, 42, 0.04),
                 0 4px 12px rgba(15, 23, 42, 0.08),
                 0 12px 32px rgba(15, 23, 42, 0.12),
                 inset 0 1px 0 rgba(255, 255, 255, 0.9),
-                inset 0 0 0 1px rgba(226, 232, 240, 0.6);
-            z-index: 90;
-            /* Chỉ dùng transform cho ẩn/hiện, KHÔNG dùng để căn giữa */
+                inset 0 0 0 1px rgba(226, 232, 240, 0.6) !important;
+            z-index: 90 !important;
             transform: translateY(0);
             opacity: 1;
             transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.3s ease;
-            will-change: transform, opacity;
         }
-        /* Ở màn hình nhỏ hơn 540px + 24px margin */
+        nav.bottom-nav.visible {
+            display: flex !important;
+        }
+        nav.bottom-nav.hidden-by-scroll {
+            transform: translateY(140%) !important;
+            opacity: 0 !important;
+            pointer-events: none !important;
+        }
+
+        nav.bottom-nav .nav-item {
+            flex: 1 !important;
+            background: none !important;
+            border: none !important;
+            cursor: pointer;
+            display: flex !important;
+            flex-direction: column !important;
+            align-items: center !important;
+            justify-content: center !important;
+            gap: 4px !important;
+            padding: 10px 6px 8px !important;
+            color: var(--muted) !important;
+            font-family: inherit !important;
+            font-size: 11.5px !important;
+            font-weight: 600 !important;
+            transition: color 0.2s ease, background 0.25s ease !important;
+            position: relative !important;
+            min-width: 0 !important;
+            border-radius: 26px !important;
+            -webkit-tap-highlight-color: transparent;
+        }
+        nav.bottom-nav .nav-item i {
+            font-size: 20px !important;
+            line-height: 1 !important;
+            color: inherit !important;
+            display: inline-block !important;
+        }
+        nav.bottom-nav .nav-item span:not(.nav-badge) {
+            font-size: 11.5px !important;
+            line-height: 1.2 !important;
+            white-space: nowrap !important;
+            overflow: hidden !important;
+            text-overflow: ellipsis !important;
+            max-width: 100% !important;
+            color: inherit !important;
+        }
+        nav.bottom-nav .nav-item.active {
+            background: linear-gradient(135deg, var(--navy-light) 0%, var(--navy) 100%) !important;
+            color: #fff !important;
+            box-shadow:
+                0 2px 8px rgba(27, 43, 122, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.15) !important;
+        }
+        nav.bottom-nav .nav-item.nav-scan {
+            color: var(--navy) !important;
+        }
+        nav.bottom-nav .nav-item.nav-scan i {
+            font-size: 22px !important;
+        }
+        nav.bottom-nav .nav-item.nav-scan.active {
+            color: #fff !important;
+        }
+        nav.bottom-nav .nav-badge {
+            position: absolute !important;
+            top: 5px !important;
+            right: calc(50% - 18px) !important;
+            background: var(--danger) !important;
+            color: #fff !important;
+            font-size: 10px !important;
+            font-weight: 700 !important;
+            border-radius: 20px !important;
+            padding: 1px 6px !important;
+            min-width: 18px !important;
+            text-align: center !important;
+            line-height: 1.4 !important;
+            box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.9) !important;
+        }
+        nav.bottom-nav .nav-badge.hidden {
+            display: none !important;
+        }
+
+        body.has-bottom-nav .app {
+            padding-bottom: calc(140px + env(safe-area-inset-bottom, 0px)) !important;
+        }
+
         @media (max-width: 600px) {
-            .bottom-nav {
-                left: 12px;
-                right: 12px;
-                margin-left: 0;
-                width: auto;
-                max-width: none;
+            nav.bottom-nav {
+                left: 12px !important;
+                right: 12px !important;
+                margin-left: 0 !important;
+                width: auto !important;
+                max-width: none !important;
             }
-        }
-        .bottom-nav.visible {
-            display: flex;
-            animation: bottomNavIn 0.45s cubic-bezier(0.2, 0.8, 0.2, 1);
-        }
-        @keyframes bottomNavIn {
-            from { transform: translateY(120%); opacity: 0; }
-            to   { transform: translateY(0);    opacity: 1; }
-        }
-        /* Hide khi scroll — CHỈ translateY */
-        .bottom-nav.hidden-by-scroll {
-            transform: translateY(140%);            /* Không còn translateX */
-            opacity: 0;
-            pointer-events: none;
-            animation: none;                        /* Chặn animation ghi đè */
         }
         /* ===== DELETE TASK MODAL ===== */
         .delete-task-modal .modal-box {
