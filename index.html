@@ -4133,7 +4133,8 @@ function groupAndSortTasks(taskList, groupByType = 'client') {
                             title: task.title,
                             description: task.description || '',
                             due: task.due || '',
-                            clientName: task.clientName || ''
+                            clientName: task.clientName || '',
+                            timezone: timezone || 'Asia/Ho_Chi_Minh'
                         }
                     })
                 });
@@ -4281,7 +4282,8 @@ function groupAndSortTasks(taskList, groupByType = 'client') {
                                 userEmail: currentEmail,
                                 task: {
                                     ...task,
-                                    platform: platformObj.platform
+                                    platform: platformObj.platform,
+                                    timezone: timezone || 'Asia/Ho_Chi_Minh'
                                 }
                             })
                         });
