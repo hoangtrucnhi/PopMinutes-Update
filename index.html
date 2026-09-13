@@ -2538,7 +2538,7 @@
                 history_empty: 'Chưa có bản ghi nào.',
                 history_loading: 'Đang tải...',
                 expedite_btn: 'Xử lý gấp',
-                toast_upload_success: '✅ Tải lên thành công! AI đang xử lý transcript.',
+                toast_upload_success: 'Tải lên thành công! AI đang xử lý transcript.',
                 toast_expedite_sent: 'Đã gửi yêu cầu xử lý gấp!',
                 toast_expedite_fail: '⚠️ Không thể gửi yêu cầu',
                 toast_network_error: '❌ Lỗi kết nối: ',
@@ -2709,7 +2709,7 @@
                 history_empty: 'No records yet.',
                 history_loading: 'Loading...',
                 expedite_btn: 'Expedite',
-                toast_upload_success: '✅ Upload successful! AI is processing transcript.',
+                toast_upload_success: 'Upload successful! AI is processing transcript.',
                 toast_expedite_sent: 'Expedite request sent!',
                 toast_expedite_fail: '⚠️ Failed to send request',
                 toast_network_error: '❌ Connection error: ',
@@ -3483,14 +3483,20 @@
                     })
                 }).catch(err => console.error('processFullAudio background error:', err));
 
-                recordStatusDiv.innerHTML =
-                `<div style="color:#065F46; font-weight:600;">${t('toast_upload_success')}</div>`;
+                                // Xóa status inline cũ
+                recordStatusDiv.innerHTML = '';
                 uploadBtn.disabled = false;
 
+                // Đóng modal ngay (force close, skip confirm dialog)
+                closeModal(true);
+
+                // Hiện toast chuẩn giống các action khác
+                showToast(t('toast_upload_success'), true);
+
+                // Bắt đầu polling để lấy task mới sau khi AI xử lý xong
                 setTimeout(() => {
-                    closeModal();
                     startTaskPolling();
-                }, 2000);
+                }, 1500);
 
             } catch (err) {
                 console.error('Upload error:', err);
