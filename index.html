@@ -4657,7 +4657,6 @@ function showDeleteTaskModal(taskId, fromArray, task, externalPlatforms, totalPl
     modal.classList.add('active');
 }
 // ============ Xóa 1 platform cụ thể ============
-async function performPlatformDelete(taskId, fromArray, platform) {
 async function performPlatformDelete(taskId, fromArray, platform, deleteBtnFromModal = null) {
     // Ưu tiên dùng nút được truyền vào, fallback query lại
     const deleteBtn = deleteBtnFromModal || getTaskDeleteButton(taskId);
@@ -4723,6 +4722,22 @@ async function performPlatformDelete(taskId, fromArray, platform, deleteBtnFromM
             deleteBtn.classList.remove('delete-loading');
         }
     }
+}
+
+// ============ Helper: tìm nút delete theo taskId ============
+function getTaskDeleteButton(taskId) {
+    return document.querySelector(`.task-item[data-id="${taskId}"] .delete-btn`) ||
+           document.querySelector(`.task-item .delete-btn[onclick*="deleteTaskById('${taskId}')"]`) ||
+           document.querySelector(`.task-item .delete-btn[onclick*="deleteSuggestedTask('${taskId}')"]`) ||
+           document.querySelector(`.task-item .delete-btn[onclick*="deleteConfirmedTask('${taskId}')"]`);
+}
+
+// ============ Helper: chạy song song với min delay ============
+function withMinDelay(promise, ms = 500) {
+    return Promise.all([
+        promise,
+        new Promise(resolve => setTimeout(resolve, ms))
+    ]).then(([result]) => result);
 }
 
 // ============ Đóng modal ============
