@@ -4620,7 +4620,7 @@ async function performPlatformDelete(taskId, fromArray, platform) {
             }
             saveTasksToStorage();
             renderTasks();
-            showToast('✅ ' + t('action_success'), true);
+            showToast('' + t('action_success'), true);
         } else {
             showToast('❌ ' + (result.message || 'Không rõ lỗi'), false);
             // Restore button khi lỗi
