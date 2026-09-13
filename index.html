@@ -1524,7 +1524,124 @@
         .delete-loading i {
             animation: spin 1s linear infinite;
         }
-                /* ===== DELETE TASK MODAL ===== */
+                /* ===== BOTTOM NAVIGATION ===== */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100%;
+            max-width: 1200px;
+            background: #fff;
+            border-top: 1px solid var(--border);
+            display: none;
+            justify-content: space-around;
+            align-items: flex-end;
+            padding: 8px 0 max(8px, env(safe-area-inset-bottom));
+            box-shadow: 0 -4px 20px rgba(15, 23, 42, 0.08);
+            z-index: 90;
+            height: 68px;
+        }
+        .bottom-nav.visible {
+            display: flex;
+        }
+
+        .nav-item {
+            flex: 1;
+            background: none;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            padding: 6px 4px;
+            color: var(--muted);
+            font-family: inherit;
+            font-size: 10px;
+            font-weight: 600;
+            transition: color 0.15s;
+            position: relative;
+            min-width: 0;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .nav-item i {
+            font-size: 20px;
+            line-height: 1;
+            transition: transform 0.2s, color 0.15s;
+        }
+        .nav-item span:not(.nav-badge) {
+            font-size: 10px;
+            letter-spacing: 0.1px;
+            line-height: 1.2;
+        }
+        .nav-item:active i {
+            transform: scale(0.9);
+        }
+        .nav-item.active {
+            color: var(--navy);
+        }
+        .nav-item.active i {
+            transform: translateY(-1px);
+        }
+
+        /* Badge thông báo */
+        .nav-badge {
+            position: absolute;
+            top: 2px;
+            right: calc(50% - 20px);
+            background: var(--danger);
+            color: #fff;
+            font-size: 9px;
+            font-weight: 700;
+            border-radius: 20px;
+            padding: 1px 5px;
+            min-width: 16px;
+            text-align: center;
+            line-height: 1.4;
+        }
+
+        /* Nút QR ở giữa — NỔI BẬT */
+        .nav-item.nav-center {
+            position: relative;
+            color: var(--navy);
+            padding-top: 0;
+        }
+        .nav-item.nav-center i {
+            display: none;
+        }
+        .nav-item.nav-center .nav-center-btn {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--navy-light), var(--navy));
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            box-shadow: 0 6px 20px rgba(27, 43, 122, 0.4);
+            margin-top: -26px;
+            margin-bottom: 2px;
+            border: 4px solid #fff;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .nav-item.nav-center:active .nav-center-btn {
+            transform: scale(0.92);
+            box-shadow: 0 3px 10px rgba(27, 43, 122, 0.3);
+        }
+        .nav-item.nav-center span {
+            font-size: 10px;
+            color: var(--navy);
+            font-weight: 700;
+        }
+
+        /* Đảm bảo nội dung không bị che */
+        body.has-bottom-nav .app {
+            padding-bottom: calc(88px + env(safe-area-inset-bottom, 0px));
+        }
+        /* ===== DELETE TASK MODAL ===== */
         .delete-task-modal .modal-box {
             max-width: 460px;
             padding: 24px;
@@ -2447,9 +2564,33 @@
                 </div>
             </div>
         </div>
-
     </div>
-
+        <!-- ========== BOTTOM NAVIGATION ========== -->
+        <nav class="bottom-nav" id="bottomNav">
+            <button class="nav-item active" data-page="home" onclick="switchBottomNav('home')">
+                <i class="fa-solid fa-house"></i>
+                <span>Trang chủ</span>
+            </button>
+            <button class="nav-item" data-page="news" onclick="switchBottomNav('news')">
+                <i class="fa-regular fa-newspaper"></i>
+                <span>Tin tức</span>
+            </button>
+            <button class="nav-item nav-center" data-page="scan" onclick="switchBottomNav('scan')">
+                <div class="nav-center-btn">
+                    <i class="fa-solid fa-qrcode"></i>
+                </div>
+                <span>Quét QR</span>
+            </button>
+            <button class="nav-item" data-page="notifications" onclick="switchBottomNav('notifications')">
+                <i class="fa-regular fa-bell"></i>
+                <span>Thông báo</span>
+                <span class="nav-badge hidden" id="navNotifBadge">0</span>
+            </button>
+            <button class="nav-item" data-page="me" onclick="switchBottomNav('me')">
+                <i class="fa-regular fa-user"></i>
+                <span>Tôi</span>
+            </button>
+        </nav>
     <!-- ========== MODAL: CHỌN BOARD TRELLO ========== -->
 <div id="trelloBoardModal" class="modal-overlay">
     <div class="modal-box settings-container">
@@ -3039,6 +3180,7 @@
 
                     document.getElementById('login-screen').classList.add('hidden');
                     document.getElementById('dashboard-screen').classList.remove('hidden');
+                    showBottomNav();
                     await loadConnectionStatus();
 
                     document.getElementById('user-name-display').textContent = currentSalesName;
@@ -3063,8 +3205,74 @@
                 document.getElementById('login-loader').style.display = 'none';
             }
         }
+                // ========================================================================
+        //  BOTTOM NAVIGATION
+        // ========================================================================
+        function switchBottomNav(page) {
+            // Update active state
+            document.querySelectorAll('.bottom-nav .nav-item').forEach(item => {
+                item.classList.toggle('active', item.dataset.page === page);
+            });
 
+            // Handle từng page
+            switch (page) {
+                case 'home':
+                    // Scroll lên đầu trang
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                    break;
+
+                case 'news':
+                    showToast('📰 Tính năng Tin tức sắp ra mắt', false);
+                    break;
+
+                case 'scan':
+                    // Mở QR check-in (tái sử dụng hàm có sẵn)
+                    if (typeof qrCheckinBtn !== 'undefined' && qrCheckinBtn) {
+                        qrCheckinBtn.click();
+                    } else {
+                        showToast('📷 Tính năng Quét QR sắp ra mắt', false);
+                    }
+                    break;
+
+                case 'notifications':
+                    showToast('🔔 Chưa có thông báo mới', false);
+                    break;
+
+                case 'me':
+                    // Mở menu user (avatar dropdown hoặc modal)
+                    showUserMenu();
+                    break;
+            }
+        }
+
+        function showUserMenu() {
+            // Đơn giản: hiển thị toast hoặc mở modal tùy chỉnh
+            // Ở đây mở modal nhỏ với thông tin user
+            const modal = document.getElementById('userMenuModal');
+            if (modal) {
+                modal.classList.add('active');
+            } else {
+                // Fallback: dùng confirm để logout
+                if (confirm(`Xin chào ${currentSalesName || 'bạn'}!\n\nBạn có muốn đăng xuất không?`)) {
+                    handleLogout();
+                }
+            }
+        }
+
+        // Helper: ẩn/hiện bottom nav
+        function showBottomNav() {
+            const nav = document.getElementById('bottomNav');
+            if (nav) nav.classList.add('visible');
+            document.body.classList.add('has-bottom-nav');
+        }
+
+        function hideBottomNav() {
+            const nav = document.getElementById('bottomNav');
+            if (nav) nav.classList.remove('visible');
+            document.body.classList.remove('has-bottom-nav');
+        }
         function handleLogout() {
+            hideBottomNav();
             localStorage.removeItem(AUTH_STORAGE_KEY);
             localStorage.removeItem('popminutes_connections');
             localStorage.removeItem('tasks_data');
@@ -3127,6 +3335,7 @@
                     currentCompanyName = result.enterprise.name;
                     document.getElementById('login-screen').classList.add('hidden');
                     document.getElementById('dashboard-screen').classList.remove('hidden');
+                    showBottomNav();
                     document.getElementById('user-name-display').textContent = currentSalesName;
                     document.getElementById('company-name-display').textContent = currentCompanyName;
                     document.getElementById('remaining-hours-display').textContent = result.enterprise.remainingHours;
@@ -3525,8 +3734,10 @@
         }
 
         document.getElementById('checkinBtn').addEventListener('click', () => alert(t('toast_upgrade_required')));
-        document.getElementById('qrCheckinBtn').addEventListener('click', () => alert(t('toast_upgrade_required')));
-
+        const qrCheckinBtn = document.getElementById('qrCheckinBtn');
+if (qrCheckinBtn) {
+    qrCheckinBtn.addEventListener('click', () => alert(t('toast_upgrade_required')));
+}
         // ========================================================================
         //  QUẢN LÝ TRẠNG THÁI KẾT NỐI
         // ========================================================================
