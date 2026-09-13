@@ -4572,7 +4572,23 @@ function showDeleteTaskModal(taskId, fromArray, task, externalPlatforms) {
 }
 
 // ============ Xóa 1 platform cụ thể ============
+// ============ Xóa 1 platform cụ thể ============
 async function performPlatformDelete(taskId, fromArray, platform) {
+    // Tìm nút delete của task để hiện spinner
+    const deleteBtn = document.querySelector(
+            `.task-item .delete-btn[onclick*="deleteTaskById('${taskId}')"]`) ||
+        document.querySelector(`.task-item .delete-btn[onclick*="deleteSuggestedTask('${taskId}')"]`) ||
+        document.querySelector(`.task-item .delete-btn[onclick*="deleteConfirmedTask('${taskId}')"]`);
+
+    // Lưu HTML gốc để restore
+    let originalHTML = '';
+    if (deleteBtn) {
+        originalHTML = deleteBtn.innerHTML;
+        deleteBtn.disabled = true;
+        deleteBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+        deleteBtn.classList.add('delete-loading');
+    }
+
     try {
         const formData = new URLSearchParams();
         formData.append('action', 'deleteTaskPlatform');
@@ -4604,13 +4620,25 @@ async function performPlatformDelete(taskId, fromArray, platform) {
             }
             saveTasksToStorage();
             renderTasks();
-            showToast('' + t('action_success'), true);
+            showToast('✅ ' + t('action_success'), true);
         } else {
             showToast('❌ ' + (result.message || 'Không rõ lỗi'), false);
+            // Restore button khi lỗi
+            if (deleteBtn) {
+                deleteBtn.disabled = false;
+                deleteBtn.innerHTML = originalHTML;
+                deleteBtn.classList.remove('delete-loading');
+            }
         }
     } catch (error) {
         console.error('Lỗi xóa platform:', error);
         showToast('❌ ' + error.message, false);
+        // Restore button khi lỗi
+        if (deleteBtn) {
+            deleteBtn.disabled = false;
+            deleteBtn.innerHTML = originalHTML;
+            deleteBtn.classList.remove('delete-loading');
+        }
     }
 }
 
