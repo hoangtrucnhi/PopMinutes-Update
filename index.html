@@ -2644,6 +2644,7 @@
                 platforms_count: 'nền tảng',
                 delete_only_platform: 'Chỉ xóa khỏi',
                 recording_stop_before_close: 'Vui lòng dừng ghi âm trước khi đóng',
+                confirm_close_recorder: 'Bạn có file chưa gửi. Bạn có chắc muốn đóng không?',
             },
             en: {
                 login_title: 'Smart Meeting Minutes AI',
@@ -2814,6 +2815,7 @@
                 platforms_count: 'platforms',
                 delete_only_platform: 'Remove from',
                 recording_stop_before_close: 'Please stop recording before closing',
+                confirm_close_recorder: 'You have an unsent file. Are you sure you want to close?',
             }
         };
 
@@ -3352,17 +3354,34 @@
             document.getElementById('sourceLangDisplay').value = t('lang_mode_auto');
         });
 
-        function closeModal() {
+                // Biến flag để tránh hỏi 2 lần
+        let isClosingAfterConfirm = false;
+
+        function closeModal(forceClose = false) {
+            // Nếu đang ghi âm → không cho đóng
+            if (isRecording) {
+                showToast('' + t('recording_stop_before_close'), false);
+                return;
+            }
+
+            // Nếu có file chưa gửi VÀ chưa xác nhận → hỏi confirm
+            if (selectedFileBlob && !forceClose && !isClosingAfterConfirm) {
+                if (!confirm(t('confirm_close_recorder'))) {
+                    return;
+                }
+                isClosingAfterConfirm = true;
+            }
+
+            // Reset flag sau khi đóng xong
+            isClosingAfterConfirm = false;
+
             modal.classList.remove('active');
             resetRecorder();
         }
         closeModalBtn.addEventListener('click', closeModal);
+        // ⭐ Click ra ngoài backdrop để đóng modal
         modal.addEventListener('click', function(e) {
             if (e.target === modal) {
-                if (isRecording) {
-                    showToast('' + t('recording_stop_before_close'), false);
-                    return;
-                }
                 closeModal();
             }
         });
