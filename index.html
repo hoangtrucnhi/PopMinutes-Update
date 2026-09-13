@@ -4310,25 +4310,45 @@ if (deleteTaskModal) {
             renderTasks();
         }
 
-        function saveEditTask(id) {
-            const title = document.getElementById(`edit_title_${id}`).value.trim();
-            const desc = document.getElementById(`edit_desc_${id}`).value.trim();
-            const dueInput = document.getElementById(`edit_due_${id}`);
-            const due = dueInput ? dueInput.value : '';
-            const dueISO = due ? new Date(due).toISOString() : '';
-            const assignee = document.getElementById(`edit_assignee_${id}`).value.trim();
+        async function saveEditTask(id) {
+    const title = document.getElementById(`edit_title_${id}`).value.trim();
+    const desc = document.getElementById(`edit_desc_${id}`).value.trim();
+    const dueInput = document.getElementById(`edit_due_${id}`);
+    const due = dueInput ? dueInput.value : '';
+    const dueISO = due ? new Date(due).toISOString() : '';
+    const assignee = document.getElementById(`edit_assignee_${id}`).value.trim();
 
-            const task = tasks.suggested.find(t => t.id === id);
-            if (task) {
-                task.title = title || task.title;
-                task.description = desc || task.description;
-                task.due = dueISO || task.due;
-                task.assignee = assignee || task.assignee;
-                saveTasksToStorage();
-                editingTaskId = null;
-                renderTasks();
-            }
-        }
+    const task = tasks.suggested.find(t => t.id === id);
+    if (!task) return;
+
+    // Update local state
+    task.title = title || task.title;
+    task.description = desc || task.description;
+    task.due = dueISO || task.due;
+    task.assignee = assignee || task.assignee;
+    saveTasksToStorage();
+    editingTaskId = null;
+    renderTasks();
+
+    // ⭐ SYNC lên Sheet (giống saveEditedTask của tab Confirmed)
+    try {
+        await fetch(APPS_SCRIPT_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: new URLSearchParams({
+                action: 'updateTask',
+                taskId: task.id,
+                title: task.title,
+                description: task.description || '',
+                due: task.due || '',
+                assignee: task.assignee || ''
+            }).toString()
+        });
+        console.log(`✅ Synced task ${task.id} to sheet`);
+    } catch (e) {
+        console.warn('Update sheet failed:', e);
+    }
+}
 
         function cancelEditTask() {
             editingTaskId = null;
