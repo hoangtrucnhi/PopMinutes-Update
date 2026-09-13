@@ -4392,7 +4392,7 @@ if (deleteTaskModal) {
             saveTasksToStorage();
         }
 
-        async function confirmTask(id) {
+                async function confirmTask(id) {
             const taskIndex = tasks.suggested.findIndex(t => t.id === id);
             if (taskIndex === -1) return;
             const task = tasks.suggested[taskIndex];
@@ -4475,6 +4475,45 @@ if (deleteTaskModal) {
                         platformObj.syncStatus = 'failed';
                     }
                 }
+
+                // Force update Status vào sheet
+                let finalStatus = 'synced';
+                for (const p of selectedPlatforms) {
+                    if (p.syncStatus === 'failed') { finalStatus = 'failed'; break; }
+                    if (p.syncStatus === 'pending') finalStatus = 'partial';
+                }
+                try {
+                    const statusRes = await fetch(APPS_SCRIPT_URL, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                        body: new URLSearchParams({
+                            action: 'updateTaskStatus',
+                            taskId: task.id,
+                            status: finalStatus
+                        }).toString()
+                    });
+                    const statusData = await statusRes.json();
+                    console.log(`✅ Updated task ${task.id} status → ${finalStatus}`, statusData);
+                } catch (statusErr) {
+                    console.error('⚠️ Update task status failed:', statusErr);
+                }
+
+                tasks.suggested.splice(taskIndex, 1);
+                tasks.confirmed.push(task);
+                saveTasksToStorage();
+                renderTasks();
+                showToast('' + t('action_success'), true);
+
+            } catch (error) {
+                console.error('Confirm task error:', error);
+                if (confirmBtn) {
+                    confirmBtn.disabled = false;
+                    confirmBtn.innerHTML = '<i class="fa-regular fa-circle-check"></i>';
+                    confirmBtn.classList.remove('confirm-loading');
+                }
+                showToast('❌ ' + t('task_create_error') + error.message, false);
+            }
+        }
 
                 // ⭐ BƯỚC QUAN TRỌNG: Force update Status = 'synced' vào sheet TASKS
 // (Backend cũng tự update, nhưng đôi khi fail silently → task quay về suggested)
