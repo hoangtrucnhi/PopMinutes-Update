@@ -74,8 +74,21 @@ self.addEventListener('push', function(event) {
         }
     };
 
+    // Gửi message tới tất cả app đang mở → trigger refresh badge
     event.waitUntil(
-        self.registration.showNotification(title, options)
+        Promise.all([
+            self.registration.showNotification(title, options),
+            clients.matchAll({ type: 'window', includeUncontrolled: true }).then(clientList => {
+                clientList.forEach(client => {
+                    client.postMessage({
+                        type: 'PUSH_RECEIVED',
+                        title: title,
+                        body: options.body,
+                        category: options.data.category
+                    });
+                });
+            })
+        ])
     );
 });
 
