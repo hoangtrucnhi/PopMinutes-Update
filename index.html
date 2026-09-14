@@ -3963,6 +3963,7 @@
                     document.getElementById('expiry-display').textContent = result.enterprise.expiryDate || t(
                         'undefined_expiry');
                     await loadUserSettingsFromServer();
+                    await loadNotifStateFromServer();
                     refreshNotifBadge();
                 } else {
                     errorMsg.textContent = t('err_invalid');
@@ -4179,29 +4180,67 @@
             return notifs;
         }
 
-        // ===== Read/Deleted tracking =====
-        function getReadNotifIds() {
+                // ===== Read/Deleted tracking — SYNC với Firestore =====
+        let notifReadIds = [];
+        let notifDeletedIds = [];
+
+        async function loadNotifStateFromServer() {
+            if (!currentEmail) return;
             try {
-                return JSON.parse(localStorage.getItem('popminutes_read_notifs') || '[]');
-            } catch (e) { return []; }
+                const url = `${CLOUD_FUNCTION_URL}?action=getNotifState&email=${encodeURIComponent(currentEmail)}`;
+                const res = await fetch(url);
+                const data = await res.json();
+                if (data.status === 200) {
+                    notifReadIds = data.read_ids || [];
+                    notifDeletedIds = data.deleted_ids || [];
+                    console.log(`📥 Loaded notif state: ${notifReadIds.length} read, ${notifDeletedIds.length} deleted`);
+                }
+            } catch (e) {
+                console.warn('loadNotifState error:', e);
+            }
         }
 
-        function saveReadNotifIds(ids) {
-            if (ids.length > 500) ids = ids.slice(-500);
-            localStorage.setItem('popminutes_read_notifs', JSON.stringify(ids));
-        }
-
-        function getDeletedNotifIds() {
+        async function saveNotifStateToServer() {
+            if (!currentEmail) return;
             try {
-                return JSON.parse(localStorage.getItem('popminutes_deleted_notifs') || '[]');
-            } catch (e) { return []; }
+                await fetch(CLOUD_FUNCTION_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: 'saveNotifState',
+                        email: currentEmail,
+                        read_ids: notifReadIds,
+                        deleted_ids: notifDeletedIds
+                    })
+                });
+                console.log(`📤 Saved notif state to server`);
+            } catch (e) {
+                console.warn('saveNotifState error:', e);
+            }
         }
 
-        function saveDeletedNotifIds(ids) {
-            if (ids.length > 500) ids = ids.slice(-500);
-            localStorage.setItem('popminutes_deleted_notifs', JSON.stringify(ids));
+        function getReadNotifIds() { return notifReadIds; }
+        function getDeletedNotifIds() { return notifDeletedIds; }
+
+        function markAllNotifsRead(notifs) {
+            let changed = false;
+            notifs.forEach(n => {
+                if (!notifReadIds.includes(n.id)) {
+                    notifReadIds.push(n.id);
+                    changed = true;
+                }
+            });
+            if (notifReadIds.length > 500) notifReadIds = notifReadIds.slice(-500);
+            if (changed) saveNotifStateToServer();
         }
 
+        function addDeletedNotifId(id) {
+            if (!notifDeletedIds.includes(id)) {
+                notifDeletedIds.push(id);
+                if (notifDeletedIds.length > 500) notifDeletedIds = notifDeletedIds.slice(-500);
+                saveNotifStateToServer();
+            }
+        }
         function markAllNotifsRead(notifs) {
             const ids = getReadNotifIds();
             notifs.forEach(n => {
@@ -4256,12 +4295,20 @@
         }
 
         // ===== Xóa 1 notif =====
-        function deleteNotif(id, fromRender) {
-            const deleted = getDeletedNotifIds();
-            if (!deleted.includes(id)) deleted.push(id);
-            saveDeletedNotifIds(deleted);
-            showToast('' + t('notif_deleted'), true);
-            if (fromRender !== false) loadNotificationsPage();
+            function clearAllNotifs() {
+            if (!confirm(t('notif_clear_all_msg'))) return;
+            const currentIds = (window.__currentNotifIds || []);
+            currentIds.forEach(id => {
+                if (!notifDeletedIds.includes(id)) {
+                    notifDeletedIds.push(id);
+                }
+            });
+            if (notifDeletedIds.length > 500) {
+                notifDeletedIds = notifDeletedIds.slice(-500);
+            }
+            saveNotifStateToServer();
+            showToast('' + t('notif_cleared'), true);
+            loadNotificationsPage();
         }
 
         // ===== Xóa tất cả =====
@@ -4623,7 +4670,8 @@
                     document.getElementById('expiry-display').textContent = result.enterprise.expiryDate || t(
                         'undefined_expiry');
                     await loadUserSettingsFromServer();
-                    refreshNotifBadge(); 
+                    await loadNotifStateFromServer();
+                    refreshNotifBadge();
                     saveAuthInfo(result);
                     return true;
                 } else {
