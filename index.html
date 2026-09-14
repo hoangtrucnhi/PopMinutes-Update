@@ -4751,7 +4751,7 @@
 
                 if (data.status === 200) {
                     console.log('✅ Push token saved to server');
-                    if (!silent) showToast('✅ Đã bật thông báo', true);
+                    if (!silent) showToast('notif_enabled', true);
                     updateNotifToggleUI(true);
                     return true;
                 } else {
@@ -4786,7 +4786,7 @@
                     console.log('✅ Push unregistered');
                 }
                 updateNotifToggleUI(false);
-                showToast('Đã tắt thông báo', false);
+                showToast('notif_disabled', false);
                 return true;
             } catch (e) {
                 console.error('Unregister push error:', e);
