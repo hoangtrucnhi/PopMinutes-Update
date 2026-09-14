@@ -3555,6 +3555,7 @@
                 notif_task_due: 'Sắp đến hạn',
                 notif_task_overdue: 'Quá hạn',
                 notif_record_done: 'Biên bản đã xong',
+                notif_record_processing: 'Đang xử lý',
                 notif_task_done: 'Nhiệm vụ hoàn thành',
                 profile_title: 'Thông tin cá nhân',
                 profile_fullname: 'Họ tên',
@@ -3764,6 +3765,7 @@
                 notif_task_due: 'Task due soon',
                 notif_task_overdue: 'Overdue task',
                 notif_record_done: 'Minutes completed',
+                notif_record_processing: 'Processing',
                 notif_task_done: 'Task completed',
                 profile_title: 'Profile',
                 profile_fullname: 'Full name',
@@ -4260,14 +4262,15 @@
                             titleKey = 'notif_record_uploaded';
                         }
 
-                        notifs.push({
+                            notifs.push({
                             id: `rec_${statusKey}_${rid}`,
                             type,
                             icon,
                             title: `${t(titleKey)}: ${clientName}`,
                             desc: timeStr,
                             timestamp: baseTs,
-                            category: 'record'
+                            category: 'record',
+                            recordId: rec.recordId || ''
                         });
                     });
                 }
@@ -4469,10 +4472,11 @@
                         </div>
                 `;
 
-                items.forEach(n => {
+                    items.forEach(n => {
                     const isUnread = !readIds.includes(n.id);
+                    const recordAttr = n.recordId ? `data-record-id="${n.recordId}"` : '';
                     html += `
-                        <div class="notif-item ${isUnread ? 'unread' : ''}">
+                        <div class="notif-item ${isUnread ? 'unread' : ''}" ${recordAttr}>
                             <div class="notif-icon ${n.type}"><i class="fa-solid ${n.icon}"></i></div>
                             <div class="notif-body">
                                 <div class="notif-title">${escapeHtml(n.title)}</div>
@@ -7124,47 +7128,60 @@ function deleteConfirmedTask(id, btn) {
         //  KHỞI CHẠY
         // ========================================================================
         document.addEventListener('DOMContentLoaded', async function() {
-                        // Xử lý deep link từ push notification
+            // ================================================================
+            //  XỬ LÝ DEEP LINK TỪ PUSH NOTIFICATION
+            // ================================================================
             const urlParams = new URLSearchParams(window.location.search);
             const hashParts = window.location.hash.split('?');
             const hashParams = hashParts[1] ? new URLSearchParams(hashParts[1]) : null;
             const highlightId = hashParams ? hashParams.get('highlight') : null;
-            
+
             if (highlightId) {
                 console.log('🔔 Deep link: highlight record', highlightId);
-                // Đợi auto-login xong → mở page thông báo
+
+                // Đợi auto-login + switch page
                 setTimeout(async () => {
-                    if (typeof switchBottomNav === 'function') {
-                        switchBottomNav('notifications');
-                        // Đợi data load
-                        setTimeout(() => {
-                            const target = document.querySelector(`[data-record-id="${highlightId}"]`);
-                            if (target) {
-                                target.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                                target.style.background = '#FEF3C7';
-                                setTimeout(() => { target.style.background = ''; }, 3000);
-                            }
-                        }, 1500);
-                    }
+                    if (typeof switchBottomNav !== 'function') return;
+                    switchBottomNav('notifications');
+
+                    // Polling nhẹ: thử tìm element tối đa 10 lần (5s)
+                    let tries = 0;
+                    const tryScroll = () => {
+                        const target = document.querySelector(`[data-record-id="${highlightId}"]`);
+                        if (target) {
+                            target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                            target.style.background = '#FEF3C7';
+                            target.style.transition = 'background 0.4s';
+                            setTimeout(() => { target.style.background = ''; }, 3000);
+                            console.log('✅ Scrolled to record:', highlightId);
+                        } else if (tries++ < 10) {
+                            setTimeout(tryScroll, 500);
+                        } else {
+                            console.warn('⚠️ Không tìm thấy record:', highlightId);
+                        }
+                    };
+                    setTimeout(tryScroll, 1000);
                 }, 2000);
-                // Xóa param khỏi URL
+
+                // Xóa param khỏi URL sau 3s
                 setTimeout(() => {
                     window.history.replaceState({}, document.title, window.location.pathname + '#notifications');
                 }, 3000);
             }
-            // Kiểm tra URL params từ callback Trello
-const urlParams = new URLSearchParams(window.location.search);
-const trelloConnectStatus = urlParams.get('trello_connect');
-if (trelloConnectStatus) {
-    if (trelloConnectStatus === 'success') {
-        showToast('Kết nối Trello thành công!', true);
-    } else {
-        const reason = urlParams.get('reason') || 'unknown';
-        showToast('Kết nối Trello thất bại: ' + reason, false);
-    }
-    // Xóa param khỏi URL để tránh hiện lại khi refresh
-    window.history.replaceState({}, document.title, window.location.pathname);
-}
+
+            // ================================================================
+            //  XỬ LÝ CALLBACK TRELLO
+            // ================================================================
+            const trelloConnectStatus = urlParams.get('trello_connect');
+            if (trelloConnectStatus) {
+                if (trelloConnectStatus === 'success') {
+                    showToast('Kết nối Trello thành công!', true);
+                } else {
+                    const reason = urlParams.get('reason') || 'unknown';
+                    showToast('Kết nối Trello thất bại: ' + reason, false);
+                }
+                window.history.replaceState({}, document.title, window.location.pathname);
+            }
             await tryAutoLogin();
             applyLanguage(currentLang);
             loginItems.forEach(item => {
