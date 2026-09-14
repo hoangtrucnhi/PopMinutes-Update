@@ -40,8 +40,18 @@ self.addEventListener('fetch', event => {
   );
 });
 // ============================================================
-//  PUSH NOTIFICATION HANDLERS (Web Push + VAPID)
+//  PopMinutes Service Worker
 // ============================================================
+
+self.addEventListener('install', function(event) {
+    console.log('[SW] Installing...');
+    self.skipWaiting();
+});
+
+self.addEventListener('activate', function(event) {
+    console.log('[SW] Activated');
+    event.waitUntil(clients.claim());
+});
 
 self.addEventListener('push', function(event) {
     console.log('[SW] 🔔 Push received');
@@ -58,8 +68,8 @@ self.addEventListener('push', function(event) {
     const title = data.title || 'PopMinutes';
     const options = {
         body: data.body || 'Bạn có thông báo mới',
-        icon: data.icon || './launchericon-192x192.png',
-        badge: data.badge || './launchericon-192x192.png',
+        icon: './launchericon-192x192.png',
+        badge: './launchericon-192x192.png',
         vibrate: [200, 100, 200],
         tag: data.tag || 'popminutes-' + Date.now(),
         renotify: true,
@@ -76,14 +86,13 @@ self.addEventListener('push', function(event) {
 });
 
 self.addEventListener('notificationclick', function(event) {
-    console.log('[SW] 🔔 Notification clicked:', event.notification.tag);
+    console.log('[SW] 🔔 Notification clicked');
     event.notification.close();
 
     const targetUrl = event.notification.data?.url || './#notifications';
 
     event.waitUntil(
         clients.matchAll({ type: 'window', includeUncontrolled: true }).then(function(clientList) {
-            // Nếu app đang mở → focus + navigate
             for (const client of clientList) {
                 if (client.url.includes('PopMinutes') && 'focus' in client) {
                     client.focus();
@@ -93,7 +102,6 @@ self.addEventListener('notificationclick', function(event) {
                     return;
                 }
             }
-            // Nếu chưa mở → mở tab mới
             if (clients.openWindow) {
                 return clients.openWindow(targetUrl);
             }
