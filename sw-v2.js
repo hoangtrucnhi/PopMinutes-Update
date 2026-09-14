@@ -69,7 +69,8 @@ self.addEventListener('push', function(event) {
         requireInteraction: false,
         data: {
             url: data.url || './#notifications',
-            category: data.category || 'system'
+            category: data.category || 'system',
+            recordId: data.recordId || ''
         }
     };
 
