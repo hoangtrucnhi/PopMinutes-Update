@@ -3520,8 +3520,8 @@
                 notif_group_older: 'Cũ hơn',
                 notif_clear_all_title: 'Xóa tất cả thông báo?',
                 notif_clear_all_msg: 'Bạn có chắc muốn xóa toàn bộ thông báo không?',
-                notif_deleted: 'Đã xóa thông báo',
-                notif_cleared: 'Đã xóa tất cả thông báo',
+                notif_deleted: 'Đã xóa',
+                notif_cleared: 'Đã xóa',
                 notif_no_unread: 'Không có thông báo mới',
             },
             en: {
@@ -3726,8 +3726,8 @@
                 notif_group_older: 'Older',
                 notif_clear_all_title: 'Clear all notifications?',
                 notif_clear_all_msg: 'Are you sure you want to delete all notifications?',
-                notif_deleted: 'Notification deleted',
-                notif_cleared: 'All notifications cleared',
+                notif_deleted: 'Deleted',
+                notif_cleared: 'Cleared',
                 notif_no_unread: 'No new notifications',
             }
         };
@@ -4260,7 +4260,7 @@
             const deleted = getDeletedNotifIds();
             if (!deleted.includes(id)) deleted.push(id);
             saveDeletedNotifIds(deleted);
-            showToast('🗑️ ' + t('notif_deleted'), true);
+            showToast('' + t('notif_deleted'), true);
             if (fromRender !== false) loadNotificationsPage();
         }
 
