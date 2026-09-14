@@ -4294,8 +4294,8 @@
             if (fromRender !== false) loadNotificationsPage();
         }
 
-        // ===== Xóa 1 notif =====
-            function clearAllNotifs() {
+        // ===== Xóa tất cả =====
+        function clearAllNotifs() {
             if (!confirm(t('notif_clear_all_msg'))) return;
             const currentIds = (window.__currentNotifIds || []);
             currentIds.forEach(id => {
@@ -4310,20 +4310,6 @@
             showToast('' + t('notif_cleared'), true);
             loadNotificationsPage();
         }
-
-        // ===== Xóa tất cả =====
-        function clearAllNotifs() {
-            if (!confirm(t('notif_clear_all_msg'))) return;
-            // Đánh dấu tất cả notif hiện tại là đã xóa
-            const currentIds = (window.__currentNotifIds || []);
-            const deleted = getDeletedNotifIds();
-            currentIds.forEach(id => {
-                if (!deleted.includes(id)) deleted.push(id);
-            });
-            showToast('' + t('notif_cleared'), true);
-            loadNotificationsPage();
-        }
-
         // ===== Load page =====
         async function loadNotificationsPage() {
             if (!currentEmail) return;
