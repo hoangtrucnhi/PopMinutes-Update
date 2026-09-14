@@ -2268,6 +2268,49 @@
         .profile-danger-btn:active {
             transform: scale(0.98);
         }
+                /* ===== NOTIFICATION TOGGLE SWITCH ===== */
+        .notif-switch {
+            position: relative;
+            display: inline-block;
+            width: 48px;
+            height: 28px;
+            flex-shrink: 0;
+        }
+        .notif-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        .notif-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: #CBD5E1;
+            border-radius: 28px;
+            transition: 0.3s;
+        }
+        .notif-slider:before {
+            position: absolute;
+            content: "";
+            height: 22px;
+            width: 22px;
+            left: 3px;
+            bottom: 3px;
+            background: white;
+            border-radius: 50%;
+            transition: 0.3s;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+        }
+        .notif-switch input:checked + .notif-slider {
+            background: linear-gradient(135deg, var(--navy-light), var(--navy));
+        }
+        .notif-switch input:checked + .notif-slider:before {
+            transform: translateX(20px);
+        }
+        .notif-switch input:disabled + .notif-slider {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
         /* ===== DELETE TASK MODAL ===== */
         .delete-task-modal .modal-box {
             max-width: 460px;
@@ -2361,7 +2404,7 @@
                 <label class="field-label" data-i18n="email_label">Email</label>
                 <div class="input-wrap">
                     <i class="fa-regular fa-envelope"></i>
-                    <input type="email" id="emailInput" class="modal-input" data-i18n-placeholder="email_placeholder" placeholder="sales@congty.com" onkeydown="if(event.key==='Enter') handleLogin()" style="padding-left:44px;">
+                    <input type="email" id="emailInput" class="modal-input" data-i18n-placeholder="email_placeholder" placeholder="sales@congty.com" onkeydown="if(event.key==='Enter') " style="padding-left:44px;">
                 </div>
 
                 <label class="field-label" data-i18n="userid_label">User ID</label>
@@ -2486,8 +2529,7 @@
             <!-- ========== CÀI ĐẶT ========== -->
             <div class="dash-section">
                 <div class="section-title" data-i18n="settings_title">Cài đặt</div>
-                <div class="feature-grid">
-                    <!-- Card: Định dạng -->
+                                <div class="feature-grid">
                     <button class="feature-card" id="formatBtn">
                         <div class="feature-icon navy"><i class="fa-solid fa-calendar-days"></i></div>
                         <div>
@@ -2495,7 +2537,6 @@
                             <div class="feature-sub" data-i18n="format_sub">Ngày giờ &amp; Múi giờ</div>
                         </div>
                     </button>
-                    <!-- Card: Kết nối ứng dụng -->
                     <button class="feature-card" id="connectionsBtn">
                         <div class="feature-icon navy"><i class="fa-solid fa-plug"></i></div>
                         <div>
@@ -2503,6 +2544,19 @@
                             <div class="feature-sub" data-i18n="connections_sub">Google, Trello</div>
                         </div>
                     </button>
+                    <div class="feature-card" id="notifCard" style="cursor: default;">
+                        <div class="feature-icon navy"><i class="fa-solid fa-bell"></i></div>
+                        <div style="flex:1; display:flex; justify-content:space-between; align-items:center; gap:12px; width:100%;">
+                            <div>
+                                <div class="feature-label" data-i18n="notif_push_title">Thông báo đẩy</div>
+                                <div class="feature-sub" id="notifStatus" data-i18n="notif_disabled">Đã tắt</div>
+                            </div>
+                            <label class="notif-switch">
+                                <input type="checkbox" id="notifToggle">
+                                <span class="notif-slider"></span>
+                            </label>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -3523,6 +3577,9 @@
                 notif_deleted: 'Đã xóa',
                 notif_cleared: 'Đã xóa',
                 notif_no_unread: 'Không có thông báo mới',
+                notif_push_title: 'Thông báo đẩy',
+                notif_enabled: 'Đã bật',
+                notif_disabled: 'Đã tắt',
             },
             en: {
                 login_title: 'Smart Meeting Minutes AI',
@@ -3729,6 +3786,9 @@
                 notif_deleted: 'Deleted',
                 notif_cleared: 'Cleared',
                 notif_no_unread: 'No new notifications',
+                notif_push_title: 'Push notifications',
+                notif_enabled: 'Enabled',
+                notif_disabled: 'Disabled',
             }
         };
 
@@ -3913,6 +3973,7 @@
         //  CẤU HÌNH API
         // ========================================================================
         const CLOUD_FUNCTION_URL = "https://get-upload-url-test-824148866382.asia-southeast1.run.app";
+        let VAPID_PUBLIC_KEY = '';
         const APPS_SCRIPT_URL = CLOUD_FUNCTION_URL;
         const AUTH_STORAGE_KEY = "popminutes_auth";
         const SESSION_DAYS = 90;
@@ -3965,6 +4026,10 @@
                     await loadUserSettingsFromServer();
                     await loadNotifStateFromServer();
                     refreshNotifBadge();
+                    startNotifAutoRefresh();
+                    loadVapidKeyFromServer().then(() => {
+                        registerPushNotifications(true);
+                    });
                 } else {
                     errorMsg.textContent = t('err_invalid');
                     errorMsg.classList.remove('hidden');
@@ -4578,7 +4643,177 @@
             if (nav) nav.classList.remove('visible');
             document.body.classList.remove('has-bottom-nav');
         }
-        
+                // ========================================================================
+        //  PUSH NOTIFICATIONS
+        // ========================================================================
+
+        function urlBase64ToUint8Array(base64String) {
+            const padding = '='.repeat((4 - base64String.length % 4) % 4);
+            const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+            const rawData = atob(base64);
+            const outputArray = new Uint8Array(rawData.length);
+            for (let i = 0; i < rawData.length; ++i) {
+                outputArray[i] = rawData.charCodeAt(i);
+            }
+            return outputArray;
+        }
+
+        function isPushSupported() {
+            return 'serviceWorker' in navigator &&
+                   'PushManager' in window &&
+                   'Notification' in window;
+        }
+
+        async function isPushEnabled() {
+            if (!isPushSupported()) return false;
+            try {
+                const registration = await navigator.serviceWorker.ready;
+                const subscription = await registration.pushManager.getSubscription();
+                return subscription !== null;
+            } catch (e) {
+                return false;
+            }
+        }
+
+        async function loadVapidKeyFromServer() {
+            try {
+                const url = `${CLOUD_FUNCTION_URL}?action=getVapidPublicKey`;
+                const res = await fetch(url);
+                const data = await res.json();
+                if (data.status === 200 && data.publicKey) {
+                    VAPID_PUBLIC_KEY = data.publicKey;
+                    console.log('✅ Loaded VAPID key from server');
+                    return true;
+                }
+            } catch (e) {
+                console.warn('Load VAPID key failed:', e);
+            }
+            return false;
+        }
+
+        async function registerPushNotifications(silent = false) {
+            if (!isPushSupported()) {
+                if (!silent) showToast('⚠️ Thiết bị không hỗ trợ thông báo đẩy', false);
+                return false;
+            }
+            if (!currentEmail) {
+                if (!silent) showToast('⚠️ Vui lòng đăng nhập trước', false);
+                return false;
+            }
+            if (!VAPID_PUBLIC_KEY) {
+                const loaded = await loadVapidKeyFromServer();
+                if (!loaded) {
+                    if (!silent) showToast('⚠️ Không tải được VAPID key', false);
+                    return false;
+                }
+            }
+
+            try {
+                // 1. Xin quyền
+                let permission = Notification.permission;
+                if (permission === 'default') {
+                    permission = await Notification.requestPermission();
+                }
+                if (permission !== 'granted') {
+                    if (!silent) showToast('⚠️ Bạn đã từ chối quyền thông báo', false);
+                    return false;
+                }
+
+                // 2. Đợi Service Worker
+                const registration = await navigator.serviceWorker.ready;
+
+                // 3. Tạo hoặc lấy subscription
+                let subscription = await registration.pushManager.getSubscription();
+                if (!subscription) {
+                    subscription = await registration.pushManager.subscribe({
+                        userVisibleOnly: true,
+                        applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
+                    });
+                }
+
+                console.log('✅ Push subscription:', subscription.endpoint.substring(0, 60) + '...');
+
+                // 4. Gửi lên server
+                const formData = new URLSearchParams();
+                formData.append('action', 'savePushToken');
+                formData.append('email', currentEmail);
+                formData.append('token', JSON.stringify(subscription));
+                formData.append('platform', detectPlatform());
+                formData.append('language', currentLang);
+                formData.append('timezone', timezone);
+
+                const res = await fetch(CLOUD_FUNCTION_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: formData.toString()
+                });
+                const data = await res.json();
+
+                if (data.status === 200) {
+                    console.log('✅ Push token saved to server');
+                    if (!silent) showToast('✅ Đã bật thông báo', true);
+                    updateNotifToggleUI(true);
+                    return true;
+                } else {
+                    console.warn('Save token failed:', data);
+                    if (!silent) showToast('❌ Không lưu được token', false);
+                    return false;
+                }
+            } catch (e) {
+                console.error('Register push error:', e);
+                if (!silent) showToast('❌ Lỗi: ' + e.message, false);
+                return false;
+            }
+        }
+
+        async function unregisterPushNotifications() {
+            try {
+                const registration = await navigator.serviceWorker.ready;
+                const subscription = await registration.pushManager.getSubscription();
+                if (subscription) {
+                    const formData = new URLSearchParams();
+                    formData.append('action', 'unregisterPushToken');
+                    formData.append('email', currentEmail);
+                    formData.append('token', JSON.stringify(subscription));
+
+                    await fetch(CLOUD_FUNCTION_URL, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                        body: formData.toString()
+                    });
+
+                    await subscription.unsubscribe();
+                    console.log('✅ Push unregistered');
+                }
+                updateNotifToggleUI(false);
+                showToast('Đã tắt thông báo', false);
+                return true;
+            } catch (e) {
+                console.error('Unregister push error:', e);
+                showToast('❌ Lỗi: ' + e.message, false);
+                return false;
+            }
+        }
+
+        function detectPlatform() {
+            const ua = navigator.userAgent;
+            if (/iPad|iPhone|iPod/.test(ua)) return 'iOS';
+            if (/Android/.test(ua)) return 'Android';
+            if (/Windows/.test(ua)) return 'Windows';
+            if (/Mac/.test(ua)) return 'macOS';
+            if (/Linux/.test(ua)) return 'Linux';
+            return 'Web';
+        }
+
+        function updateNotifToggleUI(enabled) {
+            const toggle = document.getElementById('notifToggle');
+            const status = document.getElementById('notifStatus');
+            if (toggle) toggle.checked = enabled;
+            if (status) {
+                status.textContent = enabled ? t('notif_enabled') : t('notif_disabled');
+                status.style.color = enabled ? '#10B981' : '#64748B';
+            }
+        }
         function handleLogout() {
             // Reset về trang chủ trước khi logout
             homeScrollY = 0;
@@ -4658,6 +4893,9 @@
                     await loadNotifStateFromServer();
                     refreshNotifBadge();
                     saveAuthInfo(result);
+                    loadVapidKeyFromServer().then(() => {
+                        registerPushNotifications(true);
+                    });
                     return true;
                 } else {
                     localStorage.removeItem(AUTH_STORAGE_KEY);
@@ -6901,6 +7139,28 @@ if (trelloConnectStatus) {
 
             // Đồng bộ trạng thái nút kết nối
             updateSettingsUI();
+                        // Init notification toggle
+            await loadVapidKeyFromServer();
+
+            const notifToggleEl = document.getElementById('notifToggle');
+            if (notifToggleEl) {
+                if (isPushSupported()) {
+                    isPushEnabled().then(enabled => updateNotifToggleUI(enabled));
+                } else {
+                    notifToggleEl.disabled = true;
+                    const status = document.getElementById('notifStatus');
+                    if (status) status.textContent = 'Không hỗ trợ';
+                }
+
+                notifToggleEl.addEventListener('change', async function() {
+                    if (this.checked) {
+                        const ok = await registerPushNotifications(false);
+                        if (!ok) this.checked = false;
+                    } else {
+                        await unregisterPushNotifications();
+                    }
+                });
+            }
         });
         // ========================================================================
 //  MODAL CHỌN BOARD TRELLO
