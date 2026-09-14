@@ -4039,12 +4039,27 @@
                     `${CLOUD_FUNCTION_URL}?action=authenticateSales&email=${encodeURIComponent(emailInput)}&userId=${encodeURIComponent(userIdInput)}`;
                 const response = await fetch(loginUrl);
                 const result = await response.json();
-                if (result.status === 200 && result.authenticated) {
+                                if (result.status === 200 && result.authenticated) {
                     currentEmail = emailInput;
                     currentSalesName = result.sales.name;
                     currentCompanyName = result.enterprise.name;
-                    applyLanguage(currentLang);
                     saveAuthInfo(result);
+
+                    // SYNC LANGUAGE LÊN FIRESTORE NGAY SAU LOGIN
+                    try {
+                        await fetch(CLOUD_FUNCTION_URL, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                            body: new URLSearchParams({
+                                action: 'saveUserSettings',
+                                email: currentEmail,
+                                language: currentLang      // ← Gửi 'vi' hoặc 'en'
+                            }).toString()
+                        });
+                        console.log(`✅ Synced lang=${currentLang} to Firestore`);
+                    } catch (e) {
+                        console.warn('Sync lang failed:', e);
+                    }
 
                     document.getElementById('login-screen').classList.add('hidden');
                     document.getElementById('dashboard-screen').classList.remove('hidden');
@@ -4916,6 +4931,22 @@
                     currentEmail = auth.email;
                     currentSalesName = result.sales.name;
                     currentCompanyName = result.enterprise.name;
+                    currentCompanyName = result.enterprise.name;
+
+                    // SYNC LANGUAGE LÊN FIRESTORE
+                    try {
+                        await fetch(CLOUD_FUNCTION_URL, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                            body: new URLSearchParams({
+                                action: 'saveUserSettings',
+                                email: currentEmail,
+                                language: currentLang
+                            }).toString()
+                        });
+                    } catch (e) {
+                        console.warn('Sync lang (auto) failed:', e);
+                    }
                     document.getElementById('login-screen').classList.add('hidden');
                     document.getElementById('dashboard-screen').classList.remove('hidden');
                     showBottomNav();
