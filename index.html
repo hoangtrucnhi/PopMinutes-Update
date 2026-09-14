@@ -3973,6 +3973,26 @@
         //  CẤU HÌNH API
         // ========================================================================
         const CLOUD_FUNCTION_URL = "https://get-upload-url-test-824148866382.asia-southeast1.run.app";
+                // Lắng nghe message từ Service Worker khi có push
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.addEventListener('message', function(event) {
+                if (!event.data || event.data.type !== 'PUSH_RECEIVED') return;
+                console.log('🔔 Push received in app:', event.data);
+                
+                // Refresh badge + notif list
+                if (typeof refreshNotifBadge === 'function') {
+                    refreshNotifBadge();
+                }
+                // Nếu đang ở page thông báo → reload list
+                const notifPage = document.getElementById('notifications-page');
+                if (notifPage && !notifPage.classList.contains('hidden')) {
+                    if (typeof loadNotificationsPage === 'function') {
+                        loadNotificationsPage();
+                    }
+                }
+                // Nếu đang ở home → chỉ cần badge là đủ
+            });
+        }
         let VAPID_PUBLIC_KEY = '';
         const APPS_SCRIPT_URL = CLOUD_FUNCTION_URL;
         const AUTH_STORAGE_KEY = "popminutes_auth";
