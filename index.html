@@ -3887,7 +3887,7 @@
             });
         });
 
-        function applyLanguage(lang) {
+        async function applyLanguage(lang) {
             currentLang = lang;
             localStorage.setItem('popminutes_lang', lang);
                         // Sync language lên Firestore để push notification dùng
@@ -4043,6 +4043,7 @@
                     currentEmail = emailInput;
                     currentSalesName = result.sales.name;
                     currentCompanyName = result.enterprise.name;
+                    applyLanguage(currentLang);
                     saveAuthInfo(result);
 
                     document.getElementById('login-screen').classList.add('hidden');
