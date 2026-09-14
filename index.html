@@ -4241,13 +4241,6 @@
                 saveNotifStateToServer();
             }
         }
-        function markAllNotifsRead(notifs) {
-            const ids = getReadNotifIds();
-            notifs.forEach(n => {
-                if (!ids.includes(n.id)) ids.push(n.id);
-            });
-            saveReadNotifIds(ids);
-        }
 
         // ===== Refresh badge =====
         async function refreshNotifBadge() {
@@ -4320,8 +4313,7 @@
             currentIds.forEach(id => {
                 if (!deleted.includes(id)) deleted.push(id);
             });
-            saveDeletedNotifIds(deleted);
-            showToast('🗑️ ' + t('notif_cleared'), true);
+            showToast('' + t('notif_cleared'), true);
             loadNotificationsPage();
         }
 
