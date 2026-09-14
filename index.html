@@ -3888,6 +3888,18 @@
         function applyLanguage(lang) {
             currentLang = lang;
             localStorage.setItem('popminutes_lang', lang);
+                        // Sync language lên Firestore để push notification dùng
+            if (currentEmail) {
+                fetch(CLOUD_FUNCTION_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: new URLSearchParams({
+                        action: 'saveUserSettings',
+                        email: currentEmail,
+                        language: lang
+                    }).toString()
+                }).catch(e => console.warn('Sync lang failed:', e));
+            }
 
             document.querySelectorAll('[data-i18n]').forEach(el => {
                 const key = el.getAttribute('data-i18n');
@@ -7112,7 +7124,7 @@ function deleteConfirmedTask(id, btn) {
         //  KHỞI CHẠY
         // ========================================================================
         document.addEventListener('DOMContentLoaded', async function() {
-                        // ⭐ Xử lý deep link từ push notification
+                        // Xử lý deep link từ push notification
             const urlParams = new URLSearchParams(window.location.search);
             const hashParts = window.location.hash.split('?');
             const hashParams = hashParts[1] ? new URLSearchParams(hashParts[1]) : null;
