@@ -4200,20 +4200,22 @@
             }
         }
 
-        async function saveNotifStateToServer() {
+            async function saveNotifStateToServer() {
             if (!currentEmail) return;
             try {
-                await fetch(CLOUD_FUNCTION_URL, {
+                const formData = new URLSearchParams();
+                formData.append('action', 'saveNotifState');
+                formData.append('email', currentEmail);
+                formData.append('read_ids', notifReadIds.join(','));
+                formData.append('deleted_ids', notifDeletedIds.join(','));
+
+                const res = await fetch(CLOUD_FUNCTION_URL, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        action: 'saveNotifState',
-                        email: currentEmail,
-                        read_ids: notifReadIds,
-                        deleted_ids: notifDeletedIds
-                    })
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: formData.toString()
                 });
-                console.log(`📤 Saved notif state to server`);
+                const data = await res.json();
+                console.log(`📤 Save notif result:`, data);
             } catch (e) {
                 console.warn('saveNotifState error:', e);
             }
@@ -4285,6 +4287,11 @@
             });
 
             return groups;
+        }
+        function deleteNotif(id, fromRender) {
+            addDeletedNotifId(id);
+            showToast('' + t('notif_deleted'), true);
+            if (fromRender !== false) loadNotificationsPage();
         }
 
         // ===== Xóa 1 notif =====
