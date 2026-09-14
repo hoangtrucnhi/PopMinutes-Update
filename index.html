@@ -2080,6 +2080,97 @@
             box-shadow: 0 0 0 2px #fff;
             flex-shrink: 0;
         }
+                /* ===== NOTIFICATIONS — Groups ===== */
+        .notif-group {
+            margin-bottom: 22px;
+        }
+        .notif-group-title {
+            font-size: 12px;
+            font-weight: 800;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            padding: 4px 8px 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .notif-group-title::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: linear-gradient(to right, var(--border), transparent);
+        }
+        .notif-group-count {
+            background: #F1F5F9;
+            color: var(--muted);
+            font-size: 10.5px;
+            font-weight: 700;
+            padding: 2px 8px;
+            border-radius: 20px;
+            min-width: 22px;
+            text-align: center;
+        }
+
+        /* Notif item với nút xóa */
+        .notif-item {
+            position: relative;
+            padding-right: 40px;   /* Chừa chỗ cho nút xóa */
+        }
+        .notif-delete-btn {
+            position: absolute;
+            top: 50%;
+            right: 10px;
+            transform: translateY(-50%);
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            background: transparent;
+            border: none;
+            color: #CBD5E1;
+            font-size: 13px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.15s;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .notif-delete-btn:hover {
+            background: #FEF2F2;
+            color: #EF4444;
+        }
+        .notif-delete-btn:active {
+            transform: translateY(-50%) scale(0.9);
+        }
+
+        /* Nút "Xóa tất cả" trên header */
+        .page-clear-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.12);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            color: #fff;
+            font-size: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background 0.15s, transform 0.1s;
+            flex-shrink: 0;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .page-clear-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        .page-clear-btn:active {
+            transform: scale(0.92);
+        }
+        .page-clear-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
         /* ===== PROFILE ===== */
         .profile-avatar-wrap {
             display: flex;
@@ -2422,7 +2513,9 @@
                     <i class="fa-solid fa-arrow-left"></i>
                 </button>
                 <h1 class="page-title" data-i18n="notif_title">Thông báo</h1>
-                <div class="page-header-spacer"></div>
+                <button class="page-clear-btn" id="clearAllNotifsBtn" title="Xóa tất cả">
+                    <i class="fa-solid fa-trash-can"></i>
+                </button>
             </div>
             <div class="page-content">
                 <div id="notificationsList">
@@ -3421,6 +3514,15 @@
                 gift_coming: 'Sắp ra mắt',
                 logout_btn: 'Đăng xuất',
                 notif_record_uploaded: 'Đang xử lý',
+                notif_group_today: 'Hôm nay',
+                notif_group_yesterday: 'Hôm qua',
+                notif_group_this_week: 'Tuần này',
+                notif_group_older: 'Cũ hơn',
+                notif_clear_all_title: 'Xóa tất cả thông báo?',
+                notif_clear_all_msg: 'Bạn có chắc muốn xóa toàn bộ thông báo không?',
+                notif_deleted: 'Đã xóa thông báo',
+                notif_cleared: 'Đã xóa tất cả thông báo',
+                notif_no_unread: 'Không có thông báo mới',
             },
             en: {
                 login_title: 'Smart Meeting Minutes AI',
@@ -3617,7 +3719,16 @@
                 profile_saved: 'Profile saved',
                 gift_coming: 'Coming soon',
                 logout_btn: 'Log out',
-                notif_record_uploaded: 'Processing',                
+                notif_record_uploaded: 'Processing',
+                notif_group_today: 'Today',
+                notif_group_yesterday: 'Yesterday',
+                notif_group_this_week: 'This week',
+                notif_group_older: 'Older',
+                notif_clear_all_title: 'Clear all notifications?',
+                notif_clear_all_msg: 'Are you sure you want to delete all notifications?',
+                notif_deleted: 'Notification deleted',
+                notif_cleared: 'All notifications cleared',
+                notif_no_unread: 'No new notifications',
             }
         };
 
@@ -3964,10 +4075,19 @@
         });
 
                 // ========================================================================
-        //  NOTIFICATIONS PAGE — với unread tracking
+        //  NOTIFICATIONS PAGE — Full redesign với groups + delete
         // ========================================================================
         async function computeNotifications() {
             const notifs = [];
+
+            // Force load tasks nếu chưa có (fix bug mất task notif sau login)
+            if (!tasks.confirmed || tasks.confirmed.length === 0) {
+                try {
+                    await fetchTasksFromGAS();
+                } catch (e) {
+                    console.warn('Load tasks for notif failed:', e);
+                }
+            }
 
             // 1. Task quá hạn / sắp đến hạn
             try {
@@ -3985,7 +4105,8 @@
                             icon: 'fa-triangle-exclamation',
                             title: `${t('notif_task_overdue')}: ${task.title}`,
                             desc: formatDueDate(task.due),
-                            timestamp: dueTime
+                            timestamp: dueTime,
+                            category: 'task'
                         });
                     } else if (dueTime < in3Days.getTime()) {
                         notifs.push({
@@ -3994,7 +4115,8 @@
                             icon: 'fa-clock',
                             title: `${t('notif_task_due')}: ${task.title}`,
                             desc: formatDueDate(task.due),
-                            timestamp: dueTime
+                            timestamp: dueTime,
+                            category: 'task'
                         });
                     }
                 });
@@ -4019,42 +4141,36 @@
                             const tb = new Date(b.createdAt || 0).getTime() || 0;
                             return tb - ta;
                         })
-                        .slice(0, 8);
+                        .slice(0, 20);
 
                     sorted.forEach((rec, idx) => {
                         const clientName = rec.clientName || '';
                         const timeStr = rec.createdAt || '';
-                        const baseTs = Date.now() - idx * 1000;
-                        const rid = rec.recordId || `${clientName}_${timeStr}`;
+                        // ID ổn định: ưu tiên recordId từ backend
+                        const rid = rec.recordId || `${clientName}|${timeStr}`;
+                        const baseTs = new Date(timeStr).getTime() || (Date.now() - idx * 1000);
 
+                        let statusKey, type, icon, titleKey;
                         if (rec.status === 'Done') {
-                            notifs.push({
-                                id: `rec_done_${rid}`,
-                                type: 'success',
-                                icon: 'fa-circle-check',
-                                title: `${t('notif_record_done')}: ${clientName}`,
-                                desc: timeStr,
-                                timestamp: baseTs
-                            });
+                            statusKey = 'done'; type = 'success'; icon = 'fa-circle-check';
+                            titleKey = 'notif_record_done';
                         } else if (rec.status === 'Processing') {
-                            notifs.push({
-                                id: `rec_proc_${rid}`,
-                                type: 'warning',
-                                icon: 'fa-spinner',
-                                title: `${t('notif_record_processing')}: ${clientName}`,
-                                desc: timeStr,
-                                timestamp: baseTs
-                            });
-                        } else if (rec.status === 'Uploaded') {
-                            notifs.push({
-                                id: `rec_up_${rid}`,
-                                type: 'info',
-                                icon: 'fa-clock',
-                                title: `${t('notif_record_uploaded')}: ${clientName}`,
-                                desc: timeStr,
-                                timestamp: baseTs
-                            });
+                            statusKey = 'proc'; type = 'warning'; icon = 'fa-spinner';
+                            titleKey = 'notif_record_processing';
+                        } else {
+                            statusKey = 'up'; type = 'info'; icon = 'fa-clock';
+                            titleKey = 'notif_record_uploaded';
                         }
+
+                        notifs.push({
+                            id: `rec_${statusKey}_${rid}`,
+                            type,
+                            icon,
+                            title: `${t(titleKey)}: ${clientName}`,
+                            desc: timeStr,
+                            timestamp: baseTs,
+                            category: 'record'
+                        });
                     });
                 }
             } catch (e) { console.warn('History notif:', e); }
@@ -4063,7 +4179,7 @@
             return notifs;
         }
 
-        // ===== Read/Unread tracking =====
+        // ===== Read/Deleted tracking =====
         function getReadNotifIds() {
             try {
                 return JSON.parse(localStorage.getItem('popminutes_read_notifs') || '[]');
@@ -4071,8 +4187,19 @@
         }
 
         function saveReadNotifIds(ids) {
-            if (ids.length > 200) ids = ids.slice(-200);
+            if (ids.length > 500) ids = ids.slice(-500);
             localStorage.setItem('popminutes_read_notifs', JSON.stringify(ids));
+        }
+
+        function getDeletedNotifIds() {
+            try {
+                return JSON.parse(localStorage.getItem('popminutes_deleted_notifs') || '[]');
+            } catch (e) { return []; }
+        }
+
+        function saveDeletedNotifIds(ids) {
+            if (ids.length > 500) ids = ids.slice(-500);
+            localStorage.setItem('popminutes_deleted_notifs', JSON.stringify(ids));
         }
 
         function markAllNotifsRead(notifs) {
@@ -4083,18 +4210,19 @@
             saveReadNotifIds(ids);
         }
 
-        // ===== Refresh chấm đỏ trên icon chuông =====
+        // ===== Refresh badge =====
         async function refreshNotifBadge() {
             if (!currentEmail) return;
             try {
                 const notifs = await computeNotifications();
                 const readIds = getReadNotifIds();
-                const unreadCount = notifs.filter(n => !readIds.includes(n.id)).length;
+                const deletedIds = getDeletedNotifIds();
+                const unreadCount = notifs.filter(n => 
+                    !readIds.includes(n.id) && !deletedIds.includes(n.id)
+                ).length;
 
                 const bell = document.querySelector('.bottom-nav .nav-item[data-page="notifications"]');
-                if (bell) {
-                    bell.classList.toggle('has-unread', unreadCount > 0);
-                }
+                if (bell) bell.classList.toggle('has-unread', unreadCount > 0);
                 window.__unreadNotifCount = unreadCount;
                 console.log(`🔔 Unread notifications: ${unreadCount}`);
             } catch (e) {
@@ -4102,14 +4230,76 @@
             }
         }
 
-        // ===== Load notifications page =====
+        // ===== Group notifs theo ngày =====
+        function groupNotifsByDate(notifs) {
+            const now = new Date();
+            const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+            const yesterdayStart = todayStart - 24 * 60 * 60 * 1000;
+            const weekStart = todayStart - 7 * 24 * 60 * 60 * 1000;
+
+            const groups = {
+                today: [],
+                yesterday: [],
+                this_week: [],
+                older: []
+            };
+
+            notifs.forEach(n => {
+                const ts = n.timestamp || 0;
+                if (ts >= todayStart) groups.today.push(n);
+                else if (ts >= yesterdayStart) groups.yesterday.push(n);
+                else if (ts >= weekStart) groups.this_week.push(n);
+                else groups.older.push(n);
+            });
+
+            return groups;
+        }
+
+        // ===== Xóa 1 notif =====
+        function deleteNotif(id, fromRender) {
+            const deleted = getDeletedNotifIds();
+            if (!deleted.includes(id)) deleted.push(id);
+            saveDeletedNotifIds(deleted);
+            showToast('🗑️ ' + t('notif_deleted'), true);
+            if (fromRender !== false) loadNotificationsPage();
+        }
+
+        // ===== Xóa tất cả =====
+        function clearAllNotifs() {
+            if (!confirm(t('notif_clear_all_msg'))) return;
+            // Đánh dấu tất cả notif hiện tại là đã xóa
+            const currentIds = (window.__currentNotifIds || []);
+            const deleted = getDeletedNotifIds();
+            currentIds.forEach(id => {
+                if (!deleted.includes(id)) deleted.push(id);
+            });
+            saveDeletedNotifIds(deleted);
+            showToast('🗑️ ' + t('notif_cleared'), true);
+            loadNotificationsPage();
+        }
+
+        // ===== Load page =====
         async function loadNotificationsPage() {
             if (!currentEmail) return;
             const list = document.getElementById('notificationsList');
             list.innerHTML = `<p style="text-align:center; padding:40px 20px; color:var(--muted);">${t('loading')}</p>`;
 
-            const notifs = await computeNotifications();
+            const allNotifs = await computeNotifications();
             const readIds = getReadNotifIds();
+            const deletedIds = getDeletedNotifIds();
+
+            // Filter bỏ những cái đã xóa
+            const notifs = allNotifs.filter(n => !deletedIds.includes(n.id));
+
+            // Lưu IDs hiện tại để dùng cho "clear all"
+            window.__currentNotifIds = notifs.map(n => n.id);
+
+            // Enable/disable nút clear all
+            const clearBtn = document.getElementById('clearAllNotifsBtn');
+            if (clearBtn) {
+                clearBtn.disabled = notifs.length === 0;
+                clearBtn.onclick = clearAllNotifs;
+            }
 
             if (notifs.length === 0) {
                 list.innerHTML = `
@@ -4123,33 +4313,68 @@
                 return;
             }
 
-            list.innerHTML = notifs.map(n => {
-                const isUnread = !readIds.includes(n.id);
-                return `
-                    <div class="notif-item ${isUnread ? 'unread' : ''}">
-                        <div class="notif-icon ${n.type}"><i class="fa-solid ${n.icon}"></i></div>
-                        <div class="notif-body">
-                            <div class="notif-title">${escapeHtml(n.title)}</div>
-                            <div class="notif-desc">${escapeHtml(n.desc)}</div>
-                        </div>
-                        ${isUnread ? '<span class="notif-unread-dot"></span>' : ''}
-                    </div>
-                `;
-            }).join('');
+            // Group theo ngày
+            const groups = groupNotifsByDate(notifs);
+            const groupOrder = [
+                { key: 'today',     label: t('notif_group_today') },
+                { key: 'yesterday', label: t('notif_group_yesterday') },
+                { key: 'this_week', label: t('notif_group_this_week') },
+                { key: 'older',     label: t('notif_group_older') }
+            ];
 
-            // Sau 1.5s → mark tất cả đã đọc + xóa chấm đỏ
+            let html = '';
+            let totalUnread = 0;
+
+            groupOrder.forEach(g => {
+                const items = groups[g.key];
+                if (!items || items.length === 0) return;
+
+                const unreadInGroup = items.filter(n => !readIds.includes(n.id)).length;
+                totalUnread += unreadInGroup;
+
+                html += `
+                    <div class="notif-group">
+                        <div class="notif-group-title">
+                            <span>${g.label}</span>
+                            ${unreadInGroup > 0 ? `<span class="notif-group-count">${unreadInGroup}</span>` : ''}
+                        </div>
+                `;
+
+                items.forEach(n => {
+                    const isUnread = !readIds.includes(n.id);
+                    html += `
+                        <div class="notif-item ${isUnread ? 'unread' : ''}">
+                            <div class="notif-icon ${n.type}"><i class="fa-solid ${n.icon}"></i></div>
+                            <div class="notif-body">
+                                <div class="notif-title">${escapeHtml(n.title)}</div>
+                                <div class="notif-desc">${escapeHtml(n.desc)}</div>
+                            </div>
+                            <button class="notif-delete-btn" title="Xóa" onclick="deleteNotif('${n.id.replace(/'/g, "\\'")}', true)">
+                                <i class="fa-solid fa-xmark"></i>
+                            </button>
+                        </div>
+                    `;
+                });
+
+                html += `</div>`;
+            });
+
+            list.innerHTML = html;
+
+            // Đợi 3 giây rồi mark read (bug #4 fix)
             setTimeout(() => {
                 markAllNotifsRead(notifs);
                 const bell = document.querySelector('.bottom-nav .nav-item[data-page="notifications"]');
                 if (bell) bell.classList.remove('has-unread');
-                // Remove unread class khỏi các item đã render (không cần re-render)
+
+                // Remove unread highlight
                 list.querySelectorAll('.notif-item.unread').forEach(el => {
                     el.classList.remove('unread');
-                    const dot = el.querySelector('.notif-unread-dot');
-                    if (dot) dot.remove();
                 });
+                // Remove count badge
+                list.querySelectorAll('.notif-group-count').forEach(el => el.remove());
                 console.log('✅ Marked all notifications as read');
-            }, 1500);
+            }, 3000);
         }
                 // ========================================================================
         //  PROFILE PAGE
