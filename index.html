@@ -4866,7 +4866,7 @@
                     console.log('✅ Push unregistered');
                 }
                 updateNotifToggleUI(false);
-                showToast('' + t('notif_disabled'), true);
+                showToast('' + t('notif_disabled'), false);
                 return true;
             } catch (e) {
                 console.error('Unregister push error:', e);
@@ -4894,7 +4894,41 @@
                 status.style.color = enabled ? '#10B981' : '#64748B';
             }
         }
-        function handleLogout() {
+        async function handleLogout() {
+            // 1. Unregister push token TRƯỚC KHI logout
+    try {
+        if (currentEmail) {
+            const reg = await navigator.serviceWorker.ready;
+            const sub = await reg.pushManager.getSubscription();
+            if (sub) {
+                await fetch(CLOUD_FUNCTION_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: new URLSearchParams({
+                        action: 'unregisterPushToken',
+                        email: currentEmail,
+                        token: JSON.stringify(sub)
+                    }).toString()
+                });
+                await sub.unsubscribe();
+                console.log('✅ Push unregistered on logout');
+            }
+        }
+    } catch (e) {
+        console.warn('Logout unregister failed:', e);
+    }
+
+    // 2. Xoá localStorage (như cũ)
+    homeScrollY = 0;
+    hideBottomNav();
+    localStorage.removeItem(AUTH_STORAGE_KEY);
+    localStorage.removeItem('popminutes_connections');
+    localStorage.removeItem('tasks_data');
+    localStorage.removeItem('popminutes_date_format');
+    localStorage.removeItem('popminutes_timezone');
+    currentEmail = "";
+    currentSalesName = "";
+    currentCompanyName = "";
             // Reset về trang chủ trước khi logout
             homeScrollY = 0;
             if (typeof hideBottomNav === 'function') hideBottomNav();
