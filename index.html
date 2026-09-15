@@ -3893,18 +3893,23 @@
             localStorage.setItem('popminutes_lang', lang);
                         // Sync language lên Firestore để push notification dùng
             if (currentEmail) {
-        fetch(CLOUD_FUNCTION_URL, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: new URLSearchParams({
-                action: 'saveUserSettings',
-                email: currentEmail,
-                language: lang
-            }).toString()
-        }).then(r => r.json())
-          .then(d => console.log(`✅ Synced lang=${lang}:`, d))
-          .catch(e => console.warn('Sync lang failed:', e));
-    } else {
+    // Sync user pref (giữ nguyên cho các setting khác)
+    fetch(CLOUD_FUNCTION_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams({
+            action: 'saveUserSettings',
+            email: currentEmail,
+            language: lang
+        }).toString()
+    }).then(r => r.json())
+      .then(d => console.log(`✅ Synced lang=${lang}:`, d))
+      .catch(e => console.warn('Sync lang failed:', e));
+
+    // ⭐ Cập nhật language cho TẤT CẢ push tokens của user
+    // → Mỗi device sẽ dùng language riêng khi nhận push
+    updateAllPushTokensLanguage(lang);
+} else {
         console.warn('⚠️ Skip sync: currentEmail empty');
     }
             document.querySelectorAll('[data-i18n]').forEach(el => {
@@ -4822,7 +4827,25 @@
                 return false;
             }
         }
+        async function updateAllPushTokensLanguage(lang) {
+    if (!currentEmail) return;
+    try {
+        const formData = new URLSearchParams();
+        formData.append('action', 'updatePushTokensLanguage');
+        formData.append('email', currentEmail);
+        formData.append('language', lang);
 
+        const res = await fetch(CLOUD_FUNCTION_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: formData.toString()
+        });
+        const data = await res.json();
+        console.log(`🔄 Updated push tokens lang to ${lang}:`, data);
+    } catch (e) {
+        console.warn('updatePushTokensLanguage failed:', e);
+    }
+}
         async function unregisterPushNotifications() {
             try {
                 const registration = await navigator.serviceWorker.ready;
