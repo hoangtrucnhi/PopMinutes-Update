@@ -97,19 +97,26 @@ self.addEventListener('notificationclick', function(event) {
     console.log('[SW] 🔔 Notification clicked');
     event.notification.close();
 
-    const targetUrl = event.notification.data?.url || './#notifications';
+    const data = event.notification.data || {};
+    const targetUrl = data.url || './#notifications';
+    const recordId = data.recordId || '';
 
     event.waitUntil(
         clients.matchAll({ type: 'window', includeUncontrolled: true }).then(function(clientList) {
+            // Ưu tiên tab đang mở app
             for (const client of clientList) {
                 if (client.url.includes('PopMinutes') && 'focus' in client) {
                     client.focus();
-                    if ('navigate' in client) {
-                        client.navigate(targetUrl);
-                    }
+                    // ⭐ Gửi message cho frontend tự xử lý
+                    client.postMessage({
+                        type: 'NOTIFICATION_CLICK',
+                        url: targetUrl,
+                        recordId: recordId
+                    });
                     return;
                 }
             }
+            // Không có tab nào → mở tab mới
             if (clients.openWindow) {
                 return clients.openWindow(targetUrl);
             }
