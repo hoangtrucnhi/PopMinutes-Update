@@ -4001,7 +4001,35 @@
             navigator.serviceWorker.addEventListener('message', function(event) {
                 if (!event.data || event.data.type !== 'PUSH_RECEIVED') return;
                 console.log('🔔 Push received in app:', event.data);
-                
+                if (event.data.type === 'NOTIFICATION_CLICK') {
+    console.log('🔔 User clicked notification:', event.data);
+    const recordId = event.data.recordId;
+
+    // Chuyển tới trang notifications
+    if (typeof switchBottomNav === 'function') {
+        switchBottomNav('notifications');
+    }
+
+    // Đợi data load rồi scroll + highlight
+    if (recordId) {
+        let tries = 0;
+        const tryScroll = () => {
+            const target = document.querySelector(`[data-record-id="${recordId}"]`);
+            if (target) {
+                target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                target.style.background = '#FEF3C7';
+                target.style.transition = 'background 0.4s';
+                setTimeout(() => { target.style.background = ''; }, 3000);
+                console.log('✅ Highlighted record:', recordId);
+            } else if (tries++ < 10) {
+                setTimeout(tryScroll, 500);
+            } else {
+                console.warn('⚠️ Không tìm thấy record:', recordId);
+            }
+        };
+        setTimeout(tryScroll, 1000);
+    }
+}
                 // Refresh badge + notif list
                 if (typeof refreshNotifBadge === 'function') {
                     refreshNotifBadge();
