@@ -3908,7 +3908,7 @@
       .then(d => console.log(`✅ Synced lang=${lang}:`, d))
       .catch(e => console.warn('Sync lang failed:', e));
 
-    // ⭐ Cập nhật language cho TẤT CẢ push tokens của user
+    // Cập nhật language cho TẤT CẢ push tokens của user
     // → Mỗi device sẽ dùng language riêng khi nhận push
     updateAllPushTokensLanguage(lang);
 } else {
@@ -4123,13 +4123,34 @@ if ('serviceWorker' in navigator) {
                     'undefined_package');
                     document.getElementById('expiry-display').textContent = result.enterprise.expiryDate || t(
                         'undefined_expiry');
-                    await loadUserSettingsFromServer();
+                                        await loadUserSettingsFromServer();
                     await loadNotifStateFromServer();
                     refreshNotifBadge();
                     startNotifAutoRefresh();
                     loadVapidKeyFromServer().then(() => {
                         registerPushNotifications(true);
                     });
+
+                    // SYNC NOTIF SCHEDULE SAU LOGIN
+                    setTimeout(async () => {
+                        if (currentEmail && timezone) {
+                            try {
+                                const notifRes = await fetch(CLOUD_FUNCTION_URL, {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                                    body: new URLSearchParams({
+                                        action: 'updateNotifSchedule',
+                                        email: currentEmail,
+                                        timezone: timezone
+                                    }).toString()
+                                });
+                                const notifData = await notifRes.json();
+                                console.log(`📅 Notif schedule synced after login: hour_utc=${notifData.notif_hour_utc}`);
+                            } catch (e) {
+                                console.warn('Sync notif schedule after login failed:', e);
+                            }
+                        }
+                    }, 800);
                 } else {
                     errorMsg.textContent = t('err_invalid');
                     errorMsg.classList.remove('hidden');
@@ -5063,13 +5084,35 @@ if ('serviceWorker' in navigator) {
                         'undefined_package');
                     document.getElementById('expiry-display').textContent = result.enterprise.expiryDate || t(
                         'undefined_expiry');
-                    await loadUserSettingsFromServer();
+                                        await loadUserSettingsFromServer();
                     await loadNotifStateFromServer();
                     refreshNotifBadge();
                     saveAuthInfo(result);
                     loadVapidKeyFromServer().then(() => {
                         registerPushNotifications(true);
                     });
+
+                    // SYNC NOTIF SCHEDULE SAU AUTO LOGIN
+                    setTimeout(async () => {
+                        if (currentEmail && timezone) {
+                            try {
+                                const notifRes = await fetch(CLOUD_FUNCTION_URL, {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                                    body: new URLSearchParams({
+                                        action: 'updateNotifSchedule',
+                                        email: currentEmail,
+                                        timezone: timezone
+                                    }).toString()
+                                });
+                                const notifData = await notifRes.json();
+                                console.log(`📅 Notif schedule synced (auto): hour_utc=${notifData.notif_hour_utc}`);
+                            } catch (e) {
+                                console.warn('Sync notif schedule auto failed:', e);
+                            }
+                        }
+                    }, 800);
+
                     return true;
                 } else {
                     localStorage.removeItem(AUTH_STORAGE_KEY);
@@ -5791,35 +5834,54 @@ function getDateTimeValue(dueISO) {
     return `${y}-${mo}-${d}T${h}:${mi}`;
 }
                 async function saveDisplaySettings() {
-            // 1. Lưu localStorage (cache tức thì)
-            localStorage.setItem('popminutes_date_format', dateFormat);
-            localStorage.setItem('popminutes_timezone', timezone);
-            renderTasks();
+    // 1. Lưu localStorage
+    localStorage.setItem('popminutes_date_format', dateFormat);
+    localStorage.setItem('popminutes_timezone', timezone);
+    renderTasks();
 
-            // 2. Đồng bộ lên Firestore (async, không block UI)
-            if (!currentEmail) return;
-            try {
-                const formData = new URLSearchParams();
-                formData.append('action', 'saveUserSettings');
-                formData.append('email', currentEmail);
-                formData.append('dateFormat', dateFormat);
-                formData.append('timezone', timezone);
+    // 2. Đồng bộ lên Firestore
+    if (!currentEmail) return;
+    try {
+        const formData = new URLSearchParams();
+        formData.append('action', 'saveUserSettings');
+        formData.append('email', currentEmail);
+        formData.append('dateFormat', dateFormat);
+        formData.append('timezone', timezone);
 
-                const res = await fetch(CLOUD_FUNCTION_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                    body: formData.toString()
-                });
-                const data = await res.json();
-                if (data.status === 200) {
-                    console.log(`✅ Settings synced to Firestore`);
-                } else {
-                    console.warn('Sync settings failed:', data.message);
-                }
-            } catch (e) {
-                console.warn('Sync settings error:', e);
-            }
+        const res = await fetch(CLOUD_FUNCTION_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: formData.toString()
+        });
+        const data = await res.json();
+        if (data.status === 200) {
+            console.log(`✅ Settings synced to Firestore`);
+        } else {
+            console.warn('Sync settings failed:', data.message);
         }
+
+        // SYNC NOTIFICATION SCHEDULE
+        try {
+            const notifRes = await fetch(CLOUD_FUNCTION_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: new URLSearchParams({
+                    action: 'updateNotifSchedule',
+                    email: currentEmail,
+                    timezone: timezone
+                }).toString()
+            });
+            const notifData = await notifRes.json();
+            if (notifData.status === 200) {
+                console.log(`📅 Notif scheduled at UTC hour ${notifData.notif_hour_utc} (8h local)`);
+            }
+        } catch (notifErr) {
+            console.warn('Sync notif schedule error:', notifErr);
+        }
+    } catch (e) {
+        console.warn('Sync settings error:', e);
+    }
+}
         // ============ Load settings từ Firestore ============
 async function loadUserSettingsFromServer() {
     if (!currentEmail) return;
