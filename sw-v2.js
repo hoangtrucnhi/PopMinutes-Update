@@ -102,9 +102,15 @@ self.addEventListener('notificationclick', function(event) {
 
     event.waitUntil(
         clients.matchAll({ type: 'window', includeUncontrolled: true }).then(function(clientList) {
+            // Ưu tiên tab đang mở app
             for (const client of clientList) {
                 if (client.url.includes('PopMinutes') && 'focus' in client) {
                     client.focus();
+                    // Firefox cần navigate (postMessage không reliable)
+                    if ('navigate' in client) {
+                        client.navigate(targetUrl);
+                    }
+                    // Chrome vẫn dùng postMessage
                     client.postMessage({
                         type: 'NOTIFICATION_CLICK',
                         url: targetUrl,
