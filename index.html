@@ -4830,18 +4830,22 @@
         async function updateAllPushTokensLanguage(lang) {
     if (!currentEmail) return;
     try {
-        const formData = new URLSearchParams();
-        formData.append('action', 'updatePushTokensLanguage');
-        formData.append('email', currentEmail);
-        formData.append('language', lang);
+        const reg = await navigator.serviceWorker.ready;
+        const sub = await reg.pushManager.getSubscription();
+        if (!sub) return;
 
         const res = await fetch(CLOUD_FUNCTION_URL, {
             method: 'POST',
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: formData.toString()
+            body: new URLSearchParams({
+                action: 'updatePushTokensLanguage',
+                email: currentEmail,
+                language: lang,
+                endpoint: sub.endpoint
+            }).toString()
         });
         const data = await res.json();
-        console.log(`🔄 Updated push tokens lang to ${lang}:`, data);
+        console.log(`🔄 Updated push token lang to ${lang}:`, data);
     } catch (e) {
         console.warn('updatePushTokensLanguage failed:', e);
     }
