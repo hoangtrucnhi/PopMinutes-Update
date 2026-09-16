@@ -3437,8 +3437,8 @@
                 expedite_btn: 'Xử lý gấp',
                 toast_upload_success: 'Thành công',
                 toast_expedite_sent: 'Đã gửi',
-                toast_expedite_fail: '⚠️ Không thể gửi yêu cầu',
-                toast_network_error: '❌ Lỗi kết nối: ',
+                toast_expedite_fail: 'Không thể gửi yêu cầu',
+                toast_network_error: 'Lỗi kết nối: ',
                 toast_login_required: 'Vui lòng đăng nhập.',
                 toast_upgrade_required: 'Nâng cấp gói để sử dụng tính năng.',
                 toast_connect_required: 'Vui lòng kết nối tài khoản %s trước khi tạo task.',
@@ -3515,7 +3515,7 @@
                 events_feature_alert: 'Nâng cấp gói để sử dụng tính năng.',
                 status_unknown: 'Chưa rõ',
                 target_lang2_label: 'Ngôn ngữ 2:',
-                delete_error: '❌ Lỗi xóa task: ',
+                delete_error: 'Lỗi xóa task: ',
                 group_by_client: 'Khách',
                 group_by_due: 'Ngày',
                 group_by_platform: 'Ứng dụng',
@@ -3581,6 +3581,7 @@
                 notif_push_title: 'Thông báo đẩy',
                 notif_enabled: 'Đã bật',
                 notif_disabled: 'Đã tắt',
+                notif_denied: 'Từ chối',
             },
             en: {
                 login_title: 'Smart Meeting Minutes AI',
@@ -3647,8 +3648,8 @@
                 expedite_btn: 'Expedite',
                 toast_upload_success: 'Success',
                 toast_expedite_sent: 'Sent',
-                toast_expedite_fail: '⚠️ Failed to send request',
-                toast_network_error: '❌ Connection error: ',
+                toast_expedite_fail: 'Failed to send request',
+                toast_network_error: 'Connection error: ',
                 toast_login_required: 'Please log in.',
                 toast_upgrade_required: 'Upgrade your plan to use this feature.',
                 toast_connect_required: 'Please connect your %s account before creating task.',
@@ -3725,7 +3726,7 @@
                 events_feature_alert: 'Upgrade your plan to use this feature.',
                 status_unknown: 'Unknown',
                 target_lang2_label: 'Language 2:',
-                delete_error: '❌ Error deleting task: ',
+                delete_error: 'Error deleting task: ',
                 group_by_client: 'Client',
                 group_by_due: 'Date',
                 group_by_platform: 'App',
@@ -3791,6 +3792,7 @@
                 notif_push_title: 'Push notifications',
                 notif_enabled: 'Enabled',
                 notif_disabled: 'Disabled',
+                notif_denied: 'Notifications denied',
             }
         };
 
@@ -4805,7 +4807,7 @@
                     permission = await Notification.requestPermission();
                 }
                 if (permission !== 'granted') {
-                    if (!silent) showToast('⚠️ Bạn đã từ chối quyền thông báo', false);
+                    if (!silent) showToast('notif_denied', false);
                     return false;
                 }
 
