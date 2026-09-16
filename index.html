@@ -4994,18 +4994,7 @@ if ('serviceWorker' in navigator) {
     currentEmail = "";
     currentSalesName = "";
     currentCompanyName = "";
-            // Reset về trang chủ trước khi logout
-            homeScrollY = 0;
-            if (typeof hideBottomNav === 'function') hideBottomNav();
-            hideBottomNav();
-            localStorage.removeItem(AUTH_STORAGE_KEY);
-            localStorage.removeItem('popminutes_connections');
-            localStorage.removeItem('tasks_data');
-            localStorage.removeItem('popminutes_date_format');
-            localStorage.removeItem('popminutes_timezone');
-            currentEmail = "";
-            currentSalesName = "";
-            currentCompanyName = "";
+             // 3. Reset UI
             document.getElementById('emailInput').value = "";
             document.getElementById('userIdInput').value = "";
             document.getElementById('user-name-display').textContent = "";
@@ -5858,27 +5847,6 @@ function getDateTimeValue(dueISO) {
             console.log(`✅ Settings synced to Firestore`);
         } else {
             console.warn('Sync settings failed:', data.message);
-        }
-
-        //  SYNC NOTIFICATION SCHEDULE VỚI TIMEZONE MỚI
-        try {
-            const notifRes = await fetch(CLOUD_FUNCTION_URL, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                body: new URLSearchParams({
-                    action: 'updateNotifSchedule',
-                    email: currentEmail,
-                    timezone: timezone
-                }).toString()
-            });
-            const notifData = await notifRes.json();
-            if (notifData.status === 200) {
-                console.log(`📅 Notif scheduled at UTC hour ${notifData.notif_hour_utc} (8h local)`);
-            } else {
-                console.warn('Sync notif schedule failed:', notifData.message);
-            }
-        } catch (notifErr) {
-            console.warn('Sync notif schedule error:', notifErr);
         }
     } catch (e) {
         console.warn('Sync settings error:', e);
