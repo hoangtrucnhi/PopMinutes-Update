@@ -4019,35 +4019,40 @@ if ('serviceWorker' in navigator) {
 
         // ========== CLICK NOTIFICATION ==========
         if (event.data.type === 'NOTIFICATION_CLICK') {
-            console.log('🔔 User clicked notification:', event.data);
-            const recordId = event.data.recordId || '';
+    console.log('🔔 User clicked notification:', event.data);
+    const recordId = event.data.recordId || '';
 
-            // 1. Chuyển sang trang notifications
-            if (typeof switchBottomNav === 'function') {
-                switchBottomNav('notifications');
-            }
+    // 1. Chuyển sang trang notifications
+    if (typeof switchBottomNav === 'function') {
+        switchBottomNav('notifications');
+    }
 
-            // 2. Đợi data load → scroll + highlight
-            if (recordId) {
-                let tries = 0;
-                const tryScroll = () => {
-                    const target = document.querySelector(`[data-record-id="${recordId}"]`);
-                    if (target) {
-                        target.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                        target.style.background = '#FEF3C7';
-                        target.style.transition = 'background 0.4s';
-                        setTimeout(() => { target.style.background = ''; }, 3000);
-                        console.log('✅ Highlighted record:', recordId);
-                    } else if (tries++ < 10) {
-                        setTimeout(tryScroll, 500);
-                    } else {
-                        console.warn('⚠️ Không tìm thấy record:', recordId);
-                    }
-                };
-                setTimeout(tryScroll, 1500);
+    // 2. Force reload list
+    if (typeof loadNotificationsPage === 'function') {
+        loadNotificationsPage().then(() => {
+            console.log('✅ List reloaded, bắt đầu scroll');
+        }).catch(e => console.warn('Load list error:', e));
+    }
+
+    // 3. Đợi list load xong → scroll + highlight
+    if (recordId) {
+        const startTime = Date.now();
+        const tryScroll = () => {
+            const target = document.querySelector(`[data-record-id="${recordId}"]`);
+            if (target) {
+                target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                target.style.background = '#FEF3C7';
+                target.style.transition = 'background 0.4s';
+                setTimeout(() => { target.style.background = ''; }, 3000);
+                console.log('✅ Highlighted record:', recordId);
+            } else if (Date.now() - startTime < 30000) {
+                setTimeout(tryScroll, 500);
+            } else {
+                console.warn('⚠️ Timeout - không tìm thấy record sau 30s:', recordId);
             }
-        }
-    });
+        };
+        setTimeout(tryScroll, 1500);
+    }
 }
         let VAPID_PUBLIC_KEY = '';
         const APPS_SCRIPT_URL = CLOUD_FUNCTION_URL;
