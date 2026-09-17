@@ -4017,24 +4017,29 @@ if ('serviceWorker' in navigator) {
             }
         }
 
-        // ========== CLICK NOTIFICATION ==========
-        if (event.data.type === 'NOTIFICATION_CLICK') {
+        // ========== CLICK NOTIFICATION (HYBRID) ==========
+if (event.data.type === 'NOTIFICATION_CLICK') {
     console.log('🔔 User clicked notification:', event.data);
     const recordId = event.data.recordId || '';
+    const category = event.data.category || '';
 
-    // 1. Chuyển sang trang notifications
+    // HYBRID: task_due → mở Tasks, khác → mở Thông báo
+    if (category === 'task_due') {
+        openTasksWithDueFilter();
+        return;
+    }
+
+    // ===== MINUTES → Trang Thông báo (như cũ) =====
     if (typeof switchBottomNav === 'function') {
         switchBottomNav('notifications');
     }
 
-    // 2. Force reload list
     if (typeof loadNotificationsPage === 'function') {
         loadNotificationsPage().then(() => {
             console.log('✅ List reloaded, bắt đầu scroll');
         }).catch(e => console.warn('Load list error:', e));
     }
 
-    // 3. Đợi list load xong → scroll + highlight
     if (recordId) {
         const startTime = Date.now();
         const tryScroll = () => {
@@ -5692,6 +5697,68 @@ async function disconnectPlatform(platform) {
             showToast('Lỗi: ' + err.message, false);
         }
     }
+}
+// ========================================================================
+//  HYBRID: Mở Tasks với filter "Nhóm theo Ngày" (từ push notification)
+// ========================================================================
+async function openTasksWithDueFilter() {
+    console.log('📋 openTasksWithDueFilter: mở task modal');
+
+    // 1. Kiểm tra login
+    if (!currentEmail) {
+        console.warn('⚠️ Chưa login → không mở task modal');
+        return;
+    }
+
+    // 2. Mở task modal
+    const taskModal = document.getElementById('taskModal');
+    if (!taskModal) {
+        console.error('❌ Không tìm thấy taskModal');
+        return;
+    }
+    taskModal.classList.add('active');
+
+    // 3. Load tasks mới nhất từ server
+    if (typeof fetchTasksFromGAS === 'function') {
+        try {
+            await fetchTasksFromGAS();
+        } catch (e) {
+            console.warn('Load tasks error:', e);
+        }
+    }
+
+    // 4. Chuyển sang tab "Đã xác nhận"
+    document.querySelectorAll('.task-tab').forEach(t => t.classList.remove('active'));
+    const confirmedTab = document.querySelector('.task-tab[data-tab="confirmed"]');
+    if (confirmedTab) confirmedTab.classList.add('active');
+
+    const tabSuggested = document.getElementById('taskTabSuggested');
+    const tabConfirmed = document.getElementById('taskTabConfirmed');
+    if (tabSuggested) tabSuggested.classList.remove('active');
+    if (tabConfirmed) tabConfirmed.classList.add('active');
+
+    // 5. Đổi groupBy = 'due' (Nhóm theo Ngày)
+    groupBy = 'due';
+    localStorage.setItem('popminutes_groupby', groupBy);
+    if (typeof updateFilterBtnState === 'function') updateFilterBtnState();
+    if (typeof renderTasks === 'function') renderTasks();
+
+    // 6. Đợi render xong → scroll tới group "Quá hạn" (nếu có)
+    setTimeout(() => {
+        const overdueText = (typeof t === 'function') ? t('overdue') : 'Quá hạn';
+        const overdueGroup = Array.from(document.querySelectorAll('.task-group-header'))
+            .find(el => el.textContent.includes(overdueText));
+
+        if (overdueGroup) {
+            overdueGroup.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            overdueGroup.style.background = '#FEF3C7';
+            overdueGroup.style.transition = 'background 0.4s';
+            setTimeout(() => { overdueGroup.style.background = ''; }, 3000);
+            console.log('✅ Đã scroll tới group:', overdueText);
+        } else {
+            console.log('ℹ️ Không có task quá hạn → hiện tất cả task đã confirm');
+        }
+    }, 800);
 }
 
 async function refreshTrelloStatus() {
