@@ -4280,7 +4280,18 @@ if ('serviceWorker' in navigator) {
             try {
                 const now = new Date();
                 const in3Days = new Date(now.getTime() + 3 * 24 * 60 * 60 * 1000);
-                (tasks.confirmed || []).forEach(task => {
+                // Đếm cả confirmed và suggested overdue (chỉ hiển thị in-app, không push)
+const tasksToCheck = [
+    ...(tasks.confirmed || []),
+    ...(tasks.suggested || []).filter(t => {
+        // Chỉ hiện suggested nếu overdue
+        if (!t.due) return false;
+        const due = parseDueString(t.due);
+        return due && due.getTime() < Date.now();
+    })
+];
+
+tasksToCheck.forEach(task => {
                     if (!task.due) return;
                     const due = parseDueString(task.due);
                     if (!due) return;
