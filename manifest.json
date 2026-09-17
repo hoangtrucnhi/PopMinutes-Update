@@ -1,7 +1,8 @@
 {
   "name": "PopMinutes",
   "short_name": "PopMinutes",
-  "start_url": ".",
+  "start_url": "/PopMinutes-Update/",
+  "scope": "/PopMinutes-Update/"
   "display": "standalone",
   "background_color": "#1B2B7A",
   "theme_color": "#1B2B7A",
