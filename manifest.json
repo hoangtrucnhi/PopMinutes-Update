@@ -1,21 +1,26 @@
 {
   "name": "PopMinutes",
   "short_name": "PopMinutes",
+  "description": "Smart Meeting Minutes AI",
   "start_url": "/PopMinutes-Update/",
   "scope": "/PopMinutes-Update/",
+  "id": "/PopMinutes-Update/",
   "display": "standalone",
+  "orientation": "portrait",
   "background_color": "#1B2B7A",
   "theme_color": "#1B2B7A",
   "icons": [
     {
       "src": "launchericon-192x192.png",
       "sizes": "192x192",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     },
     {
       "src": "launchericon-512x512.png",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     }
   ]
 }
