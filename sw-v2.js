@@ -114,7 +114,8 @@ self.addEventListener('notificationclick', function(event) {
                     client.postMessage({
                         type: 'NOTIFICATION_CLICK',
                         url: targetUrl,
-                        recordId: recordId
+                        recordId: recordId,
+                        category: data.category || ''
                     });
                     return;
                 }
