@@ -4310,6 +4310,7 @@ if ('serviceWorker' in navigator) {
             } catch (e) { console.warn('Task notif:', e); }
 
             // 2. Biên bản (có retry)
+try {
 let history = [];
 for (let attempt = 1; attempt <= 3; attempt++) {
     try {
