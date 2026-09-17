@@ -4309,17 +4309,32 @@ if ('serviceWorker' in navigator) {
                 });
             } catch (e) { console.warn('Task notif:', e); }
 
-            // 2. Biên bản
-            try {
-                const response = await fetch(APPS_SCRIPT_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                    body: new URLSearchParams({
-                        action: 'getUserHistory',
-                        salesEmail: currentEmail
-                    }).toString()
-                });
-                const history = await response.json();
+            // 2. Biên bản (có retry)
+let history = [];
+for (let attempt = 1; attempt <= 3; attempt++) {
+    try {
+        const response = await fetch(APPS_SCRIPT_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: new URLSearchParams({
+                action: 'getUserHistory',
+                salesEmail: currentEmail
+            }).toString(),
+            signal: AbortSignal.timeout(15000) // timeout 15s
+        });
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        history = await response.json();
+        break; // Thành công → thoát retry
+    } catch (e) {
+        console.warn(`getUserHistory attempt ${attempt} failed:`, e.message);
+        if (attempt === 3) {
+            console.warn('getUserHistory failed after 3 attempts');
+            history = [];
+        } else {
+            await new Promise(r => setTimeout(r, 1000 * attempt)); // backoff
+        }
+    }
+}
                 if (Array.isArray(history)) {
                     const sorted = [...history]
                         .filter(r => r.status === 'Done' || r.status === 'Processing' || r.status === 'Uploaded')
