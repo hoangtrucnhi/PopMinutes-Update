@@ -777,14 +777,14 @@
                 /* ===== AUTOCOMPLETE DROPDOWN (Recorder Modal) ===== */
         .autocomplete-dropdown {
             position: absolute;
-            top: calc(100% - 4px);
+            top: calc(100% + 4px);
             left: 0;
             right: 0;
             background: #fff;
             border: 1.5px solid var(--border);
             border-radius: 12px;
             box-shadow: 0 8px 24px rgba(15, 23, 42, 0.12), 0 2px 6px rgba(15, 23, 42, 0.06);
-            max-height: 220px;
+            max-height: 180px;
             overflow-y: auto;
             z-index: 200;
             display: none;
@@ -2789,10 +2789,12 @@
                             <label class="field-label" data-i18n="creator_label">Người tạo</label>
                             <input type="text" id="salesNameDisplay" disabled class="modal-input">
                         </div>
-                        <div><div style="position: relative;">
+                        <div>
     <label class="field-label" style="color:var(--text)" data-i18n="client_label">Đối tác / Khách của bạn <span class="text-red-500">*</span></label>
-    <input type="text" id="clientNameInput" class="modal-input" data-i18n-placeholder="client_placeholder" placeholder="Ví dụ: Anh Hoàng - Công ty ABC" autocomplete="off">
-    <div class="autocomplete-dropdown" id="nameDropdown"></div>
+    <div style="position: relative;">
+        <input type="text" id="clientNameInput" class="modal-input" data-i18n-placeholder="client_placeholder" placeholder="Ví dụ: Anh Hoàng - Công ty ABC" autocomplete="off">
+        <div class="autocomplete-dropdown" id="nameDropdown"></div>
+    </div>
     <span class="input-tip"><i class="fas fa-info-circle" style="margin-top:2px;"></i> <span data-i18n="client_tip">Điền tên của đối tác / khách hàng bạn gặp.</span></span>
 </div>
 
@@ -2801,10 +2803,12 @@
                             <input type="email" id="salesEmailDisplay" disabled class="modal-input">
                         </div>
                         <div>
-    <div style="position: relative;">
+    <div>
     <label class="field-label" data-i18n="client_email_label">Email khách hàng <span class="text-red-500">*</span></label>
-    <input type="email" id="clientEmailInput" class="modal-input" data-i18n-placeholder="client_email_placeholder" placeholder="khachhang@congty.com" autocomplete="off">
-    <div class="autocomplete-dropdown" id="emailDropdown"></div>
+    <div style="position: relative;">
+        <input type="email" id="clientEmailInput" class="modal-input" data-i18n-placeholder="client_email_placeholder" placeholder="khachhang@congty.com" autocomplete="off">
+        <div class="autocomplete-dropdown" id="emailDropdown"></div>
+    </div>
 </div>
 <div style="display:flex; align-items:center; gap:8px; margin-top:-12px; margin-bottom:16px;">
     <input type="checkbox" id="sendToClientCheckbox" style="width:18px; height:18px; accent-color:var(--navy);">
