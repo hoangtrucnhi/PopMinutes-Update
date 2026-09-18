@@ -775,34 +775,60 @@
             display: none !important;
         }
                 /* ===== SEARCH INLINE (Task Modal) ===== */
+        .modal-header {
+            position: relative;
+        }
         .search-inline-wrap {
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 40px;
             width: 0;
-            overflow: hidden;
             opacity: 0;
-            transition: width 0.35s cubic-bezier(0.2, 0.8, 0.2, 1),
-                        opacity 0.25s ease,
-                        margin-right 0.35s ease;
-            margin-right: 0;
+            overflow: hidden;
+            transition: width 0.3s cubic-bezier(0.2, 0.8, 0.2, 1),
+                        opacity 0.2s ease;
             display: flex;
             align-items: center;
+            z-index: 5;
+            background: var(--surface);
+            border-radius: 0;
         }
         .search-inline-wrap.active {
-            width: 200px;
+            width: calc(100% - 130px);
             opacity: 1;
-            margin-right: 8px;
         }
         .search-inline-input {
             width: 100%;
-            padding: 8px 14px;
+            height: 36px;
+            padding: 0 14px;
             border: 1.5px solid var(--border);
             border-radius: 20px;
             font-family: inherit;
-            font-size: 13px;
+            font-size: 13.5px;
             font-weight: 500;
             color: var(--text);
             background: #fff;
             outline: none;
             transition: border-color 0.15s, box-shadow 0.15s;
+        }
+        .search-inline-input:focus {
+            border-color: var(--navy-light);
+            box-shadow: 0 0 0 3px rgba(45, 63, 166, 0.1);
+        }
+        .search-inline-input::placeholder {
+            color: #94A3B8;
+        }
+        .search-toggle-btn {
+            position: relative;
+            z-index: 10;
+        }
+        .search-toggle-btn.active {
+            background: var(--navy);
+            color: #fff;
+        }
+        .search-toggle-btn.active:hover {
+            background: var(--navy-deep);
         }
         .search-inline-input:focus {
             border-color: var(--navy-light);
@@ -2698,7 +2724,7 @@
                         </div>
                         <div>
                             <label class="field-label" style="color:var(--text)" data-i18n="client_label">Đối tác / Khách của bạn <span class="text-red-500">*</span></label>
-                            <input type="text" id="clientNameInput" class="modal-input" data-i18n-placeholder="client_placeholder" placeholder="Ví dụ: Anh Hoàng - Công ty ABC">
+                            <input type="text" id="clientNameInput" class="modal-input" data-i18n-placeholder="client_placeholder" placeholder="Ví dụ: Anh Hoàng - Công ty ABC" list="clientNameList" autocomplete="off">
                             <datalist id="clientNameList"></datalist>
                             <datalist id="clientEmailList"></datalist>
                             <span class="input-tip"><i class="fas fa-info-circle" style="margin-top:2px;"></i> <span data-i18n="client_tip">Điền tên của đối tác / khách hàng bạn gặp.</span></span>
@@ -2812,11 +2838,11 @@
         <div id="taskModal" class="modal-overlay task-modal">
             <div class="modal-box">
                 <div class="modal-header">
-                    <h2 class="modal-title" data-i18n="task_modal_title">Quản lý nhiệm vụ</h2>
-                    <div class="modal-header-actions" id="taskHeaderActions">
+    <h2 class="modal-title" id="taskModalTitle" data-i18n="task_modal_title">Quản lý nhiệm vụ</h2>
     <div class="search-inline-wrap" id="searchInlineWrap">
         <input type="text" id="taskSearchInput" class="search-inline-input" placeholder="Tìm kiếm..." autocomplete="off">
     </div>
+    <div class="modal-header-actions" id="taskHeaderActions">
     <button class="filter-btn search-toggle-btn" id="taskSearchBtn" title="Tìm kiếm">
         <i class="fa-solid fa-magnifying-glass"></i>
     </button>
@@ -6514,10 +6540,10 @@ function groupAndSortTasks(taskList, groupByType = 'client') {
     const container = document.getElementById('confirmedTaskList');
     
     // Filter theo search keyword
-    let filtered = tasks.suggested;
+    let filtered = tasks.confirmed;                    // ← ĐỔI
     if (taskSearchKeyword) {
         const kw = taskSearchKeyword.toLowerCase();
-        filtered = tasks.suggested.filter(tk => {
+        filtered = tasks.confirmed.filter(tk => {      // ← ĐỔI
             const haystack = [
                 tk.title,
                 tk.description,
