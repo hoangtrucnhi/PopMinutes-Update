@@ -774,73 +774,6 @@
         #waveformCanvas {
             display: none !important;
         }
-                /* ===== AUTOCOMPLETE DROPDOWN (Recorder Modal) ===== */
-        .autocomplete-dropdown {
-            position: absolute;
-            top: calc(100% + 4px);
-            left: 0;
-            right: 0;
-            background: #fff;
-            border: 1.5px solid var(--border);
-            border-radius: 12px;
-            box-shadow: 0 8px 24px rgba(15, 23, 42, 0.12), 0 2px 6px rgba(15, 23, 42, 0.06);
-            max-height: 180px;
-            overflow-y: auto;
-            z-index: 200;
-            display: none;
-            margin-top: 2px;
-        }
-        .autocomplete-dropdown.active {
-            display: block;
-            animation: acFadeIn 0.15s cubic-bezier(0.2, 0.8, 0.2, 1);
-        }
-        @keyframes acFadeIn {
-            from { opacity: 0; transform: translateY(-4px); }
-            to   { opacity: 1; transform: translateY(0); }
-        }
-        .autocomplete-item {
-            padding: 10px 14px;
-            cursor: pointer;
-            font-size: 13.5px;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            border-bottom: 1px solid #F1F5F9;
-            transition: background 0.1s;
-        }
-        .autocomplete-item:last-child {
-            border-bottom: none;
-        }
-        .autocomplete-item:hover,
-        .autocomplete-item.selected {
-            background: var(--navy-pale);
-        }
-        .autocomplete-item .ac-primary {
-            font-weight: 600;
-            color: var(--text);
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            max-width: 60%;
-        }
-        .autocomplete-item .ac-secondary {
-            color: var(--muted);
-            font-size: 12.5px;
-            font-weight: 500;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            flex: 1;
-            min-width: 0;
-        }
-        .autocomplete-dropdown::-webkit-scrollbar {
-            width: 6px;
-        }
-        .autocomplete-dropdown::-webkit-scrollbar-thumb {
-            background: #CBD5E1;
-            border-radius: 3px;
-        }
-
                 /* ===== SEARCH INLINE (Task Modal) ===== */
         .modal-header {
             position: relative;
@@ -2791,10 +2724,7 @@
                         </div>
                         <div>
     <label class="field-label" style="color:var(--text)" data-i18n="client_label">Đối tác / Khách của bạn <span class="text-red-500">*</span></label>
-    <div style="position: relative;">
-        <input type="text" id="clientNameInput" class="modal-input" data-i18n-placeholder="client_placeholder" placeholder="Ví dụ: Anh Hoàng - Công ty ABC" autocomplete="off">
-        <div class="autocomplete-dropdown" id="nameDropdown"></div>
-    </div>
+    <input type="text" id="clientNameInput" class="modal-input" data-i18n-placeholder="client_placeholder" placeholder="Ví dụ: Anh Hoàng - Công ty ABC">
     <span class="input-tip"><i class="fas fa-info-circle" style="margin-top:2px;"></i> <span data-i18n="client_tip">Điền tên của đối tác / khách hàng bạn gặp.</span></span>
 </div>
 
@@ -2804,11 +2734,13 @@
                         </div>
                         <div>
     <div>
-    <label class="field-label" data-i18n="client_email_label">Email khách hàng <span class="text-red-500">*</span></label>
-    <div style="position: relative;">
-        <input type="email" id="clientEmailInput" class="modal-input" data-i18n-placeholder="client_email_placeholder" placeholder="khachhang@congty.com" autocomplete="off">
-        <div class="autocomplete-dropdown" id="emailDropdown"></div>
-    </div>
+    <label class="field-label" data-i18n="client_email_label">Email khách hàng</label>
+    <input type="email" id="clientEmailInput" class="modal-input" data-i18n-placeholder="client_email_placeholder" placeholder="khachhang@congty.com">
+    <span class="input-tip" style="color: var(--muted); font-style: italic;">
+        <i class="fas fa-info-circle" style="margin-top:2px;"></i>
+        <span data-i18n="client_email_note">Bỏ qua nếu bạn không đồng bộ CRM và không gửi biên bản cho khách.</span>
+    </span>
+</div>
 </div>
 <div style="display:flex; align-items:center; gap:8px; margin-top:-12px; margin-bottom:16px;">
     <input type="checkbox" id="sendToClientCheckbox" style="width:18px; height:18px; accent-color:var(--navy);">
@@ -5504,171 +5436,7 @@ document.addEventListener('DOMContentLoaded', () => {
         taskSearchInput.placeholder = t('task_search_placeholder') || 'Tìm kiếm...';
     }
 });
-        // ===== AUTO-SUGGEST: Custom dropdown =====
-const clientNameInputEl = document.getElementById('clientNameInput');
-const clientEmailInputEl = document.getElementById('clientEmailInput');
-const nameDropdownEl = document.getElementById('nameDropdown');
-const emailDropdownEl = document.getElementById('emailDropdown');
 
-// ===== Setup autocomplete generic =====
-function setupAutocomplete(inputEl, dropdownEl, getItemsFn, onSelectFn) {
-    let currentItems = [];
-    let selectedIndex = -1;
-
-    function hideDropdown() {
-        if (!dropdownEl) return;
-        dropdownEl.classList.remove('active');
-        dropdownEl.innerHTML = '';
-        selectedIndex = -1;
-        currentItems = [];
-    }
-
-    function updateSelectedUI() {
-        dropdownEl.querySelectorAll('.autocomplete-item').forEach((el, i) => {
-            el.classList.toggle('selected', i === selectedIndex);
-        });
-        const sel = dropdownEl.querySelector('.autocomplete-item.selected');
-        if (sel) sel.scrollIntoView({ block: 'nearest' });
-    }
-
-    function renderDropdown(items) {
-        currentItems = items;
-        selectedIndex = -1;
-        if (!items || items.length === 0) {
-            hideDropdown();
-            return;
-        }
-        dropdownEl.innerHTML = items.map((item, idx) =>
-            `<div class="autocomplete-item" data-index="${idx}">
-                <span class="ac-primary">${escapeHtml(item.primary)}</span>
-                <span class="ac-secondary">— ${escapeHtml(item.secondary)}</span>
-            </div>`
-        ).join('');
-        dropdownEl.classList.add('active');
-
-        dropdownEl.querySelectorAll('.autocomplete-item').forEach(el => {
-            // Dùng mousedown để chạy trước blur
-            el.addEventListener('mousedown', function(e) {
-                e.preventDefault();
-                const idx = parseInt(this.dataset.index, 10);
-                onSelectFn(items[idx]);
-                hideDropdown();
-            });
-        });
-    }
-
-    inputEl.addEventListener('input', function() {
-        const kw = this.value.trim();
-        const items = getItemsFn(kw);
-        renderDropdown(items);
-    });
-
-    inputEl.addEventListener('focus', function() {
-        // Khi focus lại → show full list
-        const kw = this.value.trim();
-        const items = getItemsFn(kw);
-        if (items.length > 0) renderDropdown(items);
-    });
-
-    inputEl.addEventListener('blur', function() {
-        // Delay để click option kịp chạy
-        setTimeout(hideDropdown, 180);
-    });
-
-    inputEl.addEventListener('keydown', function(e) {
-        if (!dropdownEl.classList.contains('active')) return;
-        if (e.key === 'ArrowDown') {
-            e.preventDefault();
-            selectedIndex = Math.min(selectedIndex + 1, currentItems.length - 1);
-            updateSelectedUI();
-        } else if (e.key === 'ArrowUp') {
-            e.preventDefault();
-            selectedIndex = Math.max(selectedIndex - 1, 0);
-            updateSelectedUI();
-        } else if (e.key === 'Enter') {
-            if (selectedIndex >= 0) {
-                e.preventDefault();
-                onSelectFn(currentItems[selectedIndex]);
-                hideDropdown();
-            }
-        } else if (e.key === 'Escape') {
-            hideDropdown();
-        }
-    });
-}
-
-if (clientNameInputEl && clientEmailInputEl && nameDropdownEl && emailDropdownEl) {
-
-    // ===== Setup cho NAME field =====
-    setupAutocomplete(
-        clientNameInputEl,
-        nameDropdownEl,
-        function(kw) {
-            const suggestions = getClientSuggestions();
-            const lowerKw = kw.toLowerCase();
-            const matches = lowerKw
-                ? suggestions.filter(s => s.nameLower.includes(lowerKw))
-                : suggestions;
-            return matches.slice(0, 20).map(s => ({
-                primary: s.name,
-                secondary: s.email || '',
-                name: s.name,
-                email: s.email
-            }));
-        },
-        function(item) {
-            clientNameInputEl.value = item.name;
-            if (item.email) clientEmailInputEl.value = item.email;
-        }
-    );
-
-    // ===== Setup cho EMAIL field =====
-    setupAutocomplete(
-        clientEmailInputEl,
-        emailDropdownEl,
-        function(kw) {
-            const suggestions = getClientSuggestions();
-            const lowerKw = kw.toLowerCase();
-            const matches = lowerKw
-                ? suggestions.filter(s => s.email && s.email.toLowerCase().includes(lowerKw))
-                : suggestions.filter(s => s.email);
-            return matches.slice(0, 20).map(s => ({
-                primary: s.email,
-                secondary: s.name || '',
-                name: s.name,
-                email: s.email
-            }));
-        },
-        function(item) {
-            clientEmailInputEl.value = item.email;
-            if (item.name) clientNameInputEl.value = item.name;
-        }
-    );
-
-    // ===== Auto-fill NAME khi EMAIL đầy đủ được gõ vào =====
-    clientEmailInputEl.addEventListener('input', function() {
-        const val = this.value.trim().toLowerCase();
-        if (!val) return;
-        const suggestions = getClientSuggestions();
-        const exact = suggestions.find(s => s.email === val);
-        // Chỉ fill name nếu name đang trống
-        if (exact && exact.name && !clientNameInputEl.value.trim()) {
-            clientNameInputEl.value = exact.name;
-        }
-    });
-
-    // ===== Auto-fill EMAIL khi NAME exact (nếu chỉ có 1 email match) =====
-    clientNameInputEl.addEventListener('change', function() {
-        const val = this.value.trim().toLowerCase();
-        if (!val) return;
-        const suggestions = getClientSuggestions();
-        const exactMatches = suggestions.filter(s => s.nameLower === val);
-        // Chỉ có 1 email match + email đang trống → auto-fill
-        if (exactMatches.length === 1 && exactMatches[0].email && !clientEmailInputEl.value.trim()) {
-            clientEmailInputEl.value = exactMatches[0].email;
-        }
-    });
-}
         openBtn.addEventListener('click', () => {
             if (!currentEmail) {
                 alert(t('toast_login_required'));
@@ -6150,31 +5918,6 @@ async function refreshTrelloStatus() {
         let isLoadingTasks = false;
         let groupBy = localStorage.getItem('popminutes_groupby') || 'client';
         let taskSearchKeyword = '';
-        // ===== AUTO-SUGGEST: Build unique list (name, email) =====
-function getClientSuggestions() {
-    const allTasks = [...(tasks.confirmed || []), ...(tasks.suggested || [])];
-    const map = new Map(); // key: email (lowercase) → { name, email, nameLower }
-    
-    allTasks.forEach(tk => {
-        const email = String(tk.clientEmail || '').trim().toLowerCase();
-        const name = String(tk.clientName || '').trim();
-        if (!email && !name) return;
-        
-        const key = email || `__name_${name.toLowerCase()}`;
-        if (!map.has(key)) {
-            map.set(key, { name, email, nameLower: name.toLowerCase() });
-        } else {
-            // Merge: giữ name mới hơn nếu có
-            const existing = map.get(key);
-            if (!existing.name && name) existing.name = name;
-        }
-    });
-    
-    return Array.from(map.values());
-}
-
-        let dateFormat = localStorage.getItem('popminutes_date_format') || 'DD/MM/YY';
-        let timezone = localStorage.getItem('popminutes_timezone') || 'Asia/Ho_Chi_Minh';
 
         // ============ HÀM PARSE ĐỊNH DẠNG NGÀY GIỜ TỪ BACKEND (GMT+7) ============
 function parseDueString(dueStr) {
