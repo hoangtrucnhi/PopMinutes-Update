@@ -7167,7 +7167,8 @@ function deleteConfirmedTask(id, btn) {
                             assignee: task.assignee || '',
                             platforms: task.platforms || [],
                             status: task.status,
-                            clientName: task.clientName || ''
+                            clientName: task.clientName || '',
+                            clientEmail: task.clientEmail || ''
                         };
                         const hasPopMinutes = taskObj.platforms.some(p => p.platform === 'PopMinutes');
                         if (!hasPopMinutes) {
