@@ -5278,7 +5278,6 @@ for (let attempt = 1; attempt <= 3; attempt++) {
                 const toggle = document.getElementById('toggleCcBtn');
                 if (toggle) toggle.innerHTML = `<i class="fa-solid fa-circle-plus"></i> ${t('add_cc_btn')}`;
             }
-            if (document.getElementById('ccEmail1')) document.getElementById('ccEmail1').value = '';
             if (document.getElementById('ccEmail2')) document.getElementById('ccEmail2').value = '';
             recordBtn.classList.remove('recording');
             recordLabel.textContent = t('record_btn');
@@ -5286,7 +5285,6 @@ for (let attempt = 1; attempt <= 3; attempt++) {
             document.getElementById('sourceLangDisplay').value = t('lang_mode_auto');
             if (document.getElementById('clientEmailInput')) document.getElementById('clientEmailInput').value = '';
             if (document.getElementById('sendToClientCheckbox')) document.getElementById('sendToClientCheckbox').checked = false;
-            if (document.getElementById('ccEmail1')) document.getElementById('ccEmail1').value = '';
         }
 
         function stopAllTracks() {
@@ -6512,8 +6510,8 @@ function groupAndSortTasks(taskList, groupByType = 'client') {
             container.innerHTML = html;
         }
 
-        function renderSuggestedTasks(groupByType) {
-    const container = document.getElementById('suggestedTaskList');
+        function renderConfirmedTasks(groupByType) {
+    const container = document.getElementById('confirmedTaskList');
     
     // Filter theo search keyword
     let filtered = tasks.suggested;
