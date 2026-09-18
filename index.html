@@ -2662,14 +2662,21 @@
                             <label class="field-label" data-i18n="email_label_modal">Email nhận biên bản</label>
                             <input type="email" id="salesEmailDisplay" disabled class="modal-input">
                         </div>
+                        <div>
+    <label class="field-label" data-i18n="client_email_label">Email khách hàng <span class="text-red-500">*</span></label>
+    <input type="email" id="clientEmailInput" class="modal-input" data-i18n-placeholder="client_email_placeholder" placeholder="khachhang@congty.com">
+</div>
+<div style="display:flex; align-items:center; gap:8px; margin-top:-12px; margin-bottom:16px;">
+    <input type="checkbox" id="sendToClientCheckbox" style="width:18px; height:18px; accent-color:var(--navy);">
+    <label for="sendToClientCheckbox" style="font-size:13px; color:var(--text); cursor:pointer;" data-i18n="send_to_client_label">Gửi biên bản cho khách hàng</label>
+</div>
 
                         <div>
                             <button id="toggleCcBtn" type="button" style="color:var(--navy-light); font-size:13px; font-weight:700; background:none; border:none; cursor:pointer; display:inline-flex; align-items:center; gap:6px; padding:4px 0;">
                                 <i class="fa-solid fa-circle-plus"></i> <span data-i18n="add_cc_btn">Thêm người nhận</span>
                             </button>
                             <div id="ccFields" class="hidden flex flex-col gap-3 mt-3">
-                                <input type="email" id="ccEmail1" class="modal-input" data-i18n-placeholder="cc_placeholder" placeholder="abc@congty.com (tùy chọn)">
-                                <input type="email" id="ccEmail2" class="modal-input" data-i18n-placeholder="cc_placeholder" placeholder="abc@congty.com (tùy chọn)">
+                                <input type="email" id="ccEmail2" class="modal-input" data-i18n-placeholder="cc2_placeholder" placeholder="cc2@congty.com (tùy chọn)">
                             </div>
                         </div>
 
@@ -3422,6 +3429,11 @@
                 add_cc_btn: 'Thêm người nhận',
                 hide_cc_btn: 'Ẩn',
                 cc_placeholder: 'abc@congty.com (tùy chọn)',
+                cc2_placeholder: 'cc2@congty.com (tùy chọn)',
+                client_email_label: 'Email khách hàng',
+                client_email_placeholder: 'khachhang@congty.com',
+                send_to_client_label: 'Gửi biên bản cho khách hàng',
+                err_client_email_empty: 'Vui lòng điền email khách hàng',
                 file_panel_title: 'Tệp âm thanh',
                 upload_btn: 'Tải lên',
                 change_file_btn: 'Đổi tệp khác',
@@ -3631,7 +3643,12 @@
                 client_tip: 'Enter the name of your partner/client you are meeting.',
                 email_label_modal: 'Email to receive minutes',
                 add_cc_btn: 'Add recipient',
-                hide_cc_btn: 'Hide',
+                cc_placeholder: 'abc@company.com (optional)',
+                cc2_placeholder: 'cc2@company.com (optional)',
+                client_email_label: 'Client email',
+                client_email_placeholder: 'client@company.com',
+                send_to_client_label: 'Send minutes to client',
+                err_client_email_empty: 'Please enter client email',
                 cc_placeholder: 'abc@company.com (optional)',
                 file_panel_title: 'Audio file',
                 upload_btn: 'Upload',
@@ -5211,6 +5228,9 @@ for (let attempt = 1; attempt <= 3; attempt++) {
             recordLabel.textContent = t('record_btn');
             recordBtn.querySelector('i').className = 'fa-solid fa-microphone';
             document.getElementById('sourceLangDisplay').value = t('lang_mode_auto');
+            if (document.getElementById('clientEmailInput')) document.getElementById('clientEmailInput').value = '';
+            if (document.getElementById('sendToClientCheckbox')) document.getElementById('sendToClientCheckbox').checked = false;
+            if (document.getElementById('ccEmail1')) document.getElementById('ccEmail1').value = '';
         }
 
         function stopAllTracks() {
@@ -5396,9 +5416,19 @@ for (let attempt = 1; attempt <= 3; attempt++) {
                 return;
             }
 
-            const ccEmail1 = document.getElementById('ccEmail1') ? document.getElementById('ccEmail1').value.trim() : '';
-            const ccEmail2 = document.getElementById('ccEmail2') ? document.getElementById('ccEmail2').value.trim() : '';
+            // Client email (bắt buộc)
+const clientEmailValue = document.getElementById('clientEmailInput')?.value.trim() || '';
+if (!clientEmailValue) {
+    recordStatusDiv.innerHTML = `<span style="color:var(--danger)">${t('err_client_email_empty')}</span>`;
+    return;
+}
 
+// Cc_2 (tùy chọn)
+const ccEmail2 = document.getElementById('ccEmail2') ? document.getElementById('ccEmail2').value.trim() : '';
+
+// Cc_1 = clientEmail nếu tick checkbox
+const sendToClient = document.getElementById('sendToClientCheckbox')?.checked || false;
+const ccEmail1 = sendToClient ? clientEmailValue : '';
             const outputMode = document.getElementById('outputMode').value;
             const outputTargetLang = document.getElementById('outputTargetLang').value;
             localStorage.setItem('popminutes_output_mode', outputMode);
@@ -5443,8 +5473,9 @@ for (let attempt = 1; attempt <= 3; attempt++) {
                         companyName: currentCompanyName,
                         clientName: clientName,
                         filePath: filePath,
-                        clientEmail: ccEmail1,
-                        managerEmail: ccEmail2,
+                        clientEmail: clientEmailValue,
+                        cc1: ccEmail1,
+                        cc2: ccEmail2,
                         outputMode: outputMode,
                         outputTargetLang: outputTargetLang
                     })
@@ -5459,14 +5490,15 @@ for (let attempt = 1; attempt <= 3; attempt++) {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        action: 'processFullAudio',
-                        filePath: filePath,
-                        recordId: recordId,
+                        action: 'processAudio',
                         salesEmail: currentEmail,
                         salesName: currentSalesName,
+                        companyName: currentCompanyName,
                         clientName: clientName,
-                        clientEmail: ccEmail1,
-                        managerEmail: ccEmail2,
+                        filePath: filePath,
+                        clientEmail: clientEmailValue,
+                        cc1: ccEmail1,
+                        cc2: ccEmail2,
                         outputMode: outputMode,
                         outputTargetLang: outputTargetLang
                     })
@@ -6364,8 +6396,11 @@ function groupAndSortTasks(taskList, groupByType = 'client') {
         showToast('⚠️ ' + t('title_empty_warn'), false);
         return;
     }
-    const task = tasks.confirmed.find(t => t.id === editingConfirmedTaskId);
+        const task = tasks.confirmed.find(t => t.id === editingConfirmedTaskId);
     if (!task) return;
+
+    // Lưu lại taskId để scroll+highlight sau khi render
+    const savedTaskId = editingConfirmedTaskId;
 
     // Update local
     task.title = newTitle;
@@ -6373,8 +6408,8 @@ function groupAndSortTasks(taskList, groupByType = 'client') {
     task.due = dueVal ? new Date(dueVal).toISOString() : '';
 
     saveTasksToStorage();
-    renderTasks();
-    closeEditTaskModal();
+    closeEditTaskModal();          // ← đóng modal TRƯỚC
+    renderTasks();                  // ← render sau
 
     // Sync sheet (GAS)
     try {
@@ -6427,6 +6462,16 @@ function groupAndSortTasks(taskList, groupByType = 'client') {
             }
         }
     }
+    //  Scroll + highlight task vừa sửa
+    setTimeout(() => {
+        const taskEl = document.querySelector(`.task-item[data-id="${savedTaskId}"]`);
+        if (taskEl) {
+            taskEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            taskEl.style.background = '#FEF3C7';
+            taskEl.style.transition = 'background 0.4s';
+            setTimeout(() => { taskEl.style.background = ''; }, 2500);
+        }
+    }, 150);
 
     showToast('' + t('action_success'), true);
 }
@@ -6483,9 +6528,21 @@ if (deleteTaskModal) {
     task.description = desc || task.description;
     task.due = dueISO || task.due;
     task.assignee = assignee || task.assignee;
-    saveTasksToStorage();
+        saveTasksToStorage();
+    const savedTaskId = id;
     editingTaskId = null;
     renderTasks();
+    
+    // Scroll + highlight task vừa sửa
+    setTimeout(() => {
+        const taskEl = document.querySelector(`.task-item[data-id="${savedTaskId}"]`);
+        if (taskEl) {
+            taskEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            taskEl.style.background = '#FEF3C7';
+            taskEl.style.transition = 'background 0.4s';
+            setTimeout(() => { taskEl.style.background = ''; }, 2500);
+        }
+    }, 150);
 
     // SYNC lên Sheet (giống saveEditedTask của tab Confirmed)
     try {
