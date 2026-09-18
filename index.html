@@ -774,6 +774,50 @@
         #waveformCanvas {
             display: none !important;
         }
+                /* ===== SEARCH INLINE (Task Modal) ===== */
+        .search-inline-wrap {
+            width: 0;
+            overflow: hidden;
+            opacity: 0;
+            transition: width 0.35s cubic-bezier(0.2, 0.8, 0.2, 1),
+                        opacity 0.25s ease,
+                        margin-right 0.35s ease;
+            margin-right: 0;
+            display: flex;
+            align-items: center;
+        }
+        .search-inline-wrap.active {
+            width: 200px;
+            opacity: 1;
+            margin-right: 8px;
+        }
+        .search-inline-input {
+            width: 100%;
+            padding: 8px 14px;
+            border: 1.5px solid var(--border);
+            border-radius: 20px;
+            font-family: inherit;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text);
+            background: #fff;
+            outline: none;
+            transition: border-color 0.15s, box-shadow 0.15s;
+        }
+        .search-inline-input:focus {
+            border-color: var(--navy-light);
+            box-shadow: 0 0 0 3px rgba(45, 63, 166, 0.1);
+        }
+        .search-inline-input::placeholder {
+            color: #94A3B8;
+        }
+        .search-toggle-btn.active {
+            background: var(--navy);
+            color: #fff;
+        }
+        .search-toggle-btn.active:hover {
+            background: var(--navy-deep);
+        }
 
                 /* ===== TASK MODAL ===== */
         .task-modal .modal-box {
@@ -2655,6 +2699,8 @@
                         <div>
                             <label class="field-label" style="color:var(--text)" data-i18n="client_label">Đối tác / Khách của bạn <span class="text-red-500">*</span></label>
                             <input type="text" id="clientNameInput" class="modal-input" data-i18n-placeholder="client_placeholder" placeholder="Ví dụ: Anh Hoàng - Công ty ABC">
+                            <datalist id="clientNameList"></datalist>
+                            <datalist id="clientEmailList"></datalist>
                             <span class="input-tip"><i class="fas fa-info-circle" style="margin-top:2px;"></i> <span data-i18n="client_tip">Điền tên của đối tác / khách hàng bạn gặp.</span></span>
                         </div>
 
@@ -2767,12 +2813,18 @@
             <div class="modal-box">
                 <div class="modal-header">
                     <h2 class="modal-title" data-i18n="task_modal_title">Quản lý nhiệm vụ</h2>
-                    <div class="modal-header-actions">
-                        <button class="filter-btn" id="taskFilterBtn" title="Nhóm theo">
-                            <i class="fa-solid fa-filter"></i>
-                        </button>
-                        <button class="modal-close" id="closeTaskModalBtn"><i class="fa-solid fa-xmark"></i></button>
-                    </div>
+                    <div class="modal-header-actions" id="taskHeaderActions">
+    <div class="search-inline-wrap" id="searchInlineWrap">
+        <input type="text" id="taskSearchInput" class="search-inline-input" placeholder="Tìm kiếm..." autocomplete="off">
+    </div>
+    <button class="filter-btn search-toggle-btn" id="taskSearchBtn" title="Tìm kiếm">
+        <i class="fa-solid fa-magnifying-glass"></i>
+    </button>
+    <button class="filter-btn" id="taskFilterBtn" title="Nhóm theo">
+        <i class="fa-solid fa-filter"></i>
+    </button>
+    <button class="modal-close" id="closeTaskModalBtn"><i class="fa-solid fa-xmark"></i></button>
+</div>
                     <!-- Popover filter -->
                     <div class="filter-popover" id="taskFilterPopover">
                         <div class="filter-popover-title" data-i18n="group_label">Nhóm theo</div>
@@ -3503,6 +3555,8 @@
                 save_btn: 'Lưu',
                 settings_modal_title: 'Cài đặt',
                 task_empty_suggested: 'Chưa có đề xuất nào từ AI.',
+                task_search_placeholder: 'Tìm kiếm...',
+                task_search_empty: 'Không tìm thấy kết quả',
                 task_empty_confirmed: 'Chưa có nhiệm vụ nào đã xác nhận.',
                 task_no_due: 'Không có hạn',
                 task_unassigned: 'Chưa phân công',
@@ -3719,6 +3773,8 @@
                 save_btn: 'Save',
                 settings_modal_title: 'Settings',
                 task_empty_suggested: 'No AI suggestions yet.',
+                task_search_placeholder: 'Search...',
+                task_search_empty: 'No results found',
                 task_empty_confirmed: 'No confirmed tasks yet.',
                 task_no_due: 'No due date',
                 task_unassigned: 'Unassigned',
@@ -5346,7 +5402,86 @@ for (let attempt = 1; attempt <= 3; attempt++) {
                 isRecording = false;
             }
         });
+        // Cập nhật placeholder cho search
+document.addEventListener('DOMContentLoaded', () => {
+    if (taskSearchInput) {
+        taskSearchInput.placeholder = t('task_search_placeholder') || 'Tìm kiếm...';
+    }
+});
+        // ===== AUTO-SUGGEST handlers =====
+const clientNameInputEl = document.getElementById('clientNameInput');
+const clientEmailInputEl = document.getElementById('clientEmailInput');
 
+if (clientNameInputEl && clientEmailInputEl) {
+    // Khi user gõ NAME → suggest email
+    clientNameInputEl.addEventListener('input', function() {
+        const val = this.value.trim().toLowerCase();
+        const nameList = document.getElementById('clientNameList');
+        if (!nameList) return;
+        
+        // Clear email nếu user sửa name (không auto-fill nữa)
+        if (clientEmailInputEl.value && !clientEmailInputEl.dataset.locked) {
+            // optional: không clear, để user tự sửa
+        }
+        
+        const suggestions = getClientSuggestions();
+        const matches = val
+            ? suggestions.filter(s => s.nameLower.includes(val))
+            : suggestions;
+        
+        nameList.innerHTML = '';
+        matches.slice(0, 20).forEach(s => {
+            const opt = document.createElement('option');
+            opt.value = s.name;
+            if (s.email) opt.label = `(${s.email})`;
+            nameList.appendChild(opt);
+        });
+    });
+    
+    // Khi user CHỌN name (datalist input) → auto-fill email nếu chỉ có 1 email match
+    clientNameInputEl.addEventListener('change', function() {
+        const val = this.value.trim().toLowerCase();
+        const suggestions = getClientSuggestions();
+        const exactMatches = suggestions.filter(s => s.nameLower === val);
+        
+        if (exactMatches.length === 1 && exactMatches[0].email) {
+            // Chỉ có 1 email → auto-fill
+            clientEmailInputEl.value = exactMatches[0].email;
+        }
+        // Nếu nhiều email cùng tên → để user tự gõ hoặc chọn từ datalist bên email
+    });
+    
+    // Khi user gõ EMAIL → suggest email list
+    clientEmailInputEl.addEventListener('input', function() {
+        const val = this.value.trim().toLowerCase();
+        const emailList = document.getElementById('clientEmailList');
+        if (!emailList) return;
+        
+        const suggestions = getClientSuggestions();
+        const matches = val
+            ? suggestions.filter(s => s.email && s.email.includes(val))
+            : suggestions.filter(s => s.email);
+        
+        emailList.innerHTML = '';
+        matches.slice(0, 20).forEach(s => {
+            const opt = document.createElement('option');
+            opt.value = s.email;
+            if (s.name) opt.label = `(${s.name})`;
+            emailList.appendChild(opt);
+        });
+    });
+    
+    // Khi user CHỌN email (từ datalist) → auto-fill name
+    clientEmailInputEl.addEventListener('change', function() {
+        const val = this.value.trim().toLowerCase();
+        const suggestions = getClientSuggestions();
+        const match = suggestions.find(s => s.email === val);
+        
+        if (match && match.name) {
+            clientNameInputEl.value = match.name;
+        }
+    });
+}
         openBtn.addEventListener('click', () => {
             if (!currentEmail) {
                 alert(t('toast_login_required'));
@@ -5827,6 +5962,29 @@ async function refreshTrelloStatus() {
         let currentTab = 'suggested';
         let isLoadingTasks = false;
         let groupBy = localStorage.getItem('popminutes_groupby') || 'client';
+        let taskSearchKeyword = '';
+        // ===== AUTO-SUGGEST: Build unique list (name, email) =====
+function getClientSuggestions() {
+    const allTasks = [...(tasks.confirmed || []), ...(tasks.suggested || [])];
+    const map = new Map(); // key: email (lowercase) → { name, email, nameLower }
+    
+    allTasks.forEach(tk => {
+        const email = String(tk.clientEmail || '').trim().toLowerCase();
+        const name = String(tk.clientName || '').trim();
+        if (!email && !name) return;
+        
+        const key = email || `__name_${name.toLowerCase()}`;
+        if (!map.has(key)) {
+            map.set(key, { name, email, nameLower: name.toLowerCase() });
+        } else {
+            // Merge: giữ name mới hơn nếu có
+            const existing = map.get(key);
+            if (!existing.name && name) existing.name = name;
+        }
+    });
+    
+    return Array.from(map.values());
+}
 
         let dateFormat = localStorage.getItem('popminutes_date_format') || 'DD/MM/YY';
         let timezone = localStorage.getItem('popminutes_timezone') || 'Asia/Ho_Chi_Minh';
@@ -6074,27 +6232,59 @@ async function loadUserSettingsFromServer() {
         }
 
 function groupAndSortTasks(taskList, groupByType = 'client') {
-    if (groupByType === 'client') {
+        if (groupByType === 'client') {
         const grouped = {};
         taskList.forEach(task => {
-            const key = task.clientName || t('task_unassigned');
+            const email = String(task.clientEmail || '').trim().toLowerCase();
+            const name = String(task.clientName || '').trim();
+            // Key = email (unique) nếu có, else name
+            const key = email || name || '__unassigned__';
             if (!grouped[key]) grouped[key] = [];
             grouped[key].push(task);
         });
-        const sortedKeys = Object.keys(grouped).sort((a, b) => a.localeCompare(b));
+
         const result = [];
-        sortedKeys.forEach(key => {
-            const tasksInGroup = grouped[key].sort((a, b) => {
-                const da = parseDueString(a.due);   // <-- ĐỔI
-                const db = parseDueString(b.due);   // <-- ĐỔI
+        Object.keys(grouped).forEach(key => {
+            const tasksInGroup = grouped[key];
+
+            // Sắp xếp task theo due date
+            tasksInGroup.sort((a, b) => {
+                const da = parseDueString(a.due);
+                const db = parseDueString(b.due);
                 if (!da) return 1;
                 if (!db) return -1;
                 return da - db;
             });
-            result.push({ groupName: key, tasks: tasksInGroup });
+
+            // Lấy tên khách từ task có createdAt MỚI NHẤT
+            let latestTask = tasksInGroup[0];
+            let latestTs = 0;
+            tasksInGroup.forEach(tk => {
+                const ts = new Date(tk.createdAt || 0).getTime() || 0;
+                if (ts > latestTs) {
+                    latestTs = ts;
+                    latestTask = tk;
+                }
+            });
+
+            const displayName = latestTask.clientName || t('task_unassigned');
+            const displayEmail = latestTask.clientEmail || '';
+            const groupLabel = displayEmail
+                ? `${displayName} (${displayEmail})`
+                : displayName;
+
+            result.push({
+                groupName: groupLabel,
+                groupKey: key,
+                tasks: tasksInGroup
+            });
         });
+
+        // Sort group theo tên (locale)
+        result.sort((a, b) => a.groupName.localeCompare(b.groupName));
+
         return result;
-        } else if (groupByType === 'platform') {
+    } else if (groupByType === 'platform') {
         // Nhóm theo từng nền tảng mà task được sync lên
         const grouped = {};
         taskList.forEach(task => {
@@ -6217,13 +6407,35 @@ function groupAndSortTasks(taskList, groupByType = 'client') {
         }
 
         function renderSuggestedTasks(groupByType) {
-            const container = document.getElementById('suggestedTaskList');
-            if (tasks.suggested.length === 0) {
-                container.innerHTML = `<div class="task-empty">${t('task_empty_suggested')}</div>`;
-                return;
-            }
+    const container = document.getElementById('suggestedTaskList');
+    
+    //Filter theo search keyword
+    let filtered = tasks.suggested;
+    if (taskSearchKeyword) {
+        const kw = taskSearchKeyword.toLowerCase();
+        filtered = tasks.suggested.filter(tk => {
+            const haystack = [
+                tk.title,
+                tk.description,
+                tk.clientName,
+                tk.clientEmail,
+                tk.assignee,
+                tk.due,
+                (tk.platforms || []).map(p => p.platform).join(' ')
+            ].map(x => String(x || '').toLowerCase()).join(' ');
+            return haystack.includes(kw);
+        });
+    }
+    
+    if (filtered.length === 0) {
+        const emptyMsg = taskSearchKeyword 
+            ? (t('task_search_empty') || 'Không tìm thấy kết quả')
+            : t('task_empty_suggested');
+        container.innerHTML = `<div class="task-empty">${emptyMsg}</div>`;
+        return;
+    }
 
-            const grouped = groupAndSortTasks(tasks.suggested, groupByType);
+    const grouped = groupAndSortTasks(filtered, groupByType);
             let html = '';
             grouped.forEach(group => {
                 const groupLabel = group.groupName;
@@ -6300,14 +6512,36 @@ function groupAndSortTasks(taskList, groupByType = 'client') {
             container.innerHTML = html;
         }
 
-        function renderConfirmedTasks(groupByType) {
-            const container = document.getElementById('confirmedTaskList');
-            if (tasks.confirmed.length === 0) {
-                container.innerHTML = `<div class="task-empty">${t('task_empty_confirmed')}</div>`;
-                return;
-            }
+        function renderSuggestedTasks(groupByType) {
+    const container = document.getElementById('suggestedTaskList');
+    
+    // Filter theo search keyword
+    let filtered = tasks.suggested;
+    if (taskSearchKeyword) {
+        const kw = taskSearchKeyword.toLowerCase();
+        filtered = tasks.suggested.filter(tk => {
+            const haystack = [
+                tk.title,
+                tk.description,
+                tk.clientName,
+                tk.clientEmail,
+                tk.assignee,
+                tk.due,
+                (tk.platforms || []).map(p => p.platform).join(' ')
+            ].map(x => String(x || '').toLowerCase()).join(' ');
+            return haystack.includes(kw);
+        });
+    }
+    
+    if (filtered.length === 0) {
+        const emptyMsg = taskSearchKeyword 
+            ? (t('task_search_empty') || 'Không tìm thấy kết quả')
+            : t('task_empty_suggested');
+        container.innerHTML = `<div class="task-empty">${emptyMsg}</div>`;
+        return;
+    }
 
-            const grouped = groupAndSortTasks(tasks.confirmed, groupByType);
+    const grouped = groupAndSortTasks(filtered, groupByType);
             let html = '';
             grouped.forEach(group => {
                 const groupLabel = group.groupName;
@@ -6446,6 +6680,7 @@ function groupAndSortTasks(taskList, groupByType = 'client') {
                             description: task.description || '',
                             due: task.due || '',
                             clientName: task.clientName || '',
+                            clientEmail: task.clientEmail || '',
                             timezone: timezone || 'Asia/Ho_Chi_Minh'
                         }
                     })
@@ -7125,6 +7360,46 @@ function deleteConfirmedTask(id, btn) {
         //  MODAL TASK
         // ========================================================================
         const taskModal = document.getElementById('taskModal');
+        // ===== SEARCH: Toggle + input =====
+const taskSearchBtn = document.getElementById('taskSearchBtn');
+const taskSearchInput = document.getElementById('taskSearchInput');
+const searchInlineWrap = document.getElementById('searchInlineWrap');
+
+if (taskSearchBtn && taskSearchInput && searchInlineWrap) {
+    taskSearchBtn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        const isActive = searchInlineWrap.classList.contains('active');
+        
+        if (isActive) {
+            // Đóng search + clear
+            searchInlineWrap.classList.remove('active');
+            taskSearchBtn.classList.remove('active');
+            taskSearchInput.value = '';
+            taskSearchKeyword = '';
+            setTimeout(() => renderTasks(), 350);
+        } else {
+            // Mở search
+            searchInlineWrap.classList.add('active');
+            taskSearchBtn.classList.add('active');
+            setTimeout(() => taskSearchInput.focus(), 100);
+        }
+    });
+
+    taskSearchInput.addEventListener('input', function() {
+        taskSearchKeyword = this.value.trim();
+        renderTasks();
+    });
+
+    taskSearchInput.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            searchInlineWrap.classList.remove('active');
+            taskSearchBtn.classList.remove('active');
+            this.value = '';
+            taskSearchKeyword = '';
+            renderTasks();
+        }
+    });
+}
         const closeTaskModalBtn = document.getElementById('closeTaskModalBtn');
 
         document.getElementById('tasksBtn').addEventListener('click', function() {
@@ -7138,10 +7413,18 @@ function deleteConfirmedTask(id, btn) {
             fetchTasksFromGAS();
         });
 
-                function closeTaskModal() {
-            taskModal.classList.remove('active');
-            closeFilterPopover();
-        }
+            function closeTaskModal() {
+    taskModal.classList.remove('active');
+    closeFilterPopover();
+    
+    // Reset search khi đóng modal
+    if (searchInlineWrap && searchInlineWrap.classList.contains('active')) {
+        searchInlineWrap.classList.remove('active');
+        if (taskSearchBtn) taskSearchBtn.classList.remove('active');
+        if (taskSearchInput) taskSearchInput.value = '';
+        taskSearchKeyword = '';
+    }
+}
 
         closeTaskModalBtn.addEventListener('click', closeTaskModal);
         taskModal.addEventListener('click', function(e) {
