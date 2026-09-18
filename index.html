@@ -5490,10 +5490,9 @@ const ccEmail1 = sendToClient ? clientEmailValue : '';
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        action: 'processAudio',
+                        action: 'processFullAudio',
                         salesEmail: currentEmail,
                         salesName: currentSalesName,
-                        companyName: currentCompanyName,
                         clientName: clientName,
                         filePath: filePath,
                         clientEmail: clientEmailValue,
