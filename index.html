@@ -2891,6 +2891,8 @@
                 </div>
                 <input type="text" id="editTaskInput" data-i18n-placeholder="new_title_placeholder" placeholder="Nhập tiêu đề mới..." />
                 <input type="datetime-local" id="editTaskDueInput" style="width:100%; padding:12px 16px; border:1.5px solid var(--border); border-radius:var(--radius-sm); font-family:inherit; font-size:15px; font-weight:500; color:var(--text); background:var(--white); outline:none; transition:all 0.2s ease; margin-bottom:16px; box-shadow:var(--shadow-sm);">
+                                <label style="display:block; font-size:12px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:6px;" data-i18n="edit_task_timezone_label">Múi giờ đồng bộ</label>
+                <select id="editTaskTimezone" style="width:100%; padding:12px 16px; border:1.5px solid var(--border); border-radius:var(--radius-sm); font-family:inherit; font-size:15px; font-weight:500; color:var(--text); background:var(--white); outline:none; transition:all 0.2s ease; margin-bottom:16px; box-shadow:var(--shadow-sm); -webkit-appearance:none; appearance:none; background-image:url('data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2212%22 height=%2212%22 viewBox=%220 0 12 12%22><path fill=%22%2364748B%22 d=%22M6 8L2 4h8z%22/></svg>'); background-repeat:no-repeat; background-position:right 16px center; padding-right:40px;"></select>
                 <div class="edit-actions">
                     <button class="cancel-edit" id="cancelEditTaskBtn" data-i18n="cancel_btn">Hủy</button>
                     <button class="save-edit" id="saveEditTaskBtn" data-i18n="save_btn">Lưu</button>
@@ -3631,6 +3633,8 @@
                 date_format_label: 'Định dạng ngày',
                 timezone_label: 'Múi giờ',
                 timezone_warning: 'Đổi múi giờ sẽ thay đổi giờ đến hạn của toàn bộ task, bao gồm task đã đồng bộ sang bên thứ 3. Chỉ đổi khi thực sự cần thiết.',
+                edit_task_timezone_label: 'Múi giờ đồng bộ',
+                tz_other_option: '── Khác (xem tất cả) ──',
                 group_label: 'Nhóm theo',
                 connections_label: 'Kết nối ứng dụng',
                 format_label: 'Định dạng',
@@ -3851,6 +3855,8 @@
                 date_format_label: 'Date format',
                 timezone_label: 'Timezone',
                 timezone_warning: 'Changing the timezone will change the due time of all existing tasks, including those synced to third-party apps. Only change when necessary.',
+                edit_task_timezone_label: 'Sync timezone',
+                tz_other_option: '── Other (see all) ──',
                 group_label: 'Group by',
                 connections_label: 'App connections',
                 format_label: 'Format',
@@ -6578,7 +6584,83 @@ function groupAndSortTasks(taskList, groupByType = 'client') {
                 toggleBtn.textContent = descElement.classList.contains('collapsed') ? t('show_more') : t('collapse');
             }
         }
+                // ============ EDIT TASK: Timezone dropdown ============
+        const COMMON_TIMEZONES = [
+            { tz: 'Asia/Ho_Chi_Minh',   label: '🇻🇳 Việt Nam (GMT+7)' },
+            { tz: 'America/New_York',   label: '🇺🇸 English (GMT-4)' },
+            { tz: 'Asia/Jakarta',       label: '🇮🇩 Indonesia (GMT+7)' },
+            { tz: 'Asia/Kuala_Lumpur',  label: '🇲🇾 Malaysia (GMT+8)' },
+            { tz: 'Asia/Manila',        label: '🇵🇭 Philippines (GMT+8)' },
+            { tz: 'Asia/Bangkok',       label: '🇹🇭 Thailand (GMT+7)' },
+            { tz: 'Asia/Phnom_Penh',    label: '🇰🇭 Cambodia (GMT+7)' },
+            { tz: 'Asia/Vientiane',     label: '🇱🇦 Laos (GMT+7)' },
+            { tz: 'Asia/Yangon',        label: '🇲🇲 Myanmar (GMT+6:30)' },
+            { tz: 'Asia/Shanghai',      label: '🇨🇳 China (GMT+8)' },
+            { tz: 'Asia/Tokyo',         label: '🇯🇵 Japan (GMT+9)' },
+            { tz: 'Asia/Seoul',         label: '🇰🇷 Korea (GMT+9)' },
+            { tz: 'Asia/Kolkata',       label: '🇮🇳 India (GMT+5:30)' },
+            { tz: 'Europe/Madrid',      label: '🇪🇸 Spain (GMT+2)' },
+            { tz: 'Europe/Paris',       label: '🇫🇷 France (GMT+2)' },
+            { tz: 'Europe/Berlin',      label: '🇩🇪 Germany (GMT+2)' },
+            { tz: 'Europe/Rome',        label: '🇮🇹 Italy (GMT+2)' },
+            { tz: 'Europe/Lisbon',      label: '🇵🇹 Portugal (GMT+1)' },
+            { tz: 'Europe/Moscow',      label: '🇷🇺 Russia (GMT+3)' },
+            { tz: 'Asia/Riyadh',        label: '🇸🇦 Saudi Arabia (GMT+3)' },
+            { tz: 'Europe/Istanbul',    label: '🇹🇷 Turkey (GMT+3)' }
+        ];
 
+        function buildTimezoneDropdown(selectedTz) {
+            const sel = document.getElementById('editTaskTimezone');
+            if (!sel) return;
+            sel.innerHTML = '';
+
+            // 21 TZ phổ biến
+            COMMON_TIMEZONES.forEach(item => {
+                const opt = document.createElement('option');
+                opt.value = item.tz;
+                opt.textContent = item.label;
+                if (item.tz === selectedTz) opt.selected = true;
+                sel.appendChild(opt);
+            });
+
+            // Nếu selectedTz không nằm trong 21 → tạo option "current" ở đầu
+            const isInCommon = COMMON_TIMEZONES.some(x => x.tz === selectedTz);
+            if (!isInCommon && selectedTz) {
+                const opt = document.createElement('option');
+                opt.value = selectedTz;
+                opt.textContent = selectedTz;
+                opt.selected = true;
+                sel.insertBefore(opt, sel.firstChild);
+            }
+
+            // Option "Khác"
+            const otherOpt = document.createElement('option');
+            otherOpt.value = '__other__';
+            otherOpt.textContent = t('tz_other_option');
+            sel.appendChild(otherOpt);
+        }
+
+        function buildFullTimezoneDropdown(selectedTz) {
+            // Lấy full list từ timezoneSelect có sẵn trong Format modal
+            const srcSel = document.getElementById('timezoneSelect');
+            const dstSel = document.getElementById('editTaskTimezone');
+            if (!srcSel || !dstSel) return;
+
+            dstSel.innerHTML = '';
+            Array.from(srcSel.options).forEach(opt => {
+                const newOpt = document.createElement('option');
+                newOpt.value = opt.value;
+                newOpt.textContent = opt.textContent;
+                if (opt.value === selectedTz) newOpt.selected = true;
+                dstSel.appendChild(newOpt);
+            });
+
+            // Thêm nút quay lại 21 TZ
+            const backOpt = document.createElement('option');
+            backOpt.value = '__back__';
+            backOpt.textContent = '── Quay lại danh sách ngắn ──';
+            dstSel.appendChild(backOpt);
+        }
         // ========================================================================
         //  EDIT TASK MODAL (mini)
         // ========================================================================
@@ -6596,6 +6678,11 @@ function groupAndSortTasks(taskList, groupByType = 'client') {
             editingConfirmedTaskId = taskId;
             editTaskInput.value = task.title;
             editTaskDueInput.value = getDateTimeValue(task.due);
+
+            // Build dropdown TZ, default = TZ setting hiện tại
+            const defaultTz = timezone || 'Asia/Ho_Chi_Minh';
+            buildTimezoneDropdown(defaultTz);
+
             editTaskModal.classList.add('active');
             editTaskInput.focus();
             editTaskInput.select();
@@ -6647,6 +6734,13 @@ function groupAndSortTasks(taskList, groupByType = 'client') {
         console.warn('Update sheet failed:', e);
     }
 
+        // Lấy TZ đã chọn từ dropdown (bỏ qua option __other__ / __back__)
+    const tzEl = document.getElementById('editTaskTimezone');
+    let selectedTz = timezone || 'Asia/Ho_Chi_Minh';
+    if (tzEl && tzEl.value && tzEl.value !== '__other__' && tzEl.value !== '__back__') {
+        selectedTz = tzEl.value;
+    }
+
     // Sync Trello
     const platforms = task.platforms || [];
     for (const p of platforms) {
@@ -6666,7 +6760,7 @@ function groupAndSortTasks(taskList, groupByType = 'client') {
                             due: task.due || '',
                             clientName: task.clientName || '',
                             clientEmail: task.clientEmail || '',
-                            timezone: timezone || 'Asia/Ho_Chi_Minh'
+                            timezone: selectedTz
                         }
                     })
                 });
@@ -6698,6 +6792,19 @@ function groupAndSortTasks(taskList, groupByType = 'client') {
         closeEditTaskBtn.addEventListener('click', closeEditTaskModal);
         cancelEditTaskBtn.addEventListener('click', closeEditTaskModal);
         saveEditTaskBtn.addEventListener('click', saveEditedTask);
+                // Lắng nghe đổi dropdown TZ — khi chọn "Khác" thì show full list
+        const editTaskTimezoneEl = document.getElementById('editTaskTimezone');
+        if (editTaskTimezoneEl) {
+            editTaskTimezoneEl.addEventListener('change', function() {
+                if (this.value === '__other__') {
+                    const currentTz = timezone || 'Asia/Ho_Chi_Minh';
+                    buildFullTimezoneDropdown(currentTz);
+                } else if (this.value === '__back__') {
+                    const currentTz = timezone || 'Asia/Ho_Chi_Minh';
+                    buildTimezoneDropdown(currentTz);
+                }
+            });
+        }
         editTaskInput.addEventListener('keydown', (e) => {
             if (e.key === 'Enter') saveEditedTask();
             if (e.key === 'Escape') closeEditTaskModal();
@@ -6870,7 +6977,11 @@ if (deleteTaskModal) {
                                 task: {
                                     ...task,
                                     platform: platformObj.platform,
-                                    timezone: timezone || 'Asia/Ho_Chi_Minh'
+                                    timezone: (document.getElementById('editTaskTimezone')?.value && 
+                                       document.getElementById('editTaskTimezone').value !== '__other__' && 
+                                       document.getElementById('editTaskTimezone').value !== '__back__')
+                                      ? document.getElementById('editTaskTimezone').value
+                                      : (timezone || 'Asia/Ho_Chi_Minh')
                                 }
                             })
                         });
