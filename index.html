@@ -3352,6 +3352,11 @@
                             <option value="Pacific/Wallis">Pacific/Wallis (GMT+12)</option>
                         </select>
                     </div>
+                    <!-- ↓↓↓ CẢNH BÁO MỚI THÊM ↓↓↓ -->
+                    <div style="margin-top: 10px; padding: 10px 12px; background: #FFFBEB; border: 1px solid #FDE68A; border-radius: 8px; font-size: 12.5px; color: #B45309; line-height: 1.5; display: flex; gap: 8px; align-items: flex-start;">
+                        <i class="fa-solid fa-triangle-exclamation" style="margin-top: 2px; flex-shrink: 0;"></i>
+                        <span data-i18n="timezone_warning">Đổi múi giờ chỉ ảnh hưởng cách hiển thị task. Task cũ vẫn giữ nguyên giờ gốc trong hệ thống.</span>
+                    </div>
                 </div>
             </div>
         </div>
@@ -3624,6 +3629,7 @@
                 overdue: 'Quá hạn',
                 date_format_label: 'Định dạng ngày',
                 timezone_label: 'Múi giờ',
+                timezone_warning: 'Đổi múi giờ chỉ ảnh hưởng cách hiển thị task. Task cũ vẫn giữ nguyên giờ gốc trong hệ thống.',
                 group_label: 'Nhóm theo',
                 connections_label: 'Kết nối ứng dụng',
                 format_label: 'Định dạng',
@@ -3843,6 +3849,7 @@
                 overdue: 'Overdue',
                 date_format_label: 'Date format',
                 timezone_label: 'Timezone',
+                timezone_warning: 'Changing timezone only affects how tasks are displayed. Existing tasks keep their original time in the system.',
                 group_label: 'Group by',
                 connections_label: 'App connections',
                 format_label: 'Format',
