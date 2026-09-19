@@ -2474,13 +2474,13 @@
                 <label class="field-label" data-i18n="email_label">Email</label>
                 <div class="input-wrap">
                     <i class="fa-regular fa-envelope"></i>
-                    <input type="email" id="emailInput" class="modal-input" data-i18n-placeholder="email_placeholder" placeholder="sales@congty.com" onkeydown="if(event.key==='Enter') " style="padding-left:44px;">
+                    <input type="email" id="emailInput" class="modal-input" data-i18n-placeholder="email_placeholder" placeholder="sales@congty.com" onkeydown="if(event.key==='Enter') handleLogin()" style="padding-left:44px;">
                 </div>
 
                 <label class="field-label" data-i18n="userid_label">User ID</label>
                 <div class="input-wrap">
                     <i class="fa-regular fa-id-card"></i>
-                    <input type="text" id="userIdInput" class="modal-input" data-i18n-placeholder="userid_placeholder" placeholder="S-PM-APP-000" style="padding-left:44px;">
+                    <input type="text" id="userIdInput" class="modal-input" data-i18n-placeholder="userid_placeholder" placeholder="S-PM-APP-000" onkeydown="if(event.key==='Enter') handleLogin()" style="padding-left:44px;">
                 </div>
 
                 <button class="btn-primary" onclick="handleLogin()">
