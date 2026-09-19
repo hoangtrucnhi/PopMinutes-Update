@@ -5928,6 +5928,21 @@ async function refreshTrelloStatus() {
         let isLoadingTasks = false;
         let groupBy = localStorage.getItem('popminutes_groupby') || 'client';
         let taskSearchKeyword = '';
+                // ============ HELPER: datetime-local → wall-clock string ============
+        function datetimeLocalToWallClock(dtLocal) {
+            // Input:  "2026-09-20T23:59"
+            // Output: "2026/09/20 11:59PM"
+            if (!dtLocal) return '';
+            const m = String(dtLocal).match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/);
+            if (!m) return '';
+            const y = m[1], mo = m[2], d = m[3];
+            let h = parseInt(m[4], 10);
+            const mi = m[5];
+            const ampm = h >= 12 ? 'PM' : 'AM';
+            let h12 = h % 12;
+            if (h12 === 0) h12 = 12;
+            return `${y}/${mo}/${d} ${String(h12).padStart(2, '0')}:${mi}${ampm}`;
+        }
         // ============ HELPER: Convert wall-clock + TZ → UTC Date ============
         function getTimezoneOffsetMs(tz, date) {
             // Trả về offset (ms) của tz tại thời điểm date
@@ -6608,7 +6623,7 @@ function groupAndSortTasks(taskList, groupByType = 'client') {
     // Update local
     task.title = newTitle;
     const dueVal = editTaskDueInput.value;
-    task.due = dueVal ? new Date(dueVal).toISOString() : '';
+    task.due = dueVal ? datetimeLocalToWallClock(dueVal) : '';
 
     saveTasksToStorage();
     closeEditTaskModal();          // ← đóng modal TRƯỚC
@@ -6721,7 +6736,7 @@ if (deleteTaskModal) {
     const desc = document.getElementById(`edit_desc_${id}`).value.trim();
     const dueInput = document.getElementById(`edit_due_${id}`);
     const due = dueInput ? dueInput.value : '';
-    const dueISO = due ? new Date(due).toISOString() : '';
+    const dueISO = due ? datetimeLocalToWallClock(due) : '';
     const assignee = document.getElementById(`edit_assignee_${id}`).value.trim();
 
     const task = tasks.suggested.find(t => t.id === id);
