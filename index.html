@@ -6664,29 +6664,7 @@ function groupAndSortTasks(taskList, groupByType = 'client') {
         // ========================================================================
         //  EDIT TASK MODAL (mini)
         // ========================================================================
-                // ============ Lưu TZ đã chọn per task (localStorage) ============
-        let taskTimezones = (() => {
-            try {
-                return JSON.parse(localStorage.getItem('popminutes_task_tz') || '{}');
-            } catch (e) {
-                return {};
-            }
-        })();
-
-        function saveTaskTimezone(taskId, tz) {
-            if (!taskId || !tz) return;
-            taskTimezones[taskId] = tz;
-            try {
-                localStorage.setItem('popminutes_task_tz', JSON.stringify(taskTimezones));
-                console.log(`💾 Saved TZ for task ${taskId}: ${tz}`);
-            } catch (e) {
-                console.warn('Save task TZ failed:', e);
-            }
-        }
-
-        function getTaskTimezone(taskId) {
-            return taskTimezones[taskId] || null;
-        }
+        // ============ Task timezone: lấy từ task.dueTimezone (đồng bộ qua Firestore) ============
         let editingConfirmedTaskId = null;
         const editTaskModal = document.getElementById('editTaskModal');
         const editTaskInput = document.getElementById('editTaskInput');
@@ -6702,9 +6680,8 @@ function groupAndSortTasks(taskList, groupByType = 'client') {
             editTaskInput.value = task.title;
             editTaskDueInput.value = getDateTimeValue(task.due);
 
-                        // Build dropdown TZ: ưu tiên TZ đã lưu của task, fallback TZ setting
-            const savedTz = getTaskTimezone(task.id);
-            const defaultTz = savedTz || timezone || 'Asia/Ho_Chi_Minh';
+                        // Build dropdown TZ: ưu tiên dueTimezone của task (từ Firestore), fallback TZ setting
+            const defaultTz = task.dueTimezone || timezone || 'Asia/Ho_Chi_Minh';
             buildTimezoneDropdown(defaultTz);
 
             editTaskModal.classList.add('active');
@@ -6764,8 +6741,25 @@ function groupAndSortTasks(taskList, groupByType = 'client') {
     if (tzEl && tzEl.value && tzEl.value !== '__other__' && tzEl.value !== '__back__') {
         selectedTz = tzEl.value;
     }
-    // LƯU TZ đã chọn cho task này (để lần sau mở lại hiển thị đúng)
-    saveTaskTimezone(task.id, selectedTz);
+
+    // Lưu TZ lên Firestore để sync multi-device
+    try {
+        await fetch(CLOUD_FUNCTION_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: new URLSearchParams({
+                action: 'saveTaskTimezone',
+                email: currentEmail,
+                taskId: task.id,
+                timezone: selectedTz
+            }).toString()
+        });
+        // Cập nhật local state để lần sau mở lại hiển thị đúng
+        task.dueTimezone = selectedTz;
+        console.log(`💾 Saved TZ ${selectedTz} for task ${task.id}`);
+    } catch (e) {
+        console.warn('Save task TZ failed:', e);
+    }
 
     // Sync Trello
     const platforms = task.platforms || [];
@@ -7117,7 +7111,6 @@ async function performFullDelete(taskId, fromArray, deleteBtnFromModal = null) {
     if (!confirm(t('delete_confirm_msg'))) return;
         // Xoá TZ đã lưu của task
     if (taskTimezones[taskId]) {
-        delete taskTimezones[taskId];
         try { localStorage.setItem('popminutes_task_tz', JSON.stringify(taskTimezones)); } catch (e) {}
     }
 
@@ -7367,7 +7360,8 @@ function deleteConfirmedTask(id, btn) {
                             platforms: task.platforms || [],
                             status: task.status,
                             clientName: task.clientName || '',
-                            clientEmail: task.clientEmail || ''
+                            clientEmail: task.clientEmail || '',
+                            dueTimezone: task.dueTimezone || null
                         };
                         const hasPopMinutes = taskObj.platforms.some(p => p.platform === 'PopMinutes');
                         if (!hasPopMinutes) {
