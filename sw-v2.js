@@ -38,16 +38,38 @@ self.addEventListener('activate', event => {
 
 // ========== FETCH (cache-first) ==========
 self.addEventListener('fetch', event => {
+    const req = event.request;
+    const url = new URL(req.url);
+    
+    // Network-first cho HTML + JS (luôn lấy bản mới)
+    const isHtmlOrJs = req.mode === 'navigate' || 
+                       url.pathname.endsWith('.html') || 
+                       url.pathname.endsWith('.js');
+    
+    if (isHtmlOrJs) {
+        event.respondWith(
+            fetch(req).then(response => {
+                // Cache bản mới
+                const clone = response.clone();
+                caches.open(CACHE_NAME).then(cache => cache.put(req, clone));
+                return response;
+            }).catch(() => {
+                // Offline → fallback cache
+                return caches.match(req);
+            })
+        );
+        return;
+    }
+    
+    // Còn lại: cache-first
     event.respondWith(
-        caches.match(event.request).then(response => {
-            return response || fetch(event.request).catch(err => {
-                console.warn('[SW] Fetch failed:', event.request.url, err.message);
-                return new Response('', { status: 408, statusText: 'Request Timeout' });
+        caches.match(req).then(response => {
+            return response || fetch(req).catch(() => {
+                return new Response('', { status: 408 });
             });
         })
     );
 });
-
 // ========== PUSH NOTIFICATION ==========
 self.addEventListener('push', function(event) {
     console.log('[SW] 🔔 Push received');
