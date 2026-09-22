@@ -4458,35 +4458,46 @@ if (event.data.type === 'NOTIFICATION_CLICK') {
                 }
             }
 
+            // Load prefs (cache trong biến global notifPrefsState)
+            await loadNotifPrefs();
+            const prefs = notifPrefsState || { record_done: true, task_overdue: true, task_due_24h: true };
+            console.log('🔍 computeNotifications prefs:', prefs);
+
             // 1. Task quá hạn / sắp đến hạn
             try {
                 const now = new Date();
-                const in3Days = new Date(now.getTime() + 3 * 24 * 60 * 60 * 1000);
+                const in3Days = new Date(now.getTime() + 24 * 60 * 60 * 1000);  // 24h
                 (tasks.confirmed || []).forEach(task => {
                     if (!task.due) return;
                     const due = parseDueString(task.due);
                     if (!due) return;
                     const dueTime = due.getTime();
                     if (dueTime < now.getTime()) {
-                        notifs.push({
-                            id: `task_overdue_${task.id}`,
-                            type: 'danger',
-                            icon: 'fa-triangle-exclamation',
-                            title: `${t('notif_task_overdue')}: ${task.title}`,
-                            desc: formatDueDate(task.due),
-                            timestamp: dueTime,
-                            category: 'task'
-                        });
+                        if (prefs.task_overdue === true) {
+                            const today = new Date().toISOString().slice(0, 10);
+                            notifs.push({
+                                id: `task_overdue_${task.id}_${today}`,
+                                type: 'danger',
+                                icon: 'fa-triangle-exclamation',
+                                title: `${t('notif_task_overdue')}: ${task.title}`,
+                                desc: formatDueDate(task.due),
+                                timestamp: dueTime,
+                                category: 'task'
+                            });
+                        }
                     } else if (dueTime < in3Days.getTime()) {
-                        notifs.push({
-                            id: `task_due_${task.id}`,
-                            type: 'warning',
-                            icon: 'fa-clock',
-                            title: `${t('notif_task_due')}: ${task.title}`,
-                            desc: formatDueDate(task.due),
-                            timestamp: dueTime,
-                            category: 'task'
-                        });
+                        if (prefs.task_due_24h === true) {
+                            const today = new Date().toISOString().slice(0, 10);
+                            notifs.push({
+                                id: `task_due_${task.id}_${today}`,
+                                type: 'warning',
+                                icon: 'fa-clock',
+                                title: `${t('notif_task_due')}: ${task.title}`,
+                                desc: formatDueDate(task.due),
+                                timestamp: dueTime,
+                                category: 'task'
+                            });
+                        }
                     }
                 });
             } catch (e) { console.warn('Task notif:', e); }
@@ -4529,6 +4540,7 @@ for (let attempt = 1; attempt <= 3; attempt++) {
                         .slice(0, 20);
 
                     sorted.forEach((rec, idx) => {
+                        if (prefs.record_done !== true) return;  // Skip nếu user tắt
                         const clientName = rec.clientName || '';
                         const timeStr = rec.createdAt || '';
                         // ID ổn định: ưu tiên recordId từ backend
