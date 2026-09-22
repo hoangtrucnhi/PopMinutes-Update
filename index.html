@@ -7760,16 +7760,14 @@ if (taskSearchBtn && taskSearchInput && searchInlineWrap) {
             });
         }
 
-        function updateMasterToggleState() {
+            function updateMasterToggleState() {
             const anyChecked = Object.values(notifPrefsState).some(v => v === true);
             const masterToggle = document.getElementById('notifMasterToggle');
             if (!masterToggle) return;
             if (!anyChecked) {
-                // Không có loại nào tick → master OFF + disable
+                // Chỉ tắt toggle, KHÔNG unsubscribe — giữ token
                 if (masterToggle.checked) {
                     masterToggle.checked = false;
-                    // Unregister push nếu đang ON
-                    unregisterPushNotifications();
                 }
                 masterToggle.disabled = true;
             } else {
