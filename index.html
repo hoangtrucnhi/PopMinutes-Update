@@ -7635,7 +7635,7 @@ if (taskSearchBtn && taskSearchInput && searchInlineWrap) {
 
         document.querySelectorAll('.task-tab').forEach(tab => {
             tab.addEventListener('click', function() {
-                document.querySelectorAll('.task-tab').forEach(item => t.classList.remove('active'));
+                document.querySelectorAll('.task-tab').forEach(item => item.classList.remove('active'));
                 this.classList.add('active');
                 const tabName = this.dataset.tab;
                 currentTab = tabName;
