@@ -6754,6 +6754,24 @@ function groupAndSortTasks(taskList, groupByType = 'client') {
                 timezone: selectedTz
             }).toString()
         });
+        task.dueTimezone = selectedTz;
+        console.log(`💾 Saved TZ ${selectedTz} for task ${task.id}`);
+    } catch (e) {
+        console.warn('Save task TZ failed:', e);
+    }
+
+    // Lưu TZ lên Firestore để sync multi-device
+    try {
+        await fetch(CLOUD_FUNCTION_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: new URLSearchParams({
+                action: 'saveTaskTimezone',
+                email: currentEmail,
+                taskId: task.id,
+                timezone: selectedTz
+            }).toString()
+        });
         // Cập nhật local state để lần sau mở lại hiển thị đúng
         task.dueTimezone = selectedTz;
         console.log(`💾 Saved TZ ${selectedTz} for task ${task.id}`);
