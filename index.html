@@ -5025,6 +5025,13 @@ for (let attempt = 1; attempt <= 3; attempt++) {
         }
 
         async function registerPushNotifications(silent = false) {
+                        // Lấy hoặc tạo deviceId (UUID lưu localStorage)
+            let deviceId = localStorage.getItem('popminutes_device_id');
+            if (!deviceId) {
+                deviceId = 'dev_' + Date.now() + '_' + Math.random().toString(36).substring(2, 10);
+                localStorage.setItem('popminutes_device_id', deviceId);
+                console.log('🆕 Created deviceId:', deviceId);
+            }
             if (!isPushSupported()) {
                 if (!silent) showToast('⚠️ Thiết bị không hỗ trợ thông báo đẩy', false);
                 return false;
@@ -5074,6 +5081,7 @@ for (let attempt = 1; attempt <= 3; attempt++) {
                 formData.append('platform', detectPlatform());
                 formData.append('language', currentLang);
                 formData.append('timezone', timezone);
+                formData.append('deviceId', deviceId);
 
                 const res = await fetch(CLOUD_FUNCTION_URL, {
                     method: 'POST',
