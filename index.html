@@ -5150,13 +5150,13 @@ for (let attempt = 1; attempt <= 3; attempt++) {
             }
         }
 
-        function detectPlatform() {
+                function detectPlatform() {
             const ua = navigator.userAgent;
             if (/iPad|iPhone|iPod/.test(ua)) return 'iOS';
-            if (/Android/.test(ua)) return 'Android';
+            if (/Android/i.test(ua)) return 'Android';   // ← Ưu tiên Android trước
             if (/Windows/.test(ua)) return 'Windows';
             if (/Mac/.test(ua)) return 'macOS';
-            if (/Linux/.test(ua)) return 'Linux';
+            if (/Linux/i.test(ua) && !/Android/i.test(ua)) return 'Linux';  // ← Chỉ Linux khi không phải Android
             return 'Web';
         }
 
@@ -7760,14 +7760,14 @@ if (taskSearchBtn && taskSearchInput && searchInlineWrap) {
             });
         }
 
-            function updateMasterToggleState() {
+                    function updateMasterToggleState() {
             const anyChecked = Object.values(notifPrefsState).some(v => v === true);
             const masterToggle = document.getElementById('notifMasterToggle');
             if (!masterToggle) return;
             if (!anyChecked) {
-                // Chỉ tắt toggle, KHÔNG unsubscribe — giữ token
                 if (masterToggle.checked) {
                     masterToggle.checked = false;
+                    // KHÔNG unsubscribe — chỉ tắt UI, backend đã filter prefs
                 }
                 masterToggle.disabled = true;
             } else {
