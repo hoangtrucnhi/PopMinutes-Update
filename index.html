@@ -6894,12 +6894,17 @@ function groupAndSortTasks(taskList, groupByType = 'client') {
         }
     }, 150);
 
-    showToast('' + t('action_success'), true);
+        showToast('' + t('action_success'), true);
+    
+    // Refresh badge sau khi edit
+    setTimeout(() => refreshNotifBadge(), 500);
 }
 
         closeEditTaskBtn.addEventListener('click', closeEditTaskModal);
         cancelEditTaskBtn.addEventListener('click', closeEditTaskModal);
         saveEditTaskBtn.addEventListener('click', saveEditedTask);
+        // Sau khi save edit → refresh badge
+        // (thêm vào cuối function saveEditedTask)
                 // Lắng nghe đổi dropdown TZ — khi chọn "Khác" thì show full list
         const editTaskTimezoneEl = document.getElementById('editTaskTimezone');
         if (editTaskTimezoneEl) {
@@ -6996,6 +7001,9 @@ if (deleteTaskModal) {
     } catch (e) {
         console.warn('Update sheet failed:', e);
     }
+    
+    // Refresh badge sau khi edit
+    setTimeout(() => refreshNotifBadge(), 500);
 }
 
         function cancelEditTask() {
@@ -7156,6 +7164,9 @@ tasks.confirmed.push(task);
 saveTasksToStorage();
 renderTasks();
 showToast('' + t('action_success'), true);
+
+// Refresh badge sau khi confirm
+setTimeout(() => refreshNotifBadge(), 500);
             } catch (error) {
                 console.error('Confirm task error:', error);
                 if (confirmBtn) {
@@ -7238,6 +7249,7 @@ async function performFullDelete(taskId, fromArray, deleteBtnFromModal = null) {
             saveTasksToStorage();
             renderTasks();
             showToast('' + t('action_success'), true);
+            setTimeout(() => refreshNotifBadge(), 500);
         } else {
             showToast('❌ ' + (result.message || 'Không rõ lỗi'), false);
             if (deleteBtn) {
@@ -7358,6 +7370,7 @@ async function performPlatformDelete(taskId, fromArray, platform, deleteBtnFromM
             saveTasksToStorage();
             renderTasks();
             showToast('' + t('action_success'), true);
+            setTimeout(() => refreshNotifBadge(), 500);
         } else {
             showToast('❌ ' + (result.message || 'Không rõ lỗi'), false);
             if (deleteBtn) {
@@ -7795,6 +7808,8 @@ if (taskSearchBtn && taskSearchInput && searchInlineWrap) {
                 if (data.status === 200) {
                     console.log('💾 Saved notif prefs:', data.prefs);
                     showToast('' + t('notif_prefs_saved'), true);
+                    // Refresh badge sau khi đổi prefs
+                    setTimeout(() => refreshNotifBadge(), 300);
                 }
             } catch (e) {
                 console.warn('saveNotifPrefs error:', e);
