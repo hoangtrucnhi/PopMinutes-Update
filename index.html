@@ -2614,19 +2614,13 @@
                             <div class="feature-sub" data-i18n="connections_sub">Google, Trello</div>
                         </div>
                     </button>
-                    <div class="feature-card" id="notifCard" style="cursor: default;">
+                    <button class="feature-card" id="notifCard">
                         <div class="feature-icon navy"><i class="fa-solid fa-bell"></i></div>
-                        <div style="flex:1; display:flex; justify-content:space-between; align-items:center; gap:12px; width:100%;">
-                            <div>
-                                <div class="feature-label" data-i18n="notif_push_title">Thông báo đẩy</div>
-                                <div class="feature-sub" id="notifStatus" data-i18n="notif_disabled">Đã tắt</div>
-                            </div>
-                            <label class="notif-switch">
-                                <input type="checkbox" id="notifToggle">
-                                <span class="notif-slider"></span>
-                            </label>
+                        <div>
+                            <div class="feature-label" data-i18n="notif_title_settings">Thông báo</div>
+                            <div class="feature-sub" data-i18n="notif_sub_settings">Biên bản, task đến hạn...</div>
                         </div>
-                    </div>
+                    </button>
                 </div>
             </div>
         </div>
@@ -3407,6 +3401,50 @@
                 </div>
             </div>
         </div>
+                <!-- ========== NOTIFICATION SETTINGS MODAL ========== -->
+        <div id="notifSettingsModal" class="modal-overlay notifications-modal">
+            <div class="modal-box settings-container">
+                <div class="modal-header">
+                    <h2 class="modal-title" data-i18n="notif_title_settings">Thông báo</h2>
+                    <button class="modal-close" id="closeNotifSettingsBtn"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+
+                <!-- Master switch -->
+                <div class="settings-section">
+                    <div class="settings-item" style="border-bottom: none; padding-bottom: 4px;">
+                        <div class="info">
+                            <i class="fa-solid fa-bell"></i>
+                            <span class="name" data-i18n="notif_push_master">Thông báo đẩy</span>
+                        </div>
+                        <label class="notif-switch">
+                            <input type="checkbox" id="notifMasterToggle">
+                            <span class="notif-slider"></span>
+                        </label>
+                    </div>
+                    <p style="font-size: 12.5px; color: var(--muted); margin: 0 0 8px 34px; line-height: 1.5;" data-i18n="notif_master_hint">
+                        Bật để nhận thông báo đẩy trên thiết bị này
+                    </p>
+                </div>
+
+                <!-- Divider -->
+                <div class="settings-section">
+                    <div class="settings-section-title" data-i18n="notif_types_title">Loại thông báo</div>
+
+                    <!-- Parent: Toàn bộ -->
+                    <label class="settings-item" style="cursor: pointer;">
+                        <div class="info">
+                            <i class="fa-solid fa-list-check"></i>
+                            <span class="name" style="font-weight: 700;" data-i18n="notif_type_all">Toàn bộ</span>
+                        </div>
+                        <input type="checkbox" id="notifTypeAll" style="width: 18px; height: 18px; accent-color: var(--navy); cursor: pointer;">
+                    </label>
+
+                    <!-- Children -->
+                    <div id="notifChildrenContainer" style="padding-left: 24px; border-left: 2px solid var(--border); margin-left: 12px;"></div>
+                </div>
+            </div>
+        </div>
+
         <!-- ========== HISTORY MODAL ========== -->
         <div id="historyModal" class="modal-overlay history-modal">
             <div class="modal-box">
@@ -3687,6 +3725,16 @@
                 notif_cleared: 'Đã xóa',
                 notif_no_unread: 'Không có thông báo mới',
                 notif_push_title: 'Thông báo đẩy',
+                notif_title_settings: 'Thông báo',
+                notif_sub_settings: 'Biên bản, task đến hạn...',
+                notif_push_master: 'Thông báo đẩy',
+                notif_master_hint: 'Bật để nhận thông báo đẩy trên thiết bị này',
+                notif_types_title: 'Loại thông báo',
+                notif_type_all: 'Toàn bộ',
+                notif_type_record_done: 'Biên bản thành công',
+                notif_type_task_overdue: 'Task quá hạn',
+                notif_type_task_due_24h: 'Task trong 24h',
+                notif_prefs_saved: 'Đã lưu tùy chọn thông báo',
                 notif_enabled: 'Đã bật',
                 notif_disabled: 'Đã tắt',
                 notif_denied: 'Từ chối',
@@ -3909,6 +3957,16 @@
                 notif_cleared: 'Cleared',
                 notif_no_unread: 'No new notifications',
                 notif_push_title: 'Push notifications',
+                notif_title_settings: 'Notifications',
+                notif_sub_settings: 'Minutes, due tasks...',
+                notif_push_master: 'Push notifications',
+                notif_master_hint: 'Enable to receive push notifications on this device',
+                notif_types_title: 'Notification types',
+                notif_type_all: 'All',
+                notif_type_record_done: 'Minutes completed',
+                notif_type_task_overdue: 'Overdue tasks',
+                notif_type_task_due_24h: 'Tasks within 24h',
+                notif_prefs_saved: 'Notification preferences saved',
                 notif_enabled: 'Enabled',
                 notif_disabled: 'Disabled',
                 notif_denied: 'Notifications denied',
@@ -7619,6 +7677,171 @@ if (taskSearchBtn && taskSearchInput && searchInlineWrap) {
         formatModal.addEventListener('click', function(e) {
             if (e.target === formatModal) closeFormatModal();
         });
+        // ========================================================================
+        //  NOTIFICATION SETTINGS MODAL
+        // ========================================================================
+        const NOTIF_TYPES = [
+            { key: 'record_done',  i18n: 'notif_type_record_done'  },
+            { key: 'task_overdue', i18n: 'notif_type_task_overdue' },
+            { key: 'task_due_24h', i18n: 'notif_type_task_due_24h' }
+        ];
+
+        let notifPrefsState = {
+            record_done: true,
+            task_overdue: true,
+            task_due_24h: true
+        };
+
+        function renderNotifChildren() {
+            const container = document.getElementById('notifChildrenContainer');
+            if (!container) return;
+            container.innerHTML = NOTIF_TYPES.map(t => `
+                <label class="settings-item" style="cursor: pointer; padding: 10px 0;">
+                    <div class="info">
+                        <span class="name" data-i18n="${t.i18n}">${t(t.i18n)}</span>
+                    </div>
+                    <input type="checkbox" class="notif-child-checkbox" data-key="${t.key}" style="width: 16px; height: 16px; accent-color: var(--navy); cursor: pointer;" ${notifPrefsState[t.key] ? 'checked' : ''}>
+                </label>
+            `).join('');
+            // Bind change events
+            container.querySelectorAll('.notif-child-checkbox').forEach(cb => {
+                cb.addEventListener('change', onChildChange);
+            });
+        }
+
+        function onChildChange() {
+            const childBoxes = document.querySelectorAll('.notif-child-checkbox');
+            const allChecked = Array.from(childBoxes).every(cb => cb.checked);
+            const parentBox = document.getElementById('notifTypeAll');
+            if (parentBox) parentBox.checked = allChecked;
+            updateNotifPrefsFromUI();
+            updateMasterToggleState();
+            saveNotifPrefs();
+        }
+
+        function onParentChange(e) {
+            const checked = e.target.checked;
+            document.querySelectorAll('.notif-child-checkbox').forEach(cb => {
+                cb.checked = checked;
+            });
+            updateNotifPrefsFromUI();
+            updateMasterToggleState();
+            saveNotifPrefs();
+        }
+
+        function updateNotifPrefsFromUI() {
+            document.querySelectorAll('.notif-child-checkbox').forEach(cb => {
+                notifPrefsState[cb.dataset.key] = cb.checked;
+            });
+        }
+
+        function updateMasterToggleState() {
+            const anyChecked = Object.values(notifPrefsState).some(v => v === true);
+            const masterToggle = document.getElementById('notifMasterToggle');
+            if (!masterToggle) return;
+            if (!anyChecked) {
+                // Không có loại nào tick → master OFF + disable
+                if (masterToggle.checked) {
+                    masterToggle.checked = false;
+                    // Unregister push nếu đang ON
+                    unregisterPushNotifications();
+                }
+                masterToggle.disabled = true;
+            } else {
+                masterToggle.disabled = false;
+            }
+        }
+
+        async function loadNotifPrefs() {
+            if (!currentEmail) return;
+            try {
+                const url = `${CLOUD_FUNCTION_URL}?action=getNotifPrefs&email=${encodeURIComponent(currentEmail)}`;
+                const res = await fetch(url);
+                const data = await res.json();
+                if (data.status === 200 && data.prefs) {
+                    notifPrefsState = { ...notifPrefsState, ...data.prefs };
+                    console.log('📥 Loaded notif prefs:', notifPrefsState);
+                }
+            } catch (e) {
+                console.warn('loadNotifPrefs error:', e);
+            }
+        }
+
+        async function saveNotifPrefs() {
+            if (!currentEmail) return;
+            try {
+                const res = await fetch(CLOUD_FUNCTION_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: new URLSearchParams({
+                        action: 'saveNotifPrefs',
+                        email: currentEmail,
+                        prefs: JSON.stringify(notifPrefsState)
+                    }).toString()
+                });
+                const data = await res.json();
+                if (data.status === 200) {
+                    console.log('💾 Saved notif prefs:', data.prefs);
+                    showToast('✅ ' + t('notif_prefs_saved'), true);
+                }
+            } catch (e) {
+                console.warn('saveNotifPrefs error:', e);
+            }
+        }
+
+        async function openNotifSettingsModal() {
+            if (!currentEmail) {
+                alert(t('toast_login_required'));
+                return;
+            }
+            // Load prefs mới nhất
+            await loadNotifPrefs();
+            // Render children
+            renderNotifChildren();
+            // Set parent state
+            const parentBox = document.getElementById('notifTypeAll');
+            if (parentBox) {
+                parentBox.checked = NOTIF_TYPES.every(t => notifPrefsState[t.key]);
+                parentBox.addEventListener('change', onParentChange);
+            }
+            // Master toggle state
+            const masterToggle = document.getElementById('notifMasterToggle');
+            if (masterToggle) {
+                const pushEnabled = await isPushEnabled();
+                masterToggle.checked = pushEnabled;
+                updateMasterToggleState();
+                // Bind change (dùng once để tránh duplicate)
+                masterToggle.onchange = async function() {
+                    if (this.checked) {
+                        const ok = await registerPushNotifications(false);
+                        if (!ok) this.checked = false;
+                    } else {
+                        await unregisterPushNotifications();
+                    }
+                };
+            }
+            document.getElementById('notifSettingsModal').classList.add('active');
+        }
+
+        function closeNotifSettingsModal() {
+            document.getElementById('notifSettingsModal').classList.remove('active');
+        }
+
+        // Bind events
+        document.addEventListener('DOMContentLoaded', function() {
+            const notifCardBtn = document.getElementById('notifCard');
+            if (notifCardBtn) notifCardBtn.addEventListener('click', openNotifSettingsModal);
+
+            const closeBtn = document.getElementById('closeNotifSettingsBtn');
+            if (closeBtn) closeBtn.addEventListener('click', closeNotifSettingsModal);
+
+            const modal = document.getElementById('notifSettingsModal');
+            if (modal) {
+                modal.addEventListener('click', function(e) {
+                    if (e.target === modal) closeNotifSettingsModal();
+                });
+            }
+        });
 
         // ========================================================================
         //  MODAL: KẾT NỐI ỨNG DỤNG (Connections)
@@ -7952,28 +8175,8 @@ if (taskSearchBtn && taskSearchInput && searchInlineWrap) {
 
             // Đồng bộ trạng thái nút kết nối
             updateSettingsUI();
-                        // Init notification toggle
+            // Init notification
             await loadVapidKeyFromServer();
-
-            const notifToggleEl = document.getElementById('notifToggle');
-            if (notifToggleEl) {
-                if (isPushSupported()) {
-                    isPushEnabled().then(enabled => updateNotifToggleUI(enabled));
-                } else {
-                    notifToggleEl.disabled = true;
-                    const status = document.getElementById('notifStatus');
-                    if (status) status.textContent = 'Không hỗ trợ';
-                }
-
-                notifToggleEl.addEventListener('change', async function() {
-                    if (this.checked) {
-                        const ok = await registerPushNotifications(false);
-                        if (!ok) this.checked = false;
-                    } else {
-                        await unregisterPushNotifications();
-                    }
-                });
-            }
         });
         // ========================================================================
 //  MODAL CHỌN BOARD TRELLO
