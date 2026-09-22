@@ -5923,7 +5923,7 @@ async function openTasksWithDueFilter() {
     }
 
     // 4. Chuyển sang tab "Đã xác nhận"
-    document.querySelectorAll('.task-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.task-tab').forEach(item => t.classList.remove('active'));
     const confirmedTab = document.querySelector('.task-tab[data-tab="confirmed"]');
     if (confirmedTab) confirmedTab.classList.add('active');
 
@@ -7635,7 +7635,7 @@ if (taskSearchBtn && taskSearchInput && searchInlineWrap) {
 
         document.querySelectorAll('.task-tab').forEach(tab => {
             tab.addEventListener('click', function() {
-                document.querySelectorAll('.task-tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.task-tab').forEach(item => t.classList.remove('active'));
                 this.classList.add('active');
                 const tabName = this.dataset.tab;
                 currentTab = tabName;
@@ -7695,12 +7695,12 @@ if (taskSearchBtn && taskSearchInput && searchInlineWrap) {
         function renderNotifChildren() {
             const container = document.getElementById('notifChildrenContainer');
             if (!container) return;
-            container.innerHTML = NOTIF_TYPES.map(t => `
+            container.innerHTML = NOTIF_TYPES.map(item => `
                 <label class="settings-item" style="cursor: pointer; padding: 10px 0;">
                     <div class="info">
-                        <span class="name" data-i18n="${t.i18n}">${t(t.i18n)}</span>
+                        <span class="name" data-i18n="${item.i18n}">${t(item.i18n)}</span>
                     </div>
-                    <input type="checkbox" class="notif-child-checkbox" data-key="${t.key}" style="width: 16px; height: 16px; accent-color: var(--navy); cursor: pointer;" ${notifPrefsState[t.key] ? 'checked' : ''}>
+                    <input type="checkbox" class="notif-child-checkbox" data-key="${item.key}" style="width: 16px; height: 16px; accent-color: var(--navy); cursor: pointer;" ${notifPrefsState[item.key] ? 'checked' : ''}>
                 </label>
             `).join('');
             // Bind change events
