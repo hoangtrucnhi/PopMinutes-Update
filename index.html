@@ -6664,6 +6664,29 @@ function groupAndSortTasks(taskList, groupByType = 'client') {
         // ========================================================================
         //  EDIT TASK MODAL (mini)
         // ========================================================================
+                // ============ Lưu TZ đã chọn per task (localStorage) ============
+        let taskTimezones = (() => {
+            try {
+                return JSON.parse(localStorage.getItem('popminutes_task_tz') || '{}');
+            } catch (e) {
+                return {};
+            }
+        })();
+
+        function saveTaskTimezone(taskId, tz) {
+            if (!taskId || !tz) return;
+            taskTimezones[taskId] = tz;
+            try {
+                localStorage.setItem('popminutes_task_tz', JSON.stringify(taskTimezones));
+                console.log(`💾 Saved TZ for task ${taskId}: ${tz}`);
+            } catch (e) {
+                console.warn('Save task TZ failed:', e);
+            }
+        }
+
+        function getTaskTimezone(taskId) {
+            return taskTimezones[taskId] || null;
+        }
         let editingConfirmedTaskId = null;
         const editTaskModal = document.getElementById('editTaskModal');
         const editTaskInput = document.getElementById('editTaskInput');
@@ -6679,8 +6702,9 @@ function groupAndSortTasks(taskList, groupByType = 'client') {
             editTaskInput.value = task.title;
             editTaskDueInput.value = getDateTimeValue(task.due);
 
-            // Build dropdown TZ, default = TZ setting hiện tại
-            const defaultTz = timezone || 'Asia/Ho_Chi_Minh';
+                        // Build dropdown TZ: ưu tiên TZ đã lưu của task, fallback TZ setting
+            const savedTz = getTaskTimezone(task.id);
+            const defaultTz = savedTz || timezone || 'Asia/Ho_Chi_Minh';
             buildTimezoneDropdown(defaultTz);
 
             editTaskModal.classList.add('active');
@@ -6740,6 +6764,8 @@ function groupAndSortTasks(taskList, groupByType = 'client') {
     if (tzEl && tzEl.value && tzEl.value !== '__other__' && tzEl.value !== '__back__') {
         selectedTz = tzEl.value;
     }
+    // LƯU TZ đã chọn cho task này (để lần sau mở lại hiển thị đúng)
+    saveTaskTimezone(task.id, selectedTz);
 
     // Sync Trello
     const platforms = task.platforms || [];
@@ -7089,6 +7115,11 @@ showToast('' + t('action_success'), true);
 // ============ Thực hiện xóa toàn bộ (giữ logic cũ) ============
 async function performFullDelete(taskId, fromArray, deleteBtnFromModal = null) {
     if (!confirm(t('delete_confirm_msg'))) return;
+        // Xoá TZ đã lưu của task
+    if (taskTimezones[taskId]) {
+        delete taskTimezones[taskId];
+        try { localStorage.setItem('popminutes_task_tz', JSON.stringify(taskTimezones)); } catch (e) {}
+    }
 
     // Ưu tiên dùng nút từ modal, fallback query lại
     const deleteBtn = deleteBtnFromModal || getTaskDeleteButton(taskId);
@@ -7227,6 +7258,10 @@ async function performPlatformDelete(taskId, fromArray, platform, deleteBtnFromM
         const result = await response.json();
 
         if (result.status === 200) {
+                        if (taskTimezones[taskId]) {
+                delete taskTimezones[taskId];
+                try { localStorage.setItem('popminutes_task_tz', JSON.stringify(taskTimezones)); } catch (e) {}
+            }
             const taskList = fromArray === 'suggested' ? tasks.suggested : tasks.confirmed;
             const task = taskList.find(t => t.id === taskId);
             if (task) {
