@@ -3734,7 +3734,7 @@
                 notif_type_record_done: 'Biên bản thành công',
                 notif_type_task_overdue: 'Task quá hạn',
                 notif_type_task_due_24h: 'Task trong 24h',
-                notif_prefs_saved: 'Đã lưu tùy chọn thông báo',
+                notif_prefs_saved: 'Đã lưu',
                 notif_enabled: 'Đã bật',
                 notif_disabled: 'Đã tắt',
                 notif_denied: 'Từ chối',
@@ -3966,7 +3966,7 @@
                 notif_type_record_done: 'Minutes completed',
                 notif_type_task_overdue: 'Overdue tasks',
                 notif_type_task_due_24h: 'Tasks within 24h',
-                notif_prefs_saved: 'Notification preferences saved',
+                notif_prefs_saved: 'Saved',
                 notif_enabled: 'Enabled',
                 notif_disabled: 'Disabled',
                 notif_denied: 'Notifications denied',
@@ -7782,7 +7782,7 @@ if (taskSearchBtn && taskSearchInput && searchInlineWrap) {
                 const data = await res.json();
                 if (data.status === 200) {
                     console.log('💾 Saved notif prefs:', data.prefs);
-                    showToast('✅ ' + t('notif_prefs_saved'), true);
+                    showToast('' + t('notif_prefs_saved'), true);
                 }
             } catch (e) {
                 console.warn('saveNotifPrefs error:', e);
