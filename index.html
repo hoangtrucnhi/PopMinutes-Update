@@ -5923,7 +5923,7 @@ async function openTasksWithDueFilter() {
     }
 
     // 4. Chuyển sang tab "Đã xác nhận"
-    document.querySelectorAll('.task-tab').forEach(item => t.classList.remove('active'));
+    document.querySelectorAll('.task-tab').forEach(item => item.classList.remove('active'));
     const confirmedTab = document.querySelector('.task-tab[data-tab="confirmed"]');
     if (confirmedTab) confirmedTab.classList.add('active');
 
