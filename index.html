@@ -5637,9 +5637,9 @@ const ccEmail1 = (sendToClient && clientEmailValue) ? clientEmailValue : '';
 
                 recordStatusDiv.innerHTML =
                     `<span class="status-loading"><i class="fa-solid fa-spinner fa-spin"></i> ${t('status_uploading')}</span>`;
+                // Không set Content-Type để tránh mismatch với signed headers
                 const uploadResponse = await fetch(uploadUrl, {
                     method: 'PUT',
-                    headers: { 'Content-Type': blobToUpload.type || 'audio/webm' },
                     body: blobToUpload
                 });
                 if (!uploadResponse.ok) throw new Error(t('err_upload_fail'));
