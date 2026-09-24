@@ -6214,7 +6214,6 @@ function getDateTimeValue(dueISO) {
         const notifData = await notifRes.json();
         if (notifData.status === 200) {
             console.log(`📅 Notif schedule updated: hour_utc=${notifData.notif_hour_utc}`);
-            showToast(`✅ Notif hour UTC: ${notifData.notif_hour_utc}`, true);
         } else {
             console.warn('Update notif schedule failed:', notifData);
         }
