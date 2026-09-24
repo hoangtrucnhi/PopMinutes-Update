@@ -7227,10 +7227,6 @@ setTimeout(() => refreshNotifBadge(), 500);
 // ============ Thực hiện xóa toàn bộ (giữ logic cũ) ============
 async function performFullDelete(taskId, fromArray, deleteBtnFromModal = null) {
     if (!confirm(t('delete_confirm_msg'))) return;
-        // Xoá TZ đã lưu của task
-    if (taskTimezones[taskId]) {
-        try { localStorage.setItem('popminutes_task_tz', JSON.stringify(taskTimezones)); } catch (e) {}
-    }
 
     // Ưu tiên dùng nút từ modal, fallback query lại
     const deleteBtn = deleteBtnFromModal || getTaskDeleteButton(taskId);
@@ -7370,10 +7366,6 @@ async function performPlatformDelete(taskId, fromArray, platform, deleteBtnFromM
         const result = await response.json();
 
         if (result.status === 200) {
-                        if (taskTimezones[taskId]) {
-                delete taskTimezones[taskId];
-                try { localStorage.setItem('popminutes_task_tz', JSON.stringify(taskTimezones)); } catch (e) {}
-            }
             const taskList = fromArray === 'suggested' ? tasks.suggested : tasks.confirmed;
             const task = taskList.find(t => t.id === taskId);
             if (task) {
