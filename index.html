@@ -6174,26 +6174,11 @@ function getDateTimeValue(dueISO) {
     if (h === '24') h = '00';
     return `${y}-${mo}-${d}T${h}:${mi}`;
 }
-                async function saveDisplaySettings() {
+                        async function saveDisplaySettings() {
     // 1. Lưu localStorage
     localStorage.setItem('popminutes_date_format', dateFormat);
     localStorage.setItem('popminutes_timezone', timezone);
-                renderTasks();
-
-            // Nếu timezone đổi → cập nhật notif schedule
-            if (currentEmail && timezone) {
-                fetch(CLOUD_FUNCTION_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                    body: new URLSearchParams({
-                        action: 'updateNotifSchedule',
-                        email: currentEmail,
-                        timezone: timezone
-                    }).toString()
-                }).then(r => r.json())
-                  .then(d => console.log(`📅 Notif schedule updated: hour_utc=${d.notif_hour_utc}`))
-                  .catch(e => console.warn('Update notif schedule failed:', e));
-            }
+    renderTasks();
 
     // 2. Đồng bộ lên Firestore
     if (!currentEmail) return;
@@ -6209,11 +6194,29 @@ function getDateTimeValue(dueISO) {
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
             body: formData.toString()
         });
-                const data = await res.json();
+        const data = await res.json();
         if (data.status === 200) {
             console.log(`✅ Settings synced to Firestore`);
         } else {
             console.warn('Sync settings failed:', data.message);
+        }
+
+        // 3. Cập nhật notif schedule khi timezone đổi
+        const notifRes = await fetch(CLOUD_FUNCTION_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: new URLSearchParams({
+                action: 'updateNotifSchedule',
+                email: currentEmail,
+                timezone: timezone
+            }).toString()
+        });
+        const notifData = await notifRes.json();
+        if (notifData.status === 200) {
+            console.log(`📅 Notif schedule updated: hour_utc=${notifData.notif_hour_utc}`);
+            showToast(`✅ Notif hour UTC: ${notifData.notif_hour_utc}`, true);
+        } else {
+            console.warn('Update notif schedule failed:', notifData);
         }
     } catch (e) {
         console.warn('Sync settings error:', e);
