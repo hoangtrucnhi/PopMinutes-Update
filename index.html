@@ -5600,19 +5600,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
-            // Client email (bắt buộc)
-const clientEmailValue = document.getElementById('clientEmailInput')?.value.trim() || '';
-if (!clientEmailValue) {
-    recordStatusDiv.innerHTML = `<span style="color:var(--danger)">${t('err_client_email_empty')}</span>`;
-    return;
-}
+            // Client email (không bắt buộc)
+            const clientEmailValue = document.getElementById('clientEmailInput')?.value.trim() || '';
 
 // Cc_2 (tùy chọn)
 const ccEmail2 = document.getElementById('ccEmail2') ? document.getElementById('ccEmail2').value.trim() : '';
 
-// Cc_1 = clientEmail nếu tick checkbox
+// Cc_1 = clientEmail nếu tick checkbox VÀ có email
 const sendToClient = document.getElementById('sendToClientCheckbox')?.checked || false;
-const ccEmail1 = sendToClient ? clientEmailValue : '';
+const ccEmail1 = (sendToClient && clientEmailValue) ? clientEmailValue : '';
             const outputMode = document.getElementById('outputMode').value;
             const outputTargetLang = document.getElementById('outputTargetLang').value;
             localStorage.setItem('popminutes_output_mode', outputMode);
@@ -5714,6 +5710,20 @@ const ccEmail1 = sendToClient ? clientEmailValue : '';
             } finally {
                 isUploading = false;
             }
+        }
+                // ===== Show/hide note "cần email" khi tick checkbox =====
+        const clientEmailInputEl2 = document.getElementById('clientEmailInput');
+        const sendToClientCbEl2 = document.getElementById('sendToClientCheckbox');
+        const sendToClientNoteEl = document.getElementById('sendToClientNote');
+        if (clientEmailInputEl2 && sendToClientCbEl2 && sendToClientNoteEl) {
+            const updateNote = () => {
+                const ticked = sendToClientCbEl2.checked;
+                const hasEmail = clientEmailInputEl2.value.trim().length > 0;
+                sendToClientNoteEl.style.display = (ticked && !hasEmail) ? 'block' : 'none';
+            };
+            clientEmailInputEl2.addEventListener('input', updateNote);
+            sendToClientCbEl2.addEventListener('change', updateNote);
+            updateNote();
         }
 
         const toggleCcBtn = document.getElementById('toggleCcBtn');
