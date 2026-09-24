@@ -6178,7 +6178,22 @@ function getDateTimeValue(dueISO) {
     // 1. Lưu localStorage
     localStorage.setItem('popminutes_date_format', dateFormat);
     localStorage.setItem('popminutes_timezone', timezone);
-    renderTasks();
+                renderTasks();
+
+            // Nếu timezone đổi → cập nhật notif schedule
+            if (currentEmail && timezone) {
+                fetch(CLOUD_FUNCTION_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: new URLSearchParams({
+                        action: 'updateNotifSchedule',
+                        email: currentEmail,
+                        timezone: timezone
+                    }).toString()
+                }).then(r => r.json())
+                  .then(d => console.log(`📅 Notif schedule updated: hour_utc=${d.notif_hour_utc}`))
+                  .catch(e => console.warn('Update notif schedule failed:', e));
+            }
 
     // 2. Đồng bộ lên Firestore
     if (!currentEmail) return;
