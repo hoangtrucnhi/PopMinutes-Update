@@ -8175,7 +8175,7 @@ if (taskSearchBtn && taskSearchInput && searchInlineWrap) {
             //  AFFILIATE: Track ?ref=xxx từ URL
             // ================================================================
             try {
-                const refPartnerId = urlParams.get('ref');
+                const refPartnerId = new URLSearchParams(window.location.search).get('ref');
                 if (refPartnerId) {
                     console.log('🔗 Affiliate ref detected:', refPartnerId);
                     
