@@ -4275,6 +4275,37 @@ if (event.data.type === 'NOTIFICATION_CLICK') {
                     currentEmail = emailInput;
                     currentSalesName = result.sales.name;
                     currentCompanyName = result.enterprise.name;
+                                        // ================================================================
+                    //  AFFILIATE: Attach referral nếu có
+                    // ================================================================
+                    try {
+                        const refId = localStorage.getItem('popminutes_affiliate_referral_id');
+                        if (refId) {
+                            const refData = JSON.parse(localStorage.getItem('popminutes_affiliate_ref') || '{}');
+                            if (refData.expires_at > Date.now()) {
+                                fetch(CLOUD_FUNCTION_URL, {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                                    body: new URLSearchParams({
+                                        action: 'affiliateAttach',
+                                        referralId: refId,
+                                        customerEmail: emailInput,
+                                        customerCompanyId: result.sales?.id || ''
+                                    }).toString()
+                                }).then(r => r.json())
+                                  .then(d => {
+                                      if (d.status === 200) {
+                                          console.log('✅ Referral attached:', refId);
+                                          localStorage.removeItem('popminutes_affiliate_referral_id');
+                                      }
+                                  })
+                                  .catch(e => console.warn('Attach referral failed:', e));
+                            }
+                        }
+                    } catch (e) {
+                        console.warn('Affiliate attach error:', e.message);
+                    }
+
                     setTimeout(() => applyLanguage(currentLang), 100);
                     saveAuthInfo(result);
 
@@ -8140,6 +8171,59 @@ if (taskSearchBtn && taskSearchInput && searchInlineWrap) {
         //  KHỞI CHẠY
         // ========================================================================
         document.addEventListener('DOMContentLoaded', async function() {
+            // ================================================================
+            //  AFFILIATE: Track ?ref=xxx từ URL
+            // ================================================================
+            try {
+                const refPartnerId = urlParams.get('ref');
+                if (refPartnerId) {
+                    console.log('🔗 Affiliate ref detected:', refPartnerId);
+                    
+                    // Lưu localStorage (365 ngày)
+                    const expiryDate = Date.now() + (365 * 24 * 60 * 60 * 1000);
+                    localStorage.setItem('popminutes_affiliate_ref', JSON.stringify({
+                        partner_id: refPartnerId,
+                        captured_at: Date.now(),
+                        expires_at: expiryDate
+                    }));
+                    
+                    // Track lên backend (async)
+                    fetch(CLOUD_FUNCTION_URL, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                        body: new URLSearchParams({
+                            action: 'affiliateTrack',
+                            partnerId: refPartnerId,
+                            channel: 'link',
+                            userAgent: navigator.userAgent,
+                            referrer: document.referrer || ''
+                        }).toString()
+                    }).then(r => r.json())
+                      .then(d => {
+                          if (d.status === 200) {
+                              console.log('✅ Affiliate tracked:', d.referral_id);
+                              localStorage.setItem('popminutes_affiliate_referral_id', d.referral_id);
+                          } else {
+                              console.warn('⚠️ Track failed:', d.message);
+                          }
+                      })
+                      .catch(e => console.warn('Affiliate track error:', e));
+                } else {
+                    // Check localStorage
+                    const saved = localStorage.getItem('popminutes_affiliate_ref');
+                    if (saved) {
+                        const parsed = JSON.parse(saved);
+                        if (parsed.expires_at > Date.now()) {
+                            console.log('🔗 Affiliate ref từ storage:', parsed.partner_id);
+                        } else {
+                            localStorage.removeItem('popminutes_affiliate_ref');
+                            localStorage.removeItem('popminutes_affiliate_referral_id');
+                        }
+                    }
+                }
+            } catch (e) {
+                console.warn('Affiliate setup error:', e.message);
+            }
             // ================================================================
             //  XỬ LÝ DEEP LINK TỪ PUSH NOTIFICATION
             // ================================================================
