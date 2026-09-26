@@ -7016,6 +7016,8 @@ if (qrCheckinBtn) {
             if (methodSelect) methodSelect.addEventListener('change', toggleBankMethod);
             const closeBtn = document.getElementById('closeBankInfoBtn');
             if (closeBtn) closeBtn.onclick = closeBankInfoModal;
+            const saveBtn = document.getElementById('affSaveBankBtn');
+            if (saveBtn) saveBtn.onclick = saveAffBankInfo;
             const modalEl = document.getElementById('bankInfoModal');
             if (modalEl) {
                 modalEl.addEventListener('click', function(e) {
