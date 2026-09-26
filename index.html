@@ -2452,6 +2452,8 @@
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
+
+        /* Section title — bấm để collapse */
         .affiliate-section-title {
             font-size: 14px;
             font-weight: 800;
@@ -2460,6 +2462,24 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
+            gap: 8px;
+            cursor: pointer;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .affiliate-section-title > span:first-child {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .affiliate-section-title > span:first-child i {
+            color: var(--navy);
+            font-size: 15px;
+        }
+        .affiliate-section-title .count-wrap {
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
         .affiliate-section-title .count {
             background: var(--navy-pale);
@@ -2471,6 +2491,19 @@
             min-width: 24px;
             text-align: center;
         }
+        .affiliate-section-title .toggle-icon {
+            font-size: 12px;
+            color: var(--navy-light);
+            transition: transform 0.2s;
+        }
+        .affiliate-section-title .toggle-icon:not(.open) {
+            transform: rotate(-90deg);
+        }
+        .affiliate-group-body.collapsed {
+            display: none;
+        }
+
+        /* Row item */
         .affiliate-row {
             background: #fff;
             border: 1px solid var(--border);
@@ -2478,6 +2511,13 @@
             padding: 12px 14px;
             margin-bottom: 8px;
             font-size: 13px;
+        }
+        .affiliate-referral-row {
+            cursor: pointer;
+            transition: border-color 0.15s;
+        }
+        .affiliate-referral-row:hover {
+            border-color: var(--navy-light);
         }
         .affiliate-row-header {
             display: flex;
@@ -2497,8 +2537,23 @@
         .affiliate-row-meta {
             color: var(--muted);
             font-size: 12px;
-            line-height: 1.6;
+            line-height: 1.7;
         }
+        .affiliate-row-meta > div {
+            display: flex;
+            align-items: flex-start;
+            gap: 4px;
+        }
+        .affiliate-row-meta i {
+            width: 14px;
+            text-align: center;
+            flex-shrink: 0;
+            margin-top: 3px;
+            color: var(--navy-light);
+            font-size: 11.5px;
+        }
+
+        /* Status badge — chỉ dùng cho commission */
         .affiliate-status {
             font-size: 10px;
             font-weight: 800;
@@ -2517,14 +2572,13 @@
             background: #D1FAE5;
             color: #065F46;
         }
-        .affiliate-status.registered {
-            background: #DBEAFE;
-            color: #1E40AF;
-        }
         .affiliate-amount {
             font-weight: 800;
             color: var(--navy);
             font-size: 15px;
+            display: inline-flex;
+            align-items: center;
+            gap: 2px;
         }
         .affiliate-empty {
             text-align: center;
@@ -2535,6 +2589,73 @@
             border-radius: 14px;
             border: 1px dashed var(--border);
         }
+
+        /* Referral detail — list gói đã thanh toán */
+        .aff-detail-toggle {
+            font-size: 12px;
+            color: var(--navy-light);
+            transition: transform 0.2s;
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+        .aff-detail-toggle.open {
+            transform: rotate(180deg);
+        }
+        .affiliate-detail {
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px dashed var(--border);
+        }
+        .affiliate-detail-title {
+            font-size: 11px;
+            font-weight: 800;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+        }
+        .affiliate-detail-empty {
+            font-size: 12px;
+            color: var(--muted);
+            padding: 6px 0;
+            text-align: center;
+        }
+        .aff-payment-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 10px;
+            background: var(--navy-pale);
+            border-radius: 10px;
+            margin-bottom: 6px;
+            font-size: 12.5px;
+        }
+        .aff-payment-item:last-child {
+            margin-bottom: 0;
+        }
+        .aff-payment-item-left {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-weight: 700;
+            color: var(--navy);
+        }
+        .aff-payment-item-right {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 2px;
+        }
+        .aff-payment-amount {
+            font-weight: 800;
+            color: var(--navy);
+            font-size: 13px;
+        }
+        .aff-payment-date {
+            font-size: 10.5px;
+            color: var(--muted);
+        }
+
 
         /* ===== DELETE TASK MODAL ===== */
         .delete-task-modal .modal-box {
@@ -3916,6 +4037,28 @@
                 notif_enabled: 'Đã bật',
                 notif_disabled: 'Đã tắt',
                 notif_denied: 'Từ chối',
+                affiliate_title: 'Affiliate',
+                affiliate_copy: 'Copy',
+                affiliate_copied: 'Đã copy link',
+                affiliate_no_partner: 'Không tìm thấy Partner ID',
+                affiliate_load_error: 'Lỗi tải dữ liệu',
+                affiliate_stats_registered: 'Khách đăng ký',
+                affiliate_stats_paid_customers: 'Đã thanh toán',
+                affiliate_stats_pending: 'Chờ trả (đ)',
+                affiliate_stats_paid: 'Đã trả (đ)',
+                affiliate_section_customers: 'Khách đã giới thiệu',
+                affiliate_section_commissions: 'Hoa hồng',
+                affiliate_empty_customers: 'Chưa có khách nào đăng ký',
+                affiliate_empty_commissions: 'Chưa có hoa hồng nào',
+                affiliate_registered_at: 'Đăng ký',
+                affiliate_first_payment: 'Thanh toán đầu',
+                affiliate_last_payment: 'Thanh toán cuối',
+                affiliate_packages_paid: 'Các gói đã thanh toán',
+                affiliate_no_payment_yet: 'Chưa có thanh toán nào',
+                affiliate_commission_pending: 'Chờ trả',
+                affiliate_commission_paid: 'Đã trả',
+                affiliate_commission_first: 'Lần đầu',
+                affiliate_commission_subsequent: 'Tiếp theo',
             },
             en: {
                 login_title: 'Smart Meeting Minutes AI',
@@ -4149,6 +4292,28 @@
                 notif_enabled: 'Enabled',
                 notif_disabled: 'Disabled',
                 notif_denied: 'Notifications denied',
+                affiliate_title: 'Affiliate',
+                affiliate_copy: 'Copy',
+                affiliate_copied: 'Link copied',
+                affiliate_no_partner: 'Partner ID not found',
+                affiliate_load_error: 'Failed to load data',
+                affiliate_stats_registered: 'Registered',
+                affiliate_stats_paid_customers: 'Paid customers',
+                affiliate_stats_pending: 'Pending (đ)',
+                affiliate_stats_paid: 'Paid (đ)',
+                affiliate_section_customers: 'Referred customers',
+                affiliate_section_commissions: 'Commissions',
+                affiliate_empty_customers: 'No customers yet',
+                affiliate_empty_commissions: 'No commissions yet',
+                affiliate_registered_at: 'Registered',
+                affiliate_first_payment: 'First payment',
+                affiliate_last_payment: 'Last payment',
+                affiliate_packages_paid: 'Paid packages',
+                affiliate_no_payment_yet: 'No payment yet',
+                affiliate_commission_pending: 'Pending',
+                affiliate_commission_paid: 'Paid',
+                affiliate_commission_first: 'First',
+                affiliate_commission_subsequent: 'Subsequent',
             }
         };
 
@@ -6001,7 +6166,7 @@ if (qrCheckinBtn) {
                 return;
             }
             if (!currentSalesId) {
-                showToast('❌ Không tìm thấy Partner ID', false);
+                showToast(t('affiliate_no_partner'), false);
                 return;
             }
 
@@ -6032,21 +6197,29 @@ if (qrCheckinBtn) {
                 const res = await fetch(url);
                 const data = await res.json();
                 if (data.status !== 200) {
-                    container.innerHTML = `<div class="affiliate-empty">❌ ${escapeHtml(data.message || 'Lỗi tải dữ liệu')}</div>`;
+                    container.innerHTML = `<div class="affiliate-empty"><i class="fa-solid fa-circle-exclamation" style="margin-right:6px;"></i>${escapeHtml(data.message || t('affiliate_load_error'))}</div>`;
                     return;
                 }
                 renderAffiliatePage(data);
             } catch (e) {
-                container.innerHTML = `<div class="affiliate-empty">❌ ${escapeHtml(e.message)}</div>`;
+                container.innerHTML = `<div class="affiliate-empty"><i class="fa-solid fa-circle-exclamation" style="margin-right:6px;"></i>${escapeHtml(e.message)}</div>`;
             }
         }
 
-        function renderAffiliatePage(data) {
+                function renderAffiliatePage(data) {
             const container = document.getElementById('affiliateContent');
             const s = data.stats || {};
             const referrals = data.referrals || [];
             const commissions = data.commissions || [];
             const refLink = data.referral_link || '';
+
+            // Group commissions theo customer_email để tra cứu
+            const commsByEmail = {};
+            commissions.forEach(c => {
+                const e = (c.customer_email || '').toLowerCase();
+                if (!commsByEmail[e]) commsByEmail[e] = [];
+                commsByEmail[e].push(c);
+            });
 
             const fmtDate = (iso) => {
                 if (!iso) return '—';
@@ -6064,7 +6237,7 @@ if (qrCheckinBtn) {
                 <div class="affiliate-link-box">
                     <input type="text" class="affiliate-link-input" id="affRefInput" value="${escapeHtml(refLink)}" readonly>
                     <button class="affiliate-copy-btn" onclick="copyAffiliateLink()">
-                        <i class="fa-solid fa-copy"></i> Copy
+                        <i class="fa-solid fa-copy"></i> ${t('affiliate_copy')}
                     </button>
                 </div>
             `;
@@ -6074,57 +6247,108 @@ if (qrCheckinBtn) {
                 <div class="affiliate-stats">
                     <div class="affiliate-stat">
                         <div class="affiliate-stat-value">${s.total_registered || 0}</div>
-                        <div class="affiliate-stat-label">Khách đăng ký</div>
+                        <div class="affiliate-stat-label">${t('affiliate_stats_registered')}</div>
                     </div>
                     <div class="affiliate-stat">
                         <div class="affiliate-stat-value">${s.total_paid_customers || 0}</div>
-                        <div class="affiliate-stat-label">Đã thanh toán</div>
+                        <div class="affiliate-stat-label">${t('affiliate_stats_paid_customers')}</div>
                     </div>
                     <div class="affiliate-stat">
                         <div class="affiliate-stat-value" style="color:#D97706;">${fmtNum(s.total_commission_pending)}</div>
-                        <div class="affiliate-stat-label">Chờ trả (đ)</div>
+                        <div class="affiliate-stat-label">${t('affiliate_stats_pending')}</div>
                     </div>
                     <div class="affiliate-stat">
                         <div class="affiliate-stat-value" style="color:#10B981;">${fmtNum(s.total_commission_paid)}</div>
-                        <div class="affiliate-stat-label">Đã trả (đ)</div>
+                        <div class="affiliate-stat-label">${t('affiliate_stats_paid')}</div>
                     </div>
                 </div>
             `;
 
-            // Referrals
-            html += `<div class="affiliate-section-title"><span>👥 Khách đã giới thiệu</span><span class="count">${referrals.length}</span></div>`;
+            // ===== GROUP: KHÁCH ĐÃ GIỚI THIỆU =====
+            html += `
+                <div class="affiliate-section-title" onclick="toggleAffGroup(this)">
+                    <span><i class="fa-solid fa-users"></i> ${t('affiliate_section_customers')}</span>
+                    <span class="count-wrap">
+                        <span class="count">${referrals.length}</span>
+                        <i class="fa-solid fa-chevron-down toggle-icon open"></i>
+                    </span>
+                </div>
+            `;
+            html += `<div class="affiliate-group-body">`;
             if (referrals.length === 0) {
-                html += `<div class="affiliate-empty">Chưa có khách nào đăng ký</div>`;
+                html += `<div class="affiliate-empty">${t('affiliate_empty_customers')}</div>`;
             } else {
                 referrals.forEach(r => {
-                    const statusBadge = r.first_paid_at
-                        ? `<span class="affiliate-status paid">Đã TT</span>`
-                        : `<span class="affiliate-status registered">Đã ĐK</span>`;
+                    const emailKey = (r.customer_email || '').toLowerCase();
+                    const customerComms = commsByEmail[emailKey] || [];
+                    const hasFirst = !!r.first_paid_at;
+                    const hasLast = !!r.last_paid_at;
+                    const sameFirstLast = hasFirst && hasLast && r.first_paid_at === r.last_paid_at;
+
+                    let paymentHtml = '';
+                    if (hasFirst) {
+                        paymentHtml += `<div><i class="fa-solid fa-credit-card"></i> <span>${t('affiliate_first_payment')}: ${fmtDate(r.first_paid_at)}</span></div>`;
+                    }
+                    if (hasLast && !sameFirstLast) {
+                        paymentHtml += `<div><i class="fa-solid fa-credit-card"></i> <span>${t('affiliate_last_payment')}: ${fmtDate(r.last_paid_at)}</span></div>`;
+                    }
+
+                    const rid = escapeHtml(r.referral_id);
                     html += `
-                        <div class="affiliate-row">
+                        <div class="affiliate-row affiliate-referral-row" onclick="toggleReferralDetail('${rid}')">
                             <div class="affiliate-row-header">
-                                <div class="affiliate-row-email">${escapeHtml(r.customer_email || '—')}</div>
-                                ${statusBadge}
+                                <div class="affiliate-row-email">
+                                    <i class="fa-regular fa-envelope" style="color:var(--navy-light); margin-right:4px; font-size:12px;"></i>${escapeHtml(r.customer_email || '—')}
+                                </div>
+                                <i class="fa-solid fa-chevron-down aff-detail-toggle" id="toggle_${rid}"></i>
                             </div>
                             <div class="affiliate-row-meta">
-                                ${r.customer_name ? `👤 ${escapeHtml(r.customer_name)}<br>` : ''}
-                                📅 ĐK: ${fmtDate(r.registered_at)}
-                                ${r.first_paid_at ? `<br>💳 TT đầu: ${fmtDate(r.first_paid_at)}` : ''}
+                                ${r.customer_name ? `<div><i class="fa-regular fa-user"></i> <span>${escapeHtml(r.customer_name)}</span></div>` : ''}
+                                <div><i class="fa-regular fa-calendar"></i> <span>${t('affiliate_registered_at')}: ${fmtDate(r.registered_at)}</span></div>
+                                ${paymentHtml}
+                            </div>
+                            <div class="affiliate-detail" id="detail_${rid}" style="display:none;">
+                                <div class="affiliate-detail-title">${t('affiliate_packages_paid')} (${customerComms.length})</div>
+                                ${customerComms.length === 0
+                                    ? `<div class="affiliate-detail-empty">${t('affiliate_no_payment_yet')}</div>`
+                                    : customerComms.map(c => `
+                                        <div class="aff-payment-item">
+                                            <div class="aff-payment-item-left">
+                                                <i class="fa-solid fa-box"></i>
+                                                <span>${escapeHtml(c.package_id || '—')}</span>
+                                            </div>
+                                            <div class="aff-payment-item-right">
+                                                <span class="aff-payment-amount">${fmtNum(c.payment_amount)}đ</span>
+                                                <span class="aff-payment-date">${fmtDate(c.calculated_at)}</span>
+                                            </div>
+                                        </div>
+                                    `).join('')
+                                }
                             </div>
                         </div>
                     `;
                 });
             }
+            html += `</div>`;
 
-            // Commissions
-            html += `<div class="affiliate-section-title"><span>💰 Hoa hồng</span><span class="count">${commissions.length}</span></div>`;
+            // ===== GROUP: HOA HỒNG =====
+            html += `
+                <div class="affiliate-section-title" onclick="toggleAffGroup(this)">
+                    <span><i class="fa-solid fa-coins"></i> ${t('affiliate_section_commissions')}</span>
+                    <span class="count-wrap">
+                        <span class="count">${commissions.length}</span>
+                        <i class="fa-solid fa-chevron-down toggle-icon open"></i>
+                    </span>
+                </div>
+            `;
+            html += `<div class="affiliate-group-body">`;
             if (commissions.length === 0) {
-                html += `<div class="affiliate-empty">Chưa có hoa hồng nào</div>`;
+                html += `<div class="affiliate-empty">${t('affiliate_empty_commissions')}</div>`;
             } else {
                 commissions.forEach(c => {
                     const statusClass = c.status === 'paid' ? 'paid' : 'pending';
-                    const statusText = c.status === 'paid' ? 'Đã trả' : 'Chờ trả';
-                    const typeText = c.commission_type === 'first' ? 'Lần đầu' : 'Tiếp theo';
+                    const statusText = c.status === 'paid' ? t('affiliate_commission_paid') : t('affiliate_commission_pending');
+                    const typeText = c.commission_type === 'first' ? t('affiliate_commission_first') : t('affiliate_commission_subsequent');
                     html += `
                         <div class="affiliate-row">
                             <div class="affiliate-row-header">
@@ -6132,18 +6356,39 @@ if (qrCheckinBtn) {
                                 <span class="affiliate-status ${statusClass}">${statusText}</span>
                             </div>
                             <div class="affiliate-row-meta">
-                                ${typeText} • ${c.commission_rate}% • TT: ${fmtNum(c.payment_amount)}đ<br>
-                                📅 ${fmtDate(c.calculated_at)}
+                                <div><i class="fa-solid fa-tag"></i> <span>${typeText} • ${c.commission_rate}%</span></div>
+                                <div><i class="fa-solid fa-box"></i> <span>${escapeHtml(c.package_id || '—')} • ${fmtNum(c.payment_amount)}đ</span></div>
+                                <div><i class="fa-regular fa-calendar"></i> <span>${fmtDate(c.calculated_at)}</span></div>
                             </div>
                             <div style="margin-top:6px;">
-                                <span class="affiliate-amount">+${fmtNum(c.commission_amount)}đ</span>
+                                <span class="affiliate-amount">
+                                    <i class="fa-solid fa-arrow-up" style="font-size:10px;"></i>${fmtNum(c.commission_amount)}đ
+                                </span>
                             </div>
                         </div>
                     `;
                 });
             }
+            html += `</div>`;
 
             container.innerHTML = html;
+        }
+
+        function toggleAffGroup(el) {
+            const body = el.nextElementSibling;
+            const icon = el.querySelector('.toggle-icon');
+            if (!body) return;
+            body.classList.toggle('collapsed');
+            if (icon) icon.classList.toggle('open', !body.classList.contains('collapsed'));
+        }
+
+        function toggleReferralDetail(referralId) {
+            const detail = document.getElementById('detail_' + referralId);
+            const icon = document.getElementById('toggle_' + referralId);
+            if (!detail) return;
+            const isOpen = detail.style.display !== 'none';
+            detail.style.display = isOpen ? 'none' : 'block';
+            if (icon) icon.classList.toggle('open', !isOpen);
         }
 
         async function copyAffiliateLink() {
@@ -6151,11 +6396,11 @@ if (qrCheckinBtn) {
             if (!input) return;
             try {
                 await navigator.clipboard.writeText(input.value);
-                showToast('✅ Đã copy link', true);
+                showToast(t('affiliate_copied'), true);
             } catch (e) {
                 input.select();
                 document.execCommand('copy');
-                showToast('✅ Đã copy link', true);
+                showToast(t('affiliate_copied'), true);
             }
         }
         // ========================================================================
