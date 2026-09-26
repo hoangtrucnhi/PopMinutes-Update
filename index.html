@@ -2381,6 +2381,161 @@
             opacity: 0.5;
             cursor: not-allowed;
         }
+                /* ===== AFFILIATE PAGE ===== */
+        .affiliate-link-box {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            background: var(--navy-pale);
+            border: 1.5px dashed var(--navy-light);
+            border-radius: 14px;
+            padding: 12px;
+            margin-bottom: 18px;
+        }
+        .affiliate-link-input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            font-family: inherit;
+            font-size: 12.5px;
+            font-weight: 600;
+            color: var(--navy);
+            outline: none;
+            min-width: 0;
+            text-overflow: ellipsis;
+        }
+        .affiliate-copy-btn {
+            flex-shrink: 0;
+            background: var(--navy);
+            color: #fff;
+            border: none;
+            padding: 9px 14px;
+            border-radius: 10px;
+            font-family: inherit;
+            font-size: 12.5px;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: background 0.15s, transform 0.1s;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .affiliate-copy-btn:active {
+            transform: scale(0.95);
+        }
+        .affiliate-stats {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .affiliate-stat {
+            background: #fff;
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 14px 12px;
+            text-align: center;
+        }
+        .affiliate-stat-value {
+            font-size: 22px;
+            font-weight: 800;
+            color: var(--navy);
+            line-height: 1.15;
+            margin-bottom: 6px;
+            letter-spacing: -0.5px;
+        }
+        .affiliate-stat-label {
+            font-size: 10.5px;
+            font-weight: 700;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .affiliate-section-title {
+            font-size: 14px;
+            font-weight: 800;
+            color: var(--text);
+            margin: 22px 0 10px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .affiliate-section-title .count {
+            background: var(--navy-pale);
+            color: var(--navy);
+            font-size: 11.5px;
+            font-weight: 700;
+            padding: 3px 10px;
+            border-radius: 20px;
+            min-width: 24px;
+            text-align: center;
+        }
+        .affiliate-row {
+            background: #fff;
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 12px 14px;
+            margin-bottom: 8px;
+            font-size: 13px;
+        }
+        .affiliate-row-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 8px;
+            margin-bottom: 6px;
+        }
+        .affiliate-row-email {
+            font-weight: 700;
+            color: var(--text);
+            font-size: 13px;
+            word-break: break-all;
+            flex: 1;
+            min-width: 0;
+        }
+        .affiliate-row-meta {
+            color: var(--muted);
+            font-size: 12px;
+            line-height: 1.6;
+        }
+        .affiliate-status {
+            font-size: 10px;
+            font-weight: 800;
+            padding: 3px 9px;
+            border-radius: 20px;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+            flex-shrink: 0;
+            white-space: nowrap;
+        }
+        .affiliate-status.pending {
+            background: #FEF3C7;
+            color: #92400E;
+        }
+        .affiliate-status.paid {
+            background: #D1FAE5;
+            color: #065F46;
+        }
+        .affiliate-status.registered {
+            background: #DBEAFE;
+            color: #1E40AF;
+        }
+        .affiliate-amount {
+            font-weight: 800;
+            color: var(--navy);
+            font-size: 15px;
+        }
+        .affiliate-empty {
+            text-align: center;
+            padding: 26px 16px;
+            color: var(--muted);
+            font-size: 13px;
+            background: #fff;
+            border-radius: 14px;
+            border: 1px dashed var(--border);
+        }
+
         /* ===== DELETE TASK MODAL ===== */
         .delete-task-modal .modal-box {
             max-width: 460px;
@@ -2621,6 +2776,13 @@
                             <div class="feature-sub" data-i18n="notif_sub_settings">Biên bản, task đến hạn...</div>
                         </div>
                     </button>
+                    <button class="feature-card" id="affiliateBtn">
+                        <div class="feature-icon navy"><i class="fa-solid fa-handshake"></i></div>
+                        <div>
+                            <div class="feature-label">Affiliate</div>
+                            <div class="feature-sub">Giới thiệu &amp; Hoa hồng</div>
+                        </div>
+                    </button>
                 </div>
             </div>
         </div>
@@ -2638,6 +2800,22 @@
             <div class="page-content">
                 <div id="notificationsList">
                     <p style="text-align:center; padding:40px 20px; color:var(--muted);" data-i18n="loading">Đang tải...</p>
+                </div>
+            </div>
+        </div>
+
+                <!-- ========== AFFILIATE PAGE ========== -->
+        <div id="affiliate-page" class="page hidden">
+            <div class="page-header">
+                <button class="page-back-btn" onclick="switchBottomNav('home')">
+                    <i class="fa-solid fa-arrow-left"></i>
+                </button>
+                <h1 class="page-title">Affiliate</h1>
+                <div class="page-header-spacer"></div>
+            </div>
+            <div class="page-content">
+                <div id="affiliateContent">
+                    <p style="text-align:center; padding:40px 20px; color:var(--muted);">Đang tải...</p>
                 </div>
             </div>
         </div>
@@ -4244,9 +4422,10 @@ if (event.data.type === 'NOTIFICATION_CLICK') {
         const AUTH_STORAGE_KEY = "popminutes_auth";
         const SESSION_DAYS = 90;
 
-        let currentEmail = "",
-            currentSalesName = "",
-            currentCompanyName = "";
+let currentEmail = "",
+    currentSalesName = "",
+    currentCompanyName = "",
+    currentSalesId = "";
 
         // ========================================================================
         //  ĐĂNG NHẬP
@@ -4275,6 +4454,7 @@ if (event.data.type === 'NOTIFICATION_CLICK') {
                     currentEmail = emailInput;
                     currentSalesName = result.sales.name;
                     currentCompanyName = result.enterprise.name;
+                    currentSalesId = result.sales.id || '';
                                         // ================================================================
                     //  AFFILIATE: Attach referral nếu có
                     // ================================================================
@@ -4392,7 +4572,7 @@ if (event.data.type === 'NOTIFICATION_CLICK') {
 
             // Xử lý action (không phải page)
             if (page === 'gift') {
-                alert(t('toast_upgrade_required'));
+                openAffiliatePage();
                 return;
             }
             if (page === 'scan') {
@@ -4416,6 +4596,8 @@ if (event.data.type === 'NOTIFICATION_CLICK') {
             document.getElementById('dashboard-screen').classList.add('hidden');
             document.getElementById('notifications-page').classList.add('hidden');
             document.getElementById('profile-page').classList.add('hidden');
+            const affPage = document.getElementById('affiliate-page');
+            if (affPage) affPage.classList.add('hidden');
 
             // Hiện page target
             let targetId = null;
@@ -4468,8 +4650,8 @@ if (event.data.type === 'NOTIFICATION_CLICK') {
         // Browser back button
         window.addEventListener('popstate', function(e) {
             const page = (e.state && e.state.page) || 'home';
-            // Chỉ xử lý nếu đang ở 1 trong 3 page
-            const isPage = ['home', 'notifications', 'me'].includes(page);
+            // Cho phép 'gift' cũng được xử lý
+            const isPage = ['home', 'notifications', 'me', 'gift'].includes(page);
             if (isPage) {
                 switchBottomNav(page);
             }
@@ -5297,6 +5479,7 @@ for (let attempt = 1; attempt <= 3; attempt++) {
                     currentEmail = auth.email;
                     currentSalesName = result.sales.name;
                     currentCompanyName = result.enterprise.name;
+                    currentSalesId = result.sales.id || '';
                     setTimeout(() => applyLanguage(currentLang), 100);
 
                     // SYNC LANGUAGE LÊN FIRESTORE
@@ -5806,6 +5989,175 @@ const ccEmail1 = (sendToClient && clientEmailValue) ? clientEmailValue : '';
 if (qrCheckinBtn) {
     qrCheckinBtn.addEventListener('click', () => alert(t('toast_upgrade_required')));
 }
+                // ========================================================================
+        //  AFFILIATE PAGE — Load data + render
+        // ========================================================================
+                // ========================================================================
+        //  AFFILIATE PAGE — Load data + render
+        // ========================================================================
+        async function openAffiliatePage() {
+            if (!currentEmail) {
+                alert(t('toast_login_required'));
+                return;
+            }
+            if (!currentSalesId) {
+                showToast('❌ Không tìm thấy Partner ID', false);
+                return;
+            }
+
+            // Hide tất cả page khác + hiện affiliate
+            document.getElementById('dashboard-screen').classList.add('hidden');
+            document.getElementById('notifications-page').classList.add('hidden');
+            document.getElementById('profile-page').classList.add('hidden');
+            document.getElementById('affiliate-page').classList.remove('hidden');
+            window.scrollTo({ top: 0, behavior: 'instant' });
+
+            // Update nav active — nút "Quà" sáng lên
+            document.querySelectorAll('.bottom-nav .nav-item').forEach(item => {
+                item.classList.toggle('active', item.dataset.page === 'gift');
+            });
+
+            // Load data
+            // Push history để back button hoạt động
+            try {
+                history.pushState({ page: 'gift' }, '', '#gift');
+            } catch (e) {}
+
+            // Load data
+            const container = document.getElementById('affiliateContent');
+            container.innerHTML = `<p style="text-align:center; padding:40px 20px; color:var(--muted);">${t('loading')}</p>`;
+
+            try {
+                const url = `${CLOUD_FUNCTION_URL}?action=affiliateGetDashboard&partnerId=${encodeURIComponent(currentSalesId)}`;
+                const res = await fetch(url);
+                const data = await res.json();
+                if (data.status !== 200) {
+                    container.innerHTML = `<div class="affiliate-empty">❌ ${escapeHtml(data.message || 'Lỗi tải dữ liệu')}</div>`;
+                    return;
+                }
+                renderAffiliatePage(data);
+            } catch (e) {
+                container.innerHTML = `<div class="affiliate-empty">❌ ${escapeHtml(e.message)}</div>`;
+            }
+        }
+
+        function renderAffiliatePage(data) {
+            const container = document.getElementById('affiliateContent');
+            const s = data.stats || {};
+            const referrals = data.referrals || [];
+            const commissions = data.commissions || [];
+            const refLink = data.referral_link || '';
+
+            const fmtDate = (iso) => {
+                if (!iso) return '—';
+                try {
+                    const d = new Date(iso);
+                    return d.toLocaleDateString('vi-VN') + ' ' + d.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
+                } catch (e) { return '—'; }
+            };
+            const fmtNum = (n) => Number(n || 0).toLocaleString('vi-VN');
+
+            let html = '';
+
+            // Link ref + copy
+            html += `
+                <div class="affiliate-link-box">
+                    <input type="text" class="affiliate-link-input" id="affRefInput" value="${escapeHtml(refLink)}" readonly>
+                    <button class="affiliate-copy-btn" onclick="copyAffiliateLink()">
+                        <i class="fa-solid fa-copy"></i> Copy
+                    </button>
+                </div>
+            `;
+
+            // Stats
+            html += `
+                <div class="affiliate-stats">
+                    <div class="affiliate-stat">
+                        <div class="affiliate-stat-value">${s.total_registered || 0}</div>
+                        <div class="affiliate-stat-label">Khách đăng ký</div>
+                    </div>
+                    <div class="affiliate-stat">
+                        <div class="affiliate-stat-value">${s.total_paid_customers || 0}</div>
+                        <div class="affiliate-stat-label">Đã thanh toán</div>
+                    </div>
+                    <div class="affiliate-stat">
+                        <div class="affiliate-stat-value" style="color:#D97706;">${fmtNum(s.total_commission_pending)}</div>
+                        <div class="affiliate-stat-label">Chờ trả (đ)</div>
+                    </div>
+                    <div class="affiliate-stat">
+                        <div class="affiliate-stat-value" style="color:#10B981;">${fmtNum(s.total_commission_paid)}</div>
+                        <div class="affiliate-stat-label">Đã trả (đ)</div>
+                    </div>
+                </div>
+            `;
+
+            // Referrals
+            html += `<div class="affiliate-section-title"><span>👥 Khách đã giới thiệu</span><span class="count">${referrals.length}</span></div>`;
+            if (referrals.length === 0) {
+                html += `<div class="affiliate-empty">Chưa có khách nào đăng ký</div>`;
+            } else {
+                referrals.forEach(r => {
+                    const statusBadge = r.first_paid_at
+                        ? `<span class="affiliate-status paid">Đã TT</span>`
+                        : `<span class="affiliate-status registered">Đã ĐK</span>`;
+                    html += `
+                        <div class="affiliate-row">
+                            <div class="affiliate-row-header">
+                                <div class="affiliate-row-email">${escapeHtml(r.customer_email || '—')}</div>
+                                ${statusBadge}
+                            </div>
+                            <div class="affiliate-row-meta">
+                                ${r.customer_name ? `👤 ${escapeHtml(r.customer_name)}<br>` : ''}
+                                📅 ĐK: ${fmtDate(r.registered_at)}
+                                ${r.first_paid_at ? `<br>💳 TT đầu: ${fmtDate(r.first_paid_at)}` : ''}
+                            </div>
+                        </div>
+                    `;
+                });
+            }
+
+            // Commissions
+            html += `<div class="affiliate-section-title"><span>💰 Hoa hồng</span><span class="count">${commissions.length}</span></div>`;
+            if (commissions.length === 0) {
+                html += `<div class="affiliate-empty">Chưa có hoa hồng nào</div>`;
+            } else {
+                commissions.forEach(c => {
+                    const statusClass = c.status === 'paid' ? 'paid' : 'pending';
+                    const statusText = c.status === 'paid' ? 'Đã trả' : 'Chờ trả';
+                    const typeText = c.commission_type === 'first' ? 'Lần đầu' : 'Tiếp theo';
+                    html += `
+                        <div class="affiliate-row">
+                            <div class="affiliate-row-header">
+                                <div class="affiliate-row-email">${escapeHtml(c.customer_email || '—')}</div>
+                                <span class="affiliate-status ${statusClass}">${statusText}</span>
+                            </div>
+                            <div class="affiliate-row-meta">
+                                ${typeText} • ${c.commission_rate}% • TT: ${fmtNum(c.payment_amount)}đ<br>
+                                📅 ${fmtDate(c.calculated_at)}
+                            </div>
+                            <div style="margin-top:6px;">
+                                <span class="affiliate-amount">+${fmtNum(c.commission_amount)}đ</span>
+                            </div>
+                        </div>
+                    `;
+                });
+            }
+
+            container.innerHTML = html;
+        }
+
+        async function copyAffiliateLink() {
+            const input = document.getElementById('affRefInput');
+            if (!input) return;
+            try {
+                await navigator.clipboard.writeText(input.value);
+                showToast('✅ Đã copy link', true);
+            } catch (e) {
+                input.select();
+                document.execCommand('copy');
+                showToast('✅ Đã copy link', true);
+            }
+        }
         // ========================================================================
         //  QUẢN LÝ TRẠNG THÁI KẾT NỐI
         // ========================================================================
