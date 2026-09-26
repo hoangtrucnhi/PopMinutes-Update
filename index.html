@@ -17,6 +17,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
     <link rel="icon" type="image/png" href="./launchericon-192x192.png">
     <script src="https://cdn.tailwindcss.com"></script>
 
@@ -2654,7 +2655,142 @@
             font-size: 10.5px;
             color: var(--muted);
         }
+        /* ===== AFFILIATE QR + BANK FORM ===== */
+        .affiliate-qr-card {
+            background: #fff;
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 16px;
+            margin-bottom: 14px;
+        }
+        .affiliate-qr-title {
+            font-size: 13px;
+            font-weight: 800;
+            color: var(--navy);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+        .affiliate-qr-title i { font-size: 14px; }
+        .affiliate-qr-preview {
+            background: linear-gradient(135deg, #FFFFFF 0%, #F0F3FF 100%);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 16px;
+            display: flex;
+            justify-content: center;
+            margin-bottom: 12px;
+        }
+        .affiliate-qr-preview canvas {
+            width: 100%;
+            max-width: 320px;
+            height: auto;
+            display: block;
+            border-radius: 10px;
+        }
+        .affiliate-qr-download {
+            width: 100%;
+            background: var(--navy);
+            color: #fff;
+            border: none;
+            padding: 12px 18px;
+            border-radius: 12px;
+            font-family: inherit;
+            font-size: 13.5px;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: background 0.15s, transform 0.1s;
+        }
+        .affiliate-qr-download:hover { background: var(--navy-deep); }
+        .affiliate-qr-download:active { transform: scale(0.98); }
+        .affiliate-qr-download:disabled { opacity: 0.6; cursor: not-allowed; }
 
+        .affiliate-bank-card {
+            background: #fff;
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 16px;
+            margin-bottom: 14px;
+        }
+        .affiliate-bank-form {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .affiliate-bank-field {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .affiliate-bank-field label {
+            font-size: 11.5px;
+            font-weight: 700;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .affiliate-bank-field input {
+            width: 100%;
+            padding: 12px 14px;
+            border: 1.5px solid var(--border);
+            border-radius: 12px;
+            font-family: inherit;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text);
+            background: var(--white);
+            outline: none;
+            transition: all 0.2s;
+        }
+        .affiliate-bank-field input:focus {
+            border-color: var(--navy-light);
+            box-shadow: 0 0 0 4px rgba(45, 63, 166, 0.1);
+        }
+        .affiliate-bank-field input::placeholder { color: #94A3B8; }
+        .affiliate-bank-save {
+            width: 100%;
+            background: #10B981;
+            color: #fff;
+            border: none;
+            padding: 12px 18px;
+            border-radius: 12px;
+            font-family: inherit;
+            font-size: 13.5px;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: background 0.15s, transform 0.1s;
+            margin-top: 4px;
+        }
+        .affiliate-bank-save:hover { background: #059669; }
+        .affiliate-bank-save:active { transform: scale(0.98); }
+        .affiliate-bank-save:disabled { opacity: 0.6; cursor: not-allowed; }
+        .affiliate-bank-note {
+            font-size: 12px;
+            color: var(--muted);
+            font-style: italic;
+            padding: 8px 12px;
+            background: #F8FAFC;
+            border-radius: 10px;
+            display: flex;
+            align-items: flex-start;
+            gap: 6px;
+            line-height: 1.5;
+            margin-bottom: 4px;
+        }
+        .affiliate-bank-note i {
+            color: var(--navy-light);
+            margin-top: 2px;
+            flex-shrink: 0;
+        }
 
         /* ===== DELETE TASK MODAL ===== */
         .delete-task-modal .modal-box {
@@ -6317,7 +6453,58 @@ if (qrCheckinBtn) {
                     </button>
                 </div>
             `;
+                        // ===== QR CODE =====
+            html += `
+                <div class="affiliate-qr-card">
+                    <div class="affiliate-qr-title">
+                        <i class="fa-solid fa-qrcode"></i>
+                        <span>Mã QR chia sẻ</span>
+                    </div>
+                    <div class="affiliate-qr-preview">
+                        <canvas id="affQRCanvas" width="1080" height="1080"></canvas>
+                    </div>
+                    <button class="affiliate-qr-download" id="affQRDownloadBtn">
+                        <i class="fa-solid fa-download"></i>
+                        <span>Tải QR về máy</span>
+                    </button>
+                </div>
+            `;
 
+            // ===== BANK INFO FORM =====
+            html += `
+                <div class="affiliate-bank-card">
+                    <div class="affiliate-qr-title">
+                        <i class="fa-solid fa-building-columns"></i>
+                        <span>Thông tin nhận tiền</span>
+                    </div>
+                    <div class="affiliate-bank-note">
+                        <i class="fa-solid fa-circle-info"></i>
+                        <span>Điền thông tin để admin chuyển khoản hoa hồng cho bạn</span>
+                    </div>
+                    <div class="affiliate-bank-form">
+                        <div class="affiliate-bank-field">
+                            <label>Ngân hàng</label>
+                            <input type="text" id="affBankName" placeholder="Vietcombank">
+                        </div>
+                        <div class="affiliate-bank-field">
+                            <label>Số tài khoản</label>
+                            <input type="text" id="affBankAccount" placeholder="0123456789" inputmode="numeric">
+                        </div>
+                        <div class="affiliate-bank-field">
+                            <label>Chủ tài khoản</label>
+                            <input type="text" id="affBankHolder" placeholder="NGUYEN VAN A" style="text-transform:uppercase;">
+                        </div>
+                        <div class="affiliate-bank-field">
+                            <label>Chi nhánh</label>
+                            <input type="text" id="affBankBranch" placeholder="Chi nhánh Sài Gòn">
+                        </div>
+                        <button class="affiliate-bank-save" id="affSaveBankBtn">
+                            <i class="fa-solid fa-floppy-disk"></i>
+                            <span>Lưu thông tin</span>
+                        </button>
+                    </div>
+                </div>
+            `;
             // Stats
             html += `
                 <div class="affiliate-stats">
@@ -6446,6 +6633,16 @@ if (qrCheckinBtn) {
             html += `</div>`;
 
             container.innerHTML = html;
+
+            // Bind events sau khi render
+            const dlBtn = document.getElementById('affQRDownloadBtn');
+            if (dlBtn) dlBtn.onclick = downloadAffQR;
+            const saveBtn = document.getElementById('affSaveBankBtn');
+            if (saveBtn) saveBtn.onclick = saveAffBankInfo;
+
+            // Render QR + load bank info
+            renderAffQR(refLink, data.partner ? data.partner.name : '');
+            loadAffBankInfo();
         }
 
         function toggleAffGroup(el) {
@@ -6463,6 +6660,185 @@ if (qrCheckinBtn) {
             const isOpen = detail.style.display !== 'none';
             detail.style.display = isOpen ? 'none' : 'block';
             if (icon) icon.classList.toggle('open', !isOpen);
+        }
+                // ===== QR CODE — Render + Download =====
+        function drawRoundedRect(ctx, x, y, w, h, r) {
+            ctx.beginPath();
+            ctx.moveTo(x + r, y);
+            ctx.arcTo(x + w, y, x + w, y + h, r);
+            ctx.arcTo(x + w, y + h, x, y + h, r);
+            ctx.arcTo(x, y + h, x, y, r);
+            ctx.arcTo(x, y, x + w, y, r);
+            ctx.closePath();
+        }
+
+        async function renderAffQR(refLink, partnerName) {
+            const canvas = document.getElementById('affQRCanvas');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            const W = 1080, H = 1080;
+
+            // Background gradient
+            const grad = ctx.createLinearGradient(0, 0, W, H);
+            grad.addColorStop(0, '#FFFFFF');
+            grad.addColorStop(1, '#F0F3FF');
+            ctx.fillStyle = grad;
+            ctx.fillRect(0, 0, W, H);
+
+            // Top accent bar
+            ctx.fillStyle = '#1B2B7A';
+            ctx.fillRect(0, 0, W, 14);
+
+            // Brand title
+            ctx.fillStyle = '#1B2B7A';
+            ctx.font = '800 70px "Be Vietnam Pro", sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('PopMinutes', W / 2, 120);
+
+            // Subtitle
+            ctx.fillStyle = '#64748B';
+            ctx.font = '600 32px "Be Vietnam Pro", sans-serif';
+            ctx.fillText('Chương trình Affiliate', W / 2, 185);
+
+            // QR config
+            const qrSize = 640;
+            const qrX = (W - qrSize) / 2;
+            const qrY = 250;
+
+            // White card behind QR
+            ctx.fillStyle = '#FFFFFF';
+            ctx.shadowColor = 'rgba(27,43,122,0.15)';
+            ctx.shadowBlur = 40;
+            ctx.shadowOffsetY = 10;
+            drawRoundedRect(ctx, qrX - 30, qrY - 30, qrSize + 60, qrSize + 60, 40);
+            ctx.fill();
+            ctx.shadowColor = 'transparent';
+            ctx.shadowBlur = 0;
+            ctx.shadowOffsetY = 0;
+
+            // Generate QR
+            try {
+                const qrDataUrl = await QRCode.toDataURL(refLink, {
+                    width: qrSize,
+                    margin: 1,
+                    color: { dark: '#1B2B7A', light: '#FFFFFF' },
+                    errorCorrectionLevel: 'H'
+                });
+                const img = new Image();
+                img.src = qrDataUrl;
+                await new Promise((resolve, reject) => {
+                    img.onload = resolve;
+                    img.onerror = reject;
+                });
+                ctx.drawImage(img, qrX, qrY, qrSize, qrSize);
+            } catch (e) {
+                console.warn('QR render failed:', e);
+                ctx.fillStyle = '#EF4444';
+                ctx.font = '32px sans-serif';
+                ctx.fillText('Không tải được QR', W / 2, qrY + qrSize / 2);
+            }
+
+            // Scan text
+            ctx.fillStyle = '#1B2B7A';
+            ctx.font = '800 42px "Be Vietnam Pro", sans-serif';
+            ctx.fillText('Quét mã để đăng ký', W / 2, 975);
+
+            // Partner name
+            if (partnerName) {
+                ctx.fillStyle = '#64748B';
+                ctx.font = '600 26px "Be Vietnam Pro", sans-serif';
+                ctx.fillText('Được giới thiệu bởi ' + partnerName, W / 2, 1025);
+            }
+        }
+
+        function downloadAffQR() {
+            const canvas = document.getElementById('affQRCanvas');
+            if (!canvas) return;
+            const btn = document.getElementById('affQRDownloadBtn');
+            const orig = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i><span>Đang tải...</span>';
+
+            canvas.toBlob((blob) => {
+                if (!blob) {
+                    showToast('Lỗi tạo QR', false);
+                    btn.disabled = false;
+                    btn.innerHTML = orig;
+                    return;
+                }
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `popminutes-affiliate-qr-${Date.now()}.png`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                showToast('Đã tải QR về máy', true);
+                btn.disabled = false;
+                btn.innerHTML = orig;
+            }, 'image/png');
+        }
+
+        // ===== BANK INFO — Load + Save =====
+        async function loadAffBankInfo() {
+            if (!currentSalesId) return;
+            try {
+                const url = `${CLOUD_FUNCTION_URL}?action=affiliateGetBankInfo&partnerId=${encodeURIComponent(currentSalesId)}`;
+                const res = await fetch(url);
+                const data = await res.json();
+                if (data.status === 200 && data.bank_info) {
+                    const b = data.bank_info;
+                    const elName = document.getElementById('affBankName');
+                    const elAcc = document.getElementById('affBankAccount');
+                    const elHolder = document.getElementById('affBankHolder');
+                    const elBranch = document.getElementById('affBankBranch');
+                    if (elName) elName.value = b.bank_name || '';
+                    if (elAcc) elAcc.value = b.bank_account || '';
+                    if (elHolder) elHolder.value = b.bank_holder || '';
+                    if (elBranch) elBranch.value = b.bank_branch || '';
+                }
+            } catch (e) {
+                console.warn('Load bank info error:', e);
+            }
+        }
+
+        async function saveAffBankInfo() {
+            if (!currentSalesId) {
+                showToast('Không tìm thấy Partner ID', false);
+                return;
+            }
+            const btn = document.getElementById('affSaveBankBtn');
+            const orig = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i><span>Đang lưu...</span>';
+
+            try {
+                const res = await fetch(CLOUD_FUNCTION_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: new URLSearchParams({
+                        action: 'affiliateSaveBankInfo',
+                        partnerId: currentSalesId,
+                        bankName: document.getElementById('affBankName').value.trim(),
+                        bankAccount: document.getElementById('affBankAccount').value.trim(),
+                        bankHolder: document.getElementById('affBankHolder').value.trim().toUpperCase(),
+                        bankBranch: document.getElementById('affBankBranch').value.trim()
+                    }).toString()
+                });
+                const data = await res.json();
+                if (data.status === 200) {
+                    showToast('Đã lưu thông tin ngân hàng', true);
+                } else {
+                    showToast(data.message || 'Lỗi lưu thông tin', false);
+                }
+            } catch (e) {
+                showToast(e.message, false);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = orig;
+            }
         }
 
         async function copyAffiliateLink() {
