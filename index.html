@@ -2990,6 +2990,35 @@
                         <i class="fa-solid fa-floppy-disk"></i> <span data-i18n="save_btn">Lưu</span>
                     </button>
                 </div>
+                                <!-- BANK INFO -->
+                <div class="profile-form" style="margin-top: 16px;">
+                    <div style="font-size: 14px; font-weight: 800; color: var(--text); margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+                        <i class="fa-solid fa-building-columns" style="color: var(--navy);"></i>
+                        <span data-i18n="profile_bank_section">Thông tin nhận tiền</span>
+                    </div>
+                    <div class="profile-field">
+                        <label class="profile-label" data-i18n="bank_name">Ngân hàng</label>
+                        <input type="text" id="pfBankName" class="modal-input" placeholder="Vietcombank">
+                    </div>
+                    <div class="profile-field">
+                        <label class="profile-label" data-i18n="bank_account">Số tài khoản</label>
+                        <input type="text" id="pfBankAccount" class="modal-input" placeholder="0123456789">
+                    </div>
+                    <div class="profile-field">
+                        <label class="profile-label" data-i18n="bank_holder">Chủ tài khoản</label>
+                        <input type="text" id="pfBankHolder" class="modal-input" placeholder="NGUYEN VAN A" style="text-transform: uppercase;">
+                    </div>
+                    <div class="profile-field">
+                        <label class="profile-label" data-i18n="bank_branch">Chi nhánh</label>
+                        <input type="text" id="pfBankBranch" class="modal-input" placeholder="Chi nhánh Sài Gòn">
+                    </div>
+                </div>
+
+                <div class="profile-actions">
+                    <button class="btn-primary" id="saveBankInfoBtn" style="background: #10B981;">
+                        <i class="fa-solid fa-building-columns"></i> <span data-i18n="bank_save_btn">Lưu thông tin</span>
+                    </button>
+                </div>
 
                 <div class="profile-danger-zone">
                     <button class="profile-danger-btn" id="changeUserIdBtn">
@@ -4058,6 +4087,13 @@
                 affiliate_commission_paid: 'Đã trả',
                 affiliate_commission_first: 'Lần đầu',
                 affiliate_commission_subsequent: 'Tiếp theo',
+                profile_bank_section: 'Thông tin nhận tiền',
+                bank_name: 'Ngân hàng',
+                bank_account: 'Số tài khoản',
+                bank_holder: 'Chủ tài khoản',
+                bank_branch: 'Chi nhánh',
+                bank_save_btn: 'Lưu thông tin',
+                bank_saved: 'Đã lưu thông tin ngân hàng',
             },
             en: {
                 login_title: 'Smart Meeting Minutes AI',
@@ -4313,6 +4349,13 @@
                 affiliate_commission_paid: 'Paid',
                 affiliate_commission_first: 'First',
                 affiliate_commission_subsequent: 'Subsequent',
+                profile_bank_section: 'Payment information',
+                bank_name: 'Bank',
+                bank_account: 'Account number',
+                bank_holder: 'Account holder',
+                bank_branch: 'Branch',
+                bank_save_btn: 'Save info',
+                bank_saved: 'Bank info saved',
             }
         };
 
@@ -5184,11 +5227,14 @@ for (let attempt = 1; attempt <= 3; attempt++) {
                 console.log('✅ Marked all notifications as read');
             }, 3000);
         }
-                // ========================================================================
+        // ========================================================================
         //  PROFILE PAGE
         // ========================================================================
-        async function loadProfilePage() {
+                async function loadProfilePage() {
             if (!currentEmail) return;
+            
+            // Load bank info song song (nếu có currentSalesId)
+            loadBankInfoFromServer();
 
             // Set display
             document.getElementById('profileNameDisplay').textContent = currentSalesName || '—';
@@ -5216,6 +5262,68 @@ for (let attempt = 1; attempt <= 3; attempt++) {
                 document.getElementById('pfFullname').value = currentSalesName || '';
                 document.getElementById('pfCompany').value  = currentCompanyName || '';
             }
+                    // Load bank info
+            loadBankInfoFromServer();
+        }
+
+        async function loadBankInfoFromServer() {
+            if (!currentSalesId) {
+                console.warn('No partner ID for bank info');
+                return;
+            }
+            try {
+                const url = `${CLOUD_FUNCTION_URL}?action=affiliateGetBankInfo&partnerId=${encodeURIComponent(currentSalesId)}`;
+                const res = await fetch(url);
+                const data = await res.json();
+                if (data.status === 200 && data.bank_info) {
+                    const b = data.bank_info;
+                    document.getElementById('pfBankName').value = b.bank_name || '';
+                    document.getElementById('pfBankAccount').value = b.bank_account || '';
+                    document.getElementById('pfBankHolder').value = b.bank_holder || '';
+                    document.getElementById('pfBankBranch').value = b.bank_branch || '';
+                    console.log('✅ Loaded bank info');
+                }
+            } catch (e) {
+                console.warn('Load bank info error:', e);
+            }
+        }
+
+        async function saveBankInfo() {
+            if (!currentSalesId) {
+                showToast(t('affiliate_no_partner') || 'Chưa có Partner ID', false);
+                return;
+            }
+            const btn = document.getElementById('saveBankInfoBtn');
+            const orig = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+
+            try {
+                const res = await fetch(CLOUD_FUNCTION_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: new URLSearchParams({
+                        action: 'affiliateSaveBankInfo',
+                        partnerId: currentSalesId,
+                        bankName: document.getElementById('pfBankName').value.trim(),
+                        bankAccount: document.getElementById('pfBankAccount').value.trim(),
+                        bankHolder: document.getElementById('pfBankHolder').value.trim(),
+                        bankBranch: document.getElementById('pfBankBranch').value.trim()
+                    }).toString()
+                });
+                const data = await res.json();
+                if (data.status === 200) {
+                    showToast(t('bank_saved'), true);
+                } else {
+                    showToast(data.message || 'Lỗi', false);
+                }
+            } catch (e) {
+                showToast(e.message, false);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = orig;
+            }
+        }
         }
 
                 async function saveUserProfile() {
@@ -6124,6 +6232,8 @@ const ccEmail1 = (sendToClient && clientEmailValue) ? clientEmailValue : '';
                         // ============ PROFILE + NOTIFICATIONS PAGE EVENTS ============
         const saveProfileBtnEl = document.getElementById('saveProfileBtn');
         if (saveProfileBtnEl) saveProfileBtnEl.addEventListener('click', saveUserProfile);
+        const saveBankInfoBtnEl = document.getElementById('saveBankInfoBtn');
+        if (saveBankInfoBtnEl) saveBankInfoBtnEl.addEventListener('click', saveBankInfo);
 
         const changeUserIdBtnEl = document.getElementById('changeUserIdBtn');
         if (changeUserIdBtnEl) {
