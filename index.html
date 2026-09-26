@@ -6672,7 +6672,7 @@ if (qrCheckinBtn) {
             ctx.closePath();
         }
 
-        async function renderAffQR(refLink, partnerName) {
+                async function renderAffQR(refLink, partnerName) {
             const canvas = document.getElementById('affQRCanvas');
             if (!canvas) return;
             const ctx = canvas.getContext('2d');
@@ -6717,31 +6717,69 @@ if (qrCheckinBtn) {
             ctx.shadowBlur = 0;
             ctx.shadowOffsetY = 0;
 
-            // Generate QR
+            // ===== Load QR image — thử 2 phương án =====
+            let qrDataUrl = null;
+
+            // Phương án 1: QRServer API (không cần thư viện)
             try {
-                const qrDataUrl = await QRCode.toDataURL(refLink, {
-                    width: qrSize,
-                    margin: 1,
-                    color: { dark: '#1B2B7A', light: '#FFFFFF' },
-                    errorCorrectionLevel: 'H'
+                const apiUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=640x640&ecc=H&color=1B2B7A&bgcolor=FFFFFF&data=' + encodeURIComponent(refLink);
+                console.log('[QR] Trying QRServer API...');
+                qrDataUrl = await new Promise((resolve, reject) => {
+                    const img = new Image();
+                    img.crossOrigin = 'anonymous';
+                    img.onload = () => resolve(apiUrl);
+                    img.onerror = () => reject(new Error('QRServer failed'));
+                    img.src = apiUrl;
+                    setTimeout(() => reject(new Error('QRServer timeout')), 8000);
                 });
-                const img = new Image();
-                img.src = qrDataUrl;
-                await new Promise((resolve, reject) => {
-                    img.onload = resolve;
-                    img.onerror = reject;
-                });
-                ctx.drawImage(img, qrX, qrY, qrSize, qrSize);
+                console.log('[QR] QRServer OK');
             } catch (e) {
-                console.warn('QR render failed:', e);
-                ctx.fillStyle = '#EF4444';
-                ctx.font = '32px sans-serif';
-                ctx.fillText('Không tải được QR', W / 2, qrY + qrSize / 2);
+                console.warn('[QR] QRServer failed:', e.message);
+                qrDataUrl = null;
+            }
+
+            // Phương án 2: Fallback dùng thư viện QRCode (nếu API fail)
+            if (!qrDataUrl && typeof QRCode !== 'undefined' && QRCode.toDataURL) {
+                try {
+                    console.log('[QR] Trying QRCode library...');
+                    qrDataUrl = await QRCode.toDataURL(refLink, {
+                        width: qrSize,
+                        margin: 1,
+                        color: { dark: '#1B2B7A', light: '#FFFFFF' },
+                        errorCorrectionLevel: 'H'
+                    });
+                    console.log('[QR] QRCode library OK');
+                } catch (e) {
+                    console.warn('[QR] QRCode library failed:', e.message);
+                }
+            }
+
+            // Draw QR lên canvas
+            if (qrDataUrl) {
+                try {
+                    const img = new Image();
+                    img.crossOrigin = 'anonymous';
+                    img.src = qrDataUrl;
+                    await new Promise((resolve, reject) => {
+                        img.onload = resolve;
+                        img.onerror = reject;
+                    });
+                    ctx.drawImage(img, qrX, qrY, qrSize, qrSize);
+                    console.log('[QR] QR drawn successfully');
+                } catch (e) {
+                    console.error('[QR] Draw failed:', e.message);
+                    drawQRError(ctx, W, qrX, qrY, qrSize);
+                }
+            } else {
+                console.error('[QR] Both methods failed');
+                drawQRError(ctx, W, qrX, qrY, qrSize);
             }
 
             // Scan text
             ctx.fillStyle = '#1B2B7A';
             ctx.font = '800 42px "Be Vietnam Pro", sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
             ctx.fillText('Quét mã để đăng ký', W / 2, 975);
 
             // Partner name
@@ -6752,6 +6790,18 @@ if (qrCheckinBtn) {
             }
         }
 
+        function drawQRError(ctx, W, qrX, qrY, qrSize) {
+            ctx.fillStyle = '#FEF2F2';
+            ctx.fillRect(qrX, qrY, qrSize, qrSize);
+            ctx.fillStyle = '#EF4444';
+            ctx.font = '600 28px "Be Vietnam Pro", sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('Không tải được QR', W / 2, qrY + qrSize / 2 - 20);
+            ctx.font = '400 20px "Be Vietnam Pro", sans-serif';
+            ctx.fillText('Vui lòng tải lại trang', W / 2, qrY + qrSize / 2 + 30);
+        }
+
         function downloadAffQR() {
             const canvas = document.getElementById('affQRCanvas');
             if (!canvas) return;
@@ -6760,25 +6810,23 @@ if (qrCheckinBtn) {
             btn.disabled = true;
             btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i><span>Đang tải...</span>';
 
-            canvas.toBlob((blob) => {
-                if (!blob) {
-                    showToast('Lỗi tạo QR', false);
-                    btn.disabled = false;
-                    btn.innerHTML = orig;
-                    return;
-                }
-                const url = URL.createObjectURL(blob);
+            try {
+                // Dùng toDataURL thay vì toBlob để tránh lỗi CORS tainted canvas
+                const dataUrl = canvas.toDataURL('image/png');
                 const a = document.createElement('a');
-                a.href = url;
+                a.href = dataUrl;
                 a.download = `popminutes-affiliate-qr-${Date.now()}.png`;
                 document.body.appendChild(a);
                 a.click();
                 document.body.removeChild(a);
-                URL.revokeObjectURL(url);
                 showToast('Đã tải QR về máy', true);
+            } catch (e) {
+                console.error('[QR] Download failed:', e);
+                showToast('Lỗi tải QR: ' + e.message, false);
+            } finally {
                 btn.disabled = false;
                 btn.innerHTML = orig;
-            }, 'image/png');
+            }
         }
 
         // ===== BANK INFO — Load + Save =====
