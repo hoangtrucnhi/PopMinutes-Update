@@ -2990,35 +2990,6 @@
                         <i class="fa-solid fa-floppy-disk"></i> <span data-i18n="save_btn">Lưu</span>
                     </button>
                 </div>
-                                <!-- BANK INFO -->
-                <div class="profile-form" style="margin-top: 16px;">
-                    <div style="font-size: 14px; font-weight: 800; color: var(--text); margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
-                        <i class="fa-solid fa-building-columns" style="color: var(--navy);"></i>
-                        <span data-i18n="profile_bank_section">Thông tin nhận tiền</span>
-                    </div>
-                    <div class="profile-field">
-                        <label class="profile-label" data-i18n="bank_name">Ngân hàng</label>
-                        <input type="text" id="pfBankName" class="modal-input" placeholder="Vietcombank">
-                    </div>
-                    <div class="profile-field">
-                        <label class="profile-label" data-i18n="bank_account">Số tài khoản</label>
-                        <input type="text" id="pfBankAccount" class="modal-input" placeholder="0123456789">
-                    </div>
-                    <div class="profile-field">
-                        <label class="profile-label" data-i18n="bank_holder">Chủ tài khoản</label>
-                        <input type="text" id="pfBankHolder" class="modal-input" placeholder="NGUYEN VAN A" style="text-transform: uppercase;">
-                    </div>
-                    <div class="profile-field">
-                        <label class="profile-label" data-i18n="bank_branch">Chi nhánh</label>
-                        <input type="text" id="pfBankBranch" class="modal-input" placeholder="Chi nhánh Sài Gòn">
-                    </div>
-                </div>
-
-                <div class="profile-actions">
-                    <button class="btn-primary" id="saveBankInfoBtn" style="background: #10B981;">
-                        <i class="fa-solid fa-building-columns"></i> <span data-i18n="bank_save_btn">Lưu thông tin</span>
-                    </button>
-                </div>
 
                 <div class="profile-danger-zone">
                     <button class="profile-danger-btn" id="changeUserIdBtn">
@@ -5232,9 +5203,6 @@ for (let attempt = 1; attempt <= 3; attempt++) {
         // ========================================================================
                 async function loadProfilePage() {
             if (!currentEmail) return;
-            
-            // Load bank info song song (nếu có currentSalesId)
-            loadBankInfoFromServer();
 
             // Set display
             document.getElementById('profileNameDisplay').textContent = currentSalesName || '—';
@@ -5323,7 +5291,6 @@ for (let attempt = 1; attempt <= 3; attempt++) {
                 btn.disabled = false;
                 btn.innerHTML = orig;
             }
-        }
         }
 
                 async function saveUserProfile() {
