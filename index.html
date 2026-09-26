@@ -17,7 +17,6 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
     <link rel="icon" type="image/png" href="./launchericon-192x192.png">
     <script src="https://cdn.tailwindcss.com"></script>
 
@@ -3033,10 +3032,10 @@
                         </div>
                     </button>
                     <button class="feature-card" id="affiliateBtn">
-                        <div class="feature-icon navy"><i class="fa-solid fa-handshake"></i></div>
+                        <div class="feature-icon navy"><i class="fa-solid fa-building-columns"></i></div>
                         <div>
-                            <div class="feature-label">Affiliate</div>
-                            <div class="feature-sub">Giới thiệu &amp; Hoa hồng</div>
+                            <div class="feature-label" data-i18n="bank_info_card_title">Thông tin nhận tiền</div>
+                            <div class="feature-sub" data-i18n="bank_info_card_sub">Ngân hàng / PayPal</div>
                         </div>
                     </button>
                 </div>
@@ -3791,6 +3790,72 @@
                 </div>
             </div>
         </div>
+                <!-- ========== MODAL: THÔNG TIN NHẬN TIỀN ========== -->
+        <div id="bankInfoModal" class="modal-overlay">
+            <div class="modal-box settings-container">
+                <div class="modal-header">
+                    <h2 class="modal-title" data-i18n="bank_section_title">Thông tin nhận tiền</h2>
+                    <button class="modal-close" id="closeBankInfoBtn"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+
+                <div class="affiliate-bank-note" style="margin-bottom:16px;">
+                    <i class="fa-solid fa-circle-info"></i>
+                    <span data-i18n="bank_note">Điền thông tin để admin chuyển khoản hoa hồng cho bạn</span>
+                </div>
+
+                <!-- Method toggle -->
+                <div class="settings-section" style="margin-bottom: 16px;">
+                    <div class="settings-item" style="border-bottom:none; padding-top:0;">
+                        <div class="info">
+                            <i class="fa-solid fa-wallet"></i>
+                            <span class="name" style="font-weight:700;" data-i18n="bank_method_label">Hình thức nhận tiền</span>
+                        </div>
+                        <select id="affBankMethod" class="settings-select">
+                            <option value="bank" data-i18n="bank_method_bank">Tài khoản ngân hàng</option>
+                            <option value="paypal" data-i18n="bank_method_paypal">PayPal</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- BANK FORM -->
+                <div id="affBankSection" class="affiliate-bank-form">
+                    <div class="affiliate-bank-field">
+                        <label data-i18n="bank_name">Ngân hàng</label>
+                        <input type="text" id="affBankName" data-i18n-placeholder="bank_name_placeholder" placeholder="Vietcombank">
+                    </div>
+                    <div class="affiliate-bank-field">
+                        <label data-i18n="bank_account">Số tài khoản</label>
+                        <input type="text" id="affBankAccount" data-i18n-placeholder="bank_account_placeholder" placeholder="0123456789" inputmode="numeric">
+                    </div>
+                    <div class="affiliate-bank-field">
+                        <label data-i18n="bank_holder">Chủ tài khoản</label>
+                        <input type="text" id="affBankHolder" data-i18n-placeholder="bank_holder_placeholder" placeholder="NGUYEN VAN A" style="text-transform:uppercase;">
+                    </div>
+                    <div class="affiliate-bank-field">
+                        <label data-i18n="bank_branch">Chi nhánh</label>
+                        <input type="text" id="affBankBranch" data-i18n-placeholder="bank_branch_placeholder" placeholder="Chi nhánh Sài Gòn">
+                    </div>
+                </div>
+
+                <!-- PAYPAL FORM -->
+                <div id="affPaypalSection" class="affiliate-bank-form" style="display:none;">
+                    <div class="affiliate-bank-field">
+                        <label data-i18n="paypal_email">Email PayPal</label>
+                        <input type="email" id="affPaypalEmail" data-i18n-placeholder="paypal_email_placeholder" placeholder="yourname@paypal.com">
+                    </div>
+                    <div class="affiliate-bank-field">
+                        <label data-i18n="paypal_name">Tên chủ tài khoản PayPal</label>
+                        <input type="text" id="affPaypalName" data-i18n-placeholder="paypal_name_placeholder" placeholder="Nguyen Van A">
+                    </div>
+                </div>
+
+                <button class="affiliate-bank-save" id="affSaveBankBtn" style="margin-top:16px;">
+                    <i class="fa-solid fa-floppy-disk"></i>
+                    <span data-i18n="bank_save_btn">Lưu thông tin</span>
+                </button>
+            </div>
+        </div>
+
 
         <!-- ========== MODAL: KẾT NỐI ỨNG DỤNG (Connections) ========== -->
         <div id="connectionsModal" class="modal-overlay connections-modal">
@@ -4194,6 +4259,47 @@
                 affiliate_commission_paid: 'Đã trả',
                 affiliate_commission_first: 'Lần đầu',
                 affiliate_commission_subsequent: 'Tiếp theo',
+                affiliate_qr_title: 'Mã QR chia sẻ',
+                affiliate_qr_download: 'Tải QR về máy',
+                affiliate_qr_downloading: 'Đang tải...',
+                affiliate_qr_scan: 'Quét mã để đăng ký',
+                affiliate_qr_referred_by: 'Được giới thiệu bởi',
+                affiliate_qr_error: 'Không tải được QR',
+                affiliate_qr_error_hint: 'Vui lòng kiểm tra kết nối mạng',
+                affiliate_qr_downloaded: 'Đã tải QR về máy',
+                bank_section_title: 'Thông tin nhận tiền',
+                bank_method_label: 'Hình thức nhận tiền',
+                bank_method_bank: 'Tài khoản ngân hàng',
+                bank_method_paypal: 'PayPal',
+                bank_note: 'Điền thông tin để admin chuyển khoản hoa hồng cho bạn',
+                bank_name: 'Ngân hàng',
+                bank_name_placeholder: 'Vietcombank',
+                bank_account: 'Số tài khoản',
+                bank_account_placeholder: '0123456789',
+                bank_holder: 'Chủ tài khoản',
+                bank_holder_placeholder: 'NGUYEN VAN A',
+                bank_branch: 'Chi nhánh',
+                bank_branch_placeholder: 'Chi nhánh Sài Gòn',
+                paypal_email: 'Email PayPal',
+                paypal_email_placeholder: 'yourname@paypal.com',
+                paypal_name: 'Tên chủ tài khoản PayPal',
+                paypal_name_placeholder: 'Nguyen Van A',
+                bank_save_btn: 'Lưu thông tin',
+                bank_saving: 'Đang lưu...',
+                bank_saved: 'Đã lưu thông tin nhận tiền',
+                bank_save_error: 'Lỗi lưu thông tin',
+                bank_no_partner: 'Không tìm thấy Partner ID',
+                bank_info_card_title: 'Thông tin nhận tiền',
+                bank_info_card_sub: 'Ngân hàng / PayPal',
+                bank_admin_view_bank: 'Ngân hàng',
+                bank_admin_view_paypal: 'PayPal',
+                bank_admin_view_method: 'Hình thức',
+                bank_admin_no_info: 'Partner chưa điền thông tin nhận tiền',
+                bank_admin_account: 'Số TK',
+                bank_admin_holder: 'Chủ TK',
+                bank_admin_branch: 'Chi nhánh',
+                bank_admin_paypal_email: 'PayPal',
+                bank_admin_paypal_name: 'Tên PayPal',
                 profile_bank_section: 'Thông tin nhận tiền',
                 bank_name: 'Ngân hàng',
                 bank_account: 'Số tài khoản',
@@ -4456,6 +4562,47 @@
                 affiliate_commission_paid: 'Paid',
                 affiliate_commission_first: 'First',
                 affiliate_commission_subsequent: 'Subsequent',
+                affiliate_qr_title: 'Share QR code',
+                affiliate_qr_download: 'Download QR',
+                affiliate_qr_downloading: 'Downloading...',
+                affiliate_qr_scan: 'Scan to register',
+                affiliate_qr_referred_by: 'Referred by',
+                affiliate_qr_error: 'Cannot load QR',
+                affiliate_qr_error_hint: 'Please check your internet connection',
+                affiliate_qr_downloaded: 'QR downloaded',
+                bank_section_title: 'Payment information',
+                bank_method_label: 'Payment method',
+                bank_method_bank: 'Bank account',
+                bank_method_paypal: 'PayPal',
+                bank_note: 'Fill in your info so admin can transfer commission',
+                bank_name: 'Bank name',
+                bank_name_placeholder: 'Vietcombank',
+                bank_account: 'Account number',
+                bank_account_placeholder: '0123456789',
+                bank_holder: 'Account holder',
+                bank_holder_placeholder: 'NGUYEN VAN A',
+                bank_branch: 'Branch',
+                bank_branch_placeholder: 'Saigon Branch',
+                paypal_email: 'PayPal email',
+                paypal_email_placeholder: 'yourname@paypal.com',
+                paypal_name: 'PayPal account name',
+                paypal_name_placeholder: 'Nguyen Van A',
+                bank_save_btn: 'Save information',
+                bank_saving: 'Saving...',
+                bank_saved: 'Payment info saved',
+                bank_save_error: 'Failed to save info',
+                bank_no_partner: 'Partner ID not found',
+                bank_info_card_title: 'Payment information',
+                bank_info_card_sub: 'Bank / PayPal',
+                bank_admin_view_bank: 'Bank',
+                bank_admin_view_paypal: 'PayPal',
+                bank_admin_view_method: 'Method',
+                bank_admin_no_info: 'Partner has not filled payment info',
+                bank_admin_account: 'Account',
+                bank_admin_holder: 'Holder',
+                bank_admin_branch: 'Branch',
+                bank_admin_paypal_email: 'PayPal',
+                bank_admin_paypal_name: 'PayPal name',
                 profile_bank_section: 'Payment information',
                 bank_name: 'Bank',
                 bank_account: 'Account number',
@@ -6458,51 +6605,15 @@ if (qrCheckinBtn) {
                 <div class="affiliate-qr-card">
                     <div class="affiliate-qr-title">
                         <i class="fa-solid fa-qrcode"></i>
-                        <span>Mã QR chia sẻ</span>
+                        <span>${t('affiliate_qr_title')}</span>
                     </div>
                     <div class="affiliate-qr-preview">
                         <canvas id="affQRCanvas" width="1080" height="1080"></canvas>
                     </div>
                     <button class="affiliate-qr-download" id="affQRDownloadBtn">
                         <i class="fa-solid fa-download"></i>
-                        <span>Tải QR về máy</span>
+                        <span>${t('affiliate_qr_download')}</span>
                     </button>
-                </div>
-            `;
-
-            // ===== BANK INFO FORM =====
-            html += `
-                <div class="affiliate-bank-card">
-                    <div class="affiliate-qr-title">
-                        <i class="fa-solid fa-building-columns"></i>
-                        <span>Thông tin nhận tiền</span>
-                    </div>
-                    <div class="affiliate-bank-note">
-                        <i class="fa-solid fa-circle-info"></i>
-                        <span>Điền thông tin để admin chuyển khoản hoa hồng cho bạn</span>
-                    </div>
-                    <div class="affiliate-bank-form">
-                        <div class="affiliate-bank-field">
-                            <label>Ngân hàng</label>
-                            <input type="text" id="affBankName" placeholder="Vietcombank">
-                        </div>
-                        <div class="affiliate-bank-field">
-                            <label>Số tài khoản</label>
-                            <input type="text" id="affBankAccount" placeholder="0123456789" inputmode="numeric">
-                        </div>
-                        <div class="affiliate-bank-field">
-                            <label>Chủ tài khoản</label>
-                            <input type="text" id="affBankHolder" placeholder="NGUYEN VAN A" style="text-transform:uppercase;">
-                        </div>
-                        <div class="affiliate-bank-field">
-                            <label>Chi nhánh</label>
-                            <input type="text" id="affBankBranch" placeholder="Chi nhánh Sài Gòn">
-                        </div>
-                        <button class="affiliate-bank-save" id="affSaveBankBtn">
-                            <i class="fa-solid fa-floppy-disk"></i>
-                            <span>Lưu thông tin</span>
-                        </button>
-                    </div>
                 </div>
             `;
             // Stats
@@ -6637,12 +6748,9 @@ if (qrCheckinBtn) {
             // Bind events sau khi render
             const dlBtn = document.getElementById('affQRDownloadBtn');
             if (dlBtn) dlBtn.onclick = downloadAffQR;
-            const saveBtn = document.getElementById('affSaveBankBtn');
-            if (saveBtn) saveBtn.onclick = saveAffBankInfo;
 
-            // Render QR + load bank info
+            // Render QR
             renderAffQR(refLink, data.partner ? data.partner.name : '');
-            loadAffBankInfo();
         }
 
         function toggleAffGroup(el) {
@@ -6672,7 +6780,7 @@ if (qrCheckinBtn) {
             ctx.closePath();
         }
 
-                async function renderAffQR(refLink, partnerName) {
+                    async function renderAffQR(refLink, partnerName) {
             const canvas = document.getElementById('affQRCanvas');
             if (!canvas) return;
             const ctx = canvas.getContext('2d');
@@ -6717,89 +6825,46 @@ if (qrCheckinBtn) {
             ctx.shadowBlur = 0;
             ctx.shadowOffsetY = 0;
 
-            // ===== Load QR image — thử 2 phương án =====
-            let qrDataUrl = null;
-
-            // Phương án 1: QRServer API (không cần thư viện)
+            // Load QR image — dùng QRServer API
+            const apiUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=640x640&ecc=H&color=1B2B7A&bgcolor=FFFFFF&margin=0&data=' + encodeURIComponent(refLink);
             try {
-                const apiUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=640x640&ecc=H&color=1B2B7A&bgcolor=FFFFFF&data=' + encodeURIComponent(refLink);
-                console.log('[QR] Trying QRServer API...');
-                qrDataUrl = await new Promise((resolve, reject) => {
-                    const img = new Image();
-                    img.crossOrigin = 'anonymous';
-                    img.onload = () => resolve(apiUrl);
+                console.log('[QR] Loading:', apiUrl);
+                const img = new Image();
+                img.crossOrigin = 'anonymous';
+                await new Promise((resolve, reject) => {
+                    img.onload = resolve;
                     img.onerror = () => reject(new Error('QRServer failed'));
                     img.src = apiUrl;
-                    setTimeout(() => reject(new Error('QRServer timeout')), 8000);
+                    setTimeout(() => reject(new Error('timeout')), 10000);
                 });
-                console.log('[QR] QRServer OK');
+                ctx.drawImage(img, qrX, qrY, qrSize, qrSize);
+                console.log('[QR] Drawn OK');
             } catch (e) {
-                console.warn('[QR] QRServer failed:', e.message);
-                qrDataUrl = null;
+                console.error('[QR] Failed:', e.message);
+                // Fallback: hiển thị text lỗi
+                ctx.fillStyle = '#FEF2F2';
+                ctx.fillRect(qrX, qrY, qrSize, qrSize);
+                ctx.fillStyle = '#EF4444';
+                ctx.font = '600 28px "Be Vietnam Pro", sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText(t('affiliate_qr_error'), W / 2, qrY + qrSize / 2 - 20);
+                ctx.font = '400 20px "Be Vietnam Pro", sans-serif';
+                ctx.fillText(t('affiliate_qr_error_hint'), W / 2, qrY + qrSize / 2 + 30);
             }
 
-            // Phương án 2: Fallback dùng thư viện QRCode (nếu API fail)
-            if (!qrDataUrl && typeof QRCode !== 'undefined' && QRCode.toDataURL) {
-                try {
-                    console.log('[QR] Trying QRCode library...');
-                    qrDataUrl = await QRCode.toDataURL(refLink, {
-                        width: qrSize,
-                        margin: 1,
-                        color: { dark: '#1B2B7A', light: '#FFFFFF' },
-                        errorCorrectionLevel: 'H'
-                    });
-                    console.log('[QR] QRCode library OK');
-                } catch (e) {
-                    console.warn('[QR] QRCode library failed:', e.message);
-                }
-            }
-
-            // Draw QR lên canvas
-            if (qrDataUrl) {
-                try {
-                    const img = new Image();
-                    img.crossOrigin = 'anonymous';
-                    img.src = qrDataUrl;
-                    await new Promise((resolve, reject) => {
-                        img.onload = resolve;
-                        img.onerror = reject;
-                    });
-                    ctx.drawImage(img, qrX, qrY, qrSize, qrSize);
-                    console.log('[QR] QR drawn successfully');
-                } catch (e) {
-                    console.error('[QR] Draw failed:', e.message);
-                    drawQRError(ctx, W, qrX, qrY, qrSize);
-                }
-            } else {
-                console.error('[QR] Both methods failed');
-                drawQRError(ctx, W, qrX, qrY, qrSize);
-            }
-
-            // Scan text
+                        // Scan text
             ctx.fillStyle = '#1B2B7A';
             ctx.font = '800 42px "Be Vietnam Pro", sans-serif';
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
-            ctx.fillText('Quét mã để đăng ký', W / 2, 975);
+            ctx.fillText(t('affiliate_qr_scan'), W / 2, 975);
 
             // Partner name
             if (partnerName) {
                 ctx.fillStyle = '#64748B';
                 ctx.font = '600 26px "Be Vietnam Pro", sans-serif';
-                ctx.fillText('Được giới thiệu bởi ' + partnerName, W / 2, 1025);
+                ctx.fillText(t('affiliate_qr_referred_by') + ' ' + partnerName, W / 2, 1025);
             }
-        }
-
-        function drawQRError(ctx, W, qrX, qrY, qrSize) {
-            ctx.fillStyle = '#FEF2F2';
-            ctx.fillRect(qrX, qrY, qrSize, qrSize);
-            ctx.fillStyle = '#EF4444';
-            ctx.font = '600 28px "Be Vietnam Pro", sans-serif';
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-            ctx.fillText('Không tải được QR', W / 2, qrY + qrSize / 2 - 20);
-            ctx.font = '400 20px "Be Vietnam Pro", sans-serif';
-            ctx.fillText('Vui lòng tải lại trang', W / 2, qrY + qrSize / 2 + 30);
         }
 
         function downloadAffQR() {
@@ -6808,7 +6873,7 @@ if (qrCheckinBtn) {
             const btn = document.getElementById('affQRDownloadBtn');
             const orig = btn.innerHTML;
             btn.disabled = true;
-            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i><span>Đang tải...</span>';
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i><span>' + t('affiliate_qr_downloading') + '</span>';
 
             try {
                 // Dùng toDataURL thay vì toBlob để tránh lỗi CORS tainted canvas
@@ -6819,7 +6884,7 @@ if (qrCheckinBtn) {
                 document.body.appendChild(a);
                 a.click();
                 document.body.removeChild(a);
-                showToast('Đã tải QR về máy', true);
+                showToast(t('affiliate_qr_downloaded'), true);
             } catch (e) {
                 console.error('[QR] Download failed:', e);
                 showToast('Lỗi tải QR: ' + e.message, false);
@@ -6828,9 +6893,25 @@ if (qrCheckinBtn) {
                 btn.innerHTML = orig;
             }
         }
+                // ===== BANK INFO MODAL — Open/Close =====
+        function openBankInfoModal() {
+            if (!currentEmail) {
+                alert(t('toast_login_required'));
+                return;
+            }
+            const modal = document.getElementById('bankInfoModal');
+            if (!modal) return;
+            modal.classList.add('active');
+            loadAffBankInfo();
+        }
+
+        function closeBankInfoModal() {
+            const modal = document.getElementById('bankInfoModal');
+            if (modal) modal.classList.remove('active');
+        }
 
         // ===== BANK INFO — Load + Save =====
-        async function loadAffBankInfo() {
+                async function loadAffBankInfo() {
             if (!currentSalesId) return;
             try {
                 const url = `${CLOUD_FUNCTION_URL}?action=affiliateGetBankInfo&partnerId=${encodeURIComponent(currentSalesId)}`;
@@ -6838,6 +6919,14 @@ if (qrCheckinBtn) {
                 const data = await res.json();
                 if (data.status === 200 && data.bank_info) {
                     const b = data.bank_info;
+                    const method = b.method || 'bank';
+
+                    // Set method
+                    const methodSelect = document.getElementById('affBankMethod');
+                    if (methodSelect) methodSelect.value = method;
+                    toggleBankMethod();
+
+                    // Bank fields
                     const elName = document.getElementById('affBankName');
                     const elAcc = document.getElementById('affBankAccount');
                     const elHolder = document.getElementById('affBankHolder');
@@ -6846,40 +6935,65 @@ if (qrCheckinBtn) {
                     if (elAcc) elAcc.value = b.bank_account || '';
                     if (elHolder) elHolder.value = b.bank_holder || '';
                     if (elBranch) elBranch.value = b.bank_branch || '';
+
+                    // PayPal fields
+                    const elPpEmail = document.getElementById('affPaypalEmail');
+                    const elPpName = document.getElementById('affPaypalName');
+                    if (elPpEmail) elPpEmail.value = b.paypal_email || '';
+                    if (elPpName) elPpName.value = b.paypal_name || '';
                 }
             } catch (e) {
                 console.warn('Load bank info error:', e);
             }
         }
 
-        async function saveAffBankInfo() {
+        function toggleBankMethod() {
+            const method = document.getElementById('affBankMethod').value;
+            const bankSec = document.getElementById('affBankSection');
+            const ppSec = document.getElementById('affPaypalSection');
+            if (method === 'paypal') {
+                bankSec.style.display = 'none';
+                ppSec.style.display = 'flex';
+            } else {
+                bankSec.style.display = 'flex';
+                ppSec.style.display = 'none';
+            }
+        }
+
+                async function saveAffBankInfo() {
             if (!currentSalesId) {
-                showToast('Không tìm thấy Partner ID', false);
+                showToast(t('bank_no_partner'), false);
                 return;
             }
             const btn = document.getElementById('affSaveBankBtn');
             const orig = btn.innerHTML;
             btn.disabled = true;
-            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i><span>Đang lưu...</span>';
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i><span>' + t('bank_saving') + '</span>';
 
             try {
+                const method = document.getElementById('affBankMethod').value;
+
                 const res = await fetch(CLOUD_FUNCTION_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                     body: new URLSearchParams({
                         action: 'affiliateSaveBankInfo',
                         partnerId: currentSalesId,
+                        method: method,
                         bankName: document.getElementById('affBankName').value.trim(),
                         bankAccount: document.getElementById('affBankAccount').value.trim(),
                         bankHolder: document.getElementById('affBankHolder').value.trim().toUpperCase(),
-                        bankBranch: document.getElementById('affBankBranch').value.trim()
+                        bankBranch: document.getElementById('affBankBranch').value.trim(),
+                        paypalEmail: document.getElementById('affPaypalEmail').value.trim(),
+                        paypalName: document.getElementById('affPaypalName').value.trim()
                     }).toString()
                 });
                 const data = await res.json();
                 if (data.status === 200) {
-                    showToast('Đã lưu thông tin ngân hàng', true);
+                    showToast(t('bank_saved'), true);
+                    setTimeout(closeBankInfoModal, 800);
                 } else {
-                    showToast(data.message || 'Lỗi lưu thông tin', false);
+                    showToast(data.message || t('bank_save_error'), false);
                 }
             } catch (e) {
                 showToast(e.message, false);
@@ -6888,6 +7002,19 @@ if (qrCheckinBtn) {
                 btn.innerHTML = orig;
             }
         }
+                // Bind close events + method toggle cho modal bank info
+        document.addEventListener('DOMContentLoaded', function() {
+            const methodSelect = document.getElementById('affBankMethod');
+            if (methodSelect) methodSelect.addEventListener('change', toggleBankMethod);
+            const closeBtn = document.getElementById('closeBankInfoBtn');
+            if (closeBtn) closeBtn.onclick = closeBankInfoModal;
+            const modalEl = document.getElementById('bankInfoModal');
+            if (modalEl) {
+                modalEl.addEventListener('click', function(e) {
+                    if (e.target === modalEl) closeBankInfoModal();
+                });
+            }
+        });
 
         async function copyAffiliateLink() {
             const input = document.getElementById('affRefInput');
@@ -9509,6 +9636,11 @@ window.addEventListener('message', async function(event) {
         showToast('Kết nối Google thất bại: ' + (event.data.reason || 'Không rõ'), false);
     }
 });
+                // ===== BANK INFO MODAL — Bind card Affiliate =====
+        const affiliateBtnEl = document.getElementById('affiliateBtn');
+        if (affiliateBtnEl) {
+            affiliateBtnEl.addEventListener('click', openBankInfoModal);
+        }
     </script>
 </body>
 </html>
