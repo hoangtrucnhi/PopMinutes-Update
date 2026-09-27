@@ -5352,11 +5352,7 @@ let currentEmail = "",
                 return;
             }
             if (page === 'scan') {
-                if (typeof qrCheckinBtn !== 'undefined' && qrCheckinBtn) {
-                    qrCheckinBtn.click();
-                } else {
-                    alert(t('toast_upgrade_required'));
-                }
+                openCafePage('checkin');
                 return;
             }
 
@@ -6804,7 +6800,7 @@ const ccEmail1 = (sendToClient && clientEmailValue) ? clientEmailValue : '';
             });
         }
 
-        document.getElementById('checkinBtn').addEventListener('click', openCafePage);
+        document.getElementById('checkinBtn').addEventListener('click', () => openCafePage('bookings'));
                         // ============ PROFILE + NOTIFICATIONS PAGE EVENTS ============
         const saveProfileBtnEl = document.getElementById('saveProfileBtn');
         if (saveProfileBtnEl) saveProfileBtnEl.addEventListener('click', saveUserProfile);
@@ -6836,9 +6832,9 @@ const ccEmail1 = (sendToClient && clientEmailValue) ? clientEmailValue : '';
             });
         }
         const qrCheckinBtn = document.getElementById('qrCheckinBtn');
-if (qrCheckinBtn) {
-    qrCheckinBtn.addEventListener('click', () => alert(t('toast_upgrade_required')));
-}
+        if (qrCheckinBtn) {
+            qrCheckinBtn.addEventListener('click', () => openCafePage('history'));
+        }
                 // ========================================================================
         //  AFFILIATE PAGE — Load data + render
         // ========================================================================
@@ -7101,27 +7097,39 @@ if (qrCheckinBtn) {
         let cafeCurrentTab = 'bookings';
         let cafeCafesCache = [];
 
-        function openCafePage() {
+        function openCafePage(mode) {
+            // mode: 'bookings' | 'checkin' | 'history'
+            mode = mode || 'bookings';
+            if (mode !== 'bookings' && mode !== 'checkin' && mode !== 'history') {
+                mode = 'bookings';
+            }
+
             if (!currentEmail) {
                 alert(t('toast_login_required'));
                 return;
             }
-            // Hide all
+
+            // Hide all pages
             document.getElementById('dashboard-screen').classList.add('hidden');
             document.getElementById('notifications-page').classList.add('hidden');
             document.getElementById('profile-page').classList.add('hidden');
             const affPage = document.getElementById('affiliate-page');
             if (affPage) affPage.classList.add('hidden');
+
             // Show cafe
             document.getElementById('cafe-page').classList.remove('hidden');
             window.scrollTo({ top: 0, behavior: 'instant' });
+
             // Clear nav highlight
             document.querySelectorAll('.bottom-nav .nav-item').forEach(item => item.classList.remove('active'));
-            // Load default tab
-            switchCafeTab(cafeCurrentTab || 'bookings');
+
+            // Switch to correct tab
+            switchCafeTab(mode);
+            cafeCurrentTab = mode;
+
             // Push history
             try {
-                history.pushState({ page: 'cafe' }, '', '#cafe');
+                history.pushState({ page: 'cafe', tab: mode }, '', '#cafe-' + mode);
             } catch (e) {}
         }
 
