@@ -2655,40 +2655,8 @@
             color: var(--muted);
         }
                 /* ===== CAFE PAGE ===== */
-        .cafe-tabs {
-            display: flex;
-            background: #F1F5F9;
-            border-radius: 30px;
-            padding: 4px;
-            gap: 4px;
-            margin-bottom: 20px;
-        }
-        .cafe-tab {
-            flex: 1;
-            padding: 10px 8px;
-            border-radius: 26px;
-            font-weight: 700;
-            font-size: 13px;
-            cursor: pointer;
-            background: transparent;
-            color: var(--muted);
-            border: none;
-            transition: all 0.2s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 6px;
-            font-family: inherit;
-            -webkit-tap-highlight-color: transparent;
-        }
-        .cafe-tab i { font-size: 13px; }
-        .cafe-tab.active {
-            background: var(--navy);
-            color: #fff;
-            box-shadow: 0 2px 8px rgba(27, 43, 122, 0.25);
-        }
-        .cafe-tab-content { display: none; }
-        .cafe-tab-content.active { display: block; }
+        .cafe-content { display: none; }
+        .cafe-content.active { display: block; }
 
         .cafe-action-row {
             margin-bottom: 14px;
@@ -3278,34 +3246,19 @@
                 </div>
             </div>
         </div>
-                <!-- ========== CAFE PAGE ========== -->
+                <!-- ========== CAFE PAGE (3 modes) ========== -->
         <div id="cafe-page" class="page hidden">
             <div class="page-header">
                 <button class="page-back-btn" onclick="closeCafePage()">
                     <i class="fa-solid fa-arrow-left"></i>
                 </button>
-                <h1 class="page-title" data-i18n="cafe_page_title">Quán cafe</h1>
+                <h1 class="page-title" id="cafePageTitle">Quán cafe</h1>
                 <div class="page-header-spacer"></div>
             </div>
             <div class="page-content">
-                <!-- Tabs -->
-                <div class="cafe-tabs" id="cafeTabs">
-                    <button class="cafe-tab active" data-tab="bookings" onclick="switchCafeTab('bookings')">
-                        <i class="fa-regular fa-calendar"></i>
-                        <span data-i18n="cafe_tab_bookings">Đặt chỗ</span>
-                    </button>
-                    <button class="cafe-tab" data-tab="checkin" onclick="switchCafeTab('checkin')">
-                        <i class="fa-solid fa-location-dot"></i>
-                        <span data-i18n="cafe_tab_checkin">Check-in</span>
-                    </button>
-                    <button class="cafe-tab" data-tab="history" onclick="switchCafeTab('history')">
-                        <i class="fa-solid fa-clock-rotate-left"></i>
-                        <span data-i18n="cafe_tab_history">Lịch sử</span>
-                    </button>
-                </div>
 
-                <!-- Tab: Bookings -->
-                <div id="cafeTabBookings" class="cafe-tab-content active">
+                <!-- ===== MODE: BOOKINGS ===== -->
+                <div id="cafeContentBookings" class="cafe-content">
                     <div class="cafe-action-row">
                         <button class="cafe-primary-btn" onclick="openCafeBookingModal()">
                             <i class="fa-solid fa-plus"></i>
@@ -3317,15 +3270,15 @@
                     </div>
                 </div>
 
-                <!-- Tab: Check-in -->
-                <div id="cafeTabCheckin" class="cafe-tab-content">
+                <!-- ===== MODE: CHECKIN ===== -->
+                <div id="cafeContentCheckin" class="cafe-content">
                     <div id="cafeCheckinContent">
                         <p class="cafe-loading" data-i18n="loading">Đang tải...</p>
                     </div>
                 </div>
 
-                <!-- Tab: History -->
-                <div id="cafeTabHistory" class="cafe-tab-content">
+                <!-- ===== MODE: HISTORY ===== -->
+                <div id="cafeContentHistory" class="cafe-content">
                     <div class="cafe-filter-row">
                         <select id="cafeHistoryRange" class="cafe-filter-select" onchange="loadCafeHistory()">
                             <option value="7" data-i18n="cafe_range_7d">7 ngày qua</option>
@@ -3337,6 +3290,7 @@
                         <p class="cafe-loading" data-i18n="loading">Đang tải...</p>
                     </div>
                 </div>
+
             </div>
         </div>
 
@@ -4550,6 +4504,8 @@
                 affiliate_qr_error_hint: 'Vui lòng kiểm tra kết nối mạng',
                 affiliate_qr_downloaded: 'Đã tải',
                 cafe_page_title: 'Quán cafe',
+                cafe_page_title_checkin: 'Check-in',
+                cafe_page_title_history: 'Lịch sử check-in',
                 cafe_tab_bookings: 'Đặt chỗ',
                 cafe_tab_checkin: 'Check-in',
                 cafe_tab_history: 'Lịch sử',
@@ -4870,6 +4826,8 @@
                 affiliate_qr_error_hint: 'Please check your internet connection',
                 affiliate_qr_downloaded: 'Downloaded',
                 cafe_page_title: 'Cafes',
+                cafe_page_title_checkin: 'Check-in',
+                cafe_page_title_history: 'Check-in History',
                 cafe_tab_bookings: 'Bookings',
                 cafe_tab_checkin: 'Check-in',
                 cafe_tab_history: 'History',
@@ -7116,16 +7074,31 @@ const ccEmail1 = (sendToClient && clientEmailValue) ? clientEmailValue : '';
             const affPage = document.getElementById('affiliate-page');
             if (affPage) affPage.classList.add('hidden');
 
-            // Show cafe
+            // Show cafe page
             document.getElementById('cafe-page').classList.remove('hidden');
             window.scrollTo({ top: 0, behavior: 'instant' });
 
             // Clear nav highlight
             document.querySelectorAll('.bottom-nav .nav-item').forEach(item => item.classList.remove('active'));
 
-            // Switch to correct tab
-            switchCafeTab(mode);
+            // Set title theo mode
+            const titleEl = document.getElementById('cafePageTitle');
+            if (mode === 'bookings') titleEl.textContent = t('cafe_page_title');
+            else if (mode === 'checkin') titleEl.textContent = t('cafe_page_title_checkin') || 'Check-in';
+            else if (mode === 'history') titleEl.textContent = t('cafe_page_title_history') || 'Lịch sử check-in';
+
+            // Hide all content, show correct one
+            document.querySelectorAll('.cafe-content').forEach(el => el.classList.remove('active'));
+            const contentId = 'cafeContent' + mode.charAt(0).toUpperCase() + mode.slice(1);
+            const contentEl = document.getElementById(contentId);
+            if (contentEl) contentEl.classList.add('active');
+
             cafeCurrentTab = mode;
+
+            // Load data theo mode
+            if (mode === 'bookings') loadCafeBookings();
+            else if (mode === 'checkin') loadCafeCheckin();
+            else if (mode === 'history') loadCafeHistory();
 
             // Push history
             try {
@@ -7140,21 +7113,6 @@ const ccEmail1 = (sendToClient && clientEmailValue) ? clientEmailValue : '';
             document.querySelectorAll('.bottom-nav .nav-item').forEach(item => {
                 item.classList.toggle('active', item.dataset.page === 'home');
             });
-        }
-
-        function switchCafeTab(tab) {
-            cafeCurrentTab = tab;
-            document.querySelectorAll('.cafe-tab').forEach(el => {
-                el.classList.toggle('active', el.dataset.tab === tab);
-            });
-            document.querySelectorAll('.cafe-tab-content').forEach(el => el.classList.remove('active'));
-            const tabId = 'cafeTab' + tab.charAt(0).toUpperCase() + tab.slice(1);
-            const el = document.getElementById(tabId);
-            if (el) el.classList.add('active');
-
-            if (tab === 'bookings') loadCafeBookings();
-            else if (tab === 'checkin') loadCafeCheckin();
-            else if (tab === 'history') loadCafeHistory();
         }
 
         async function fetchCafesForSales() {
@@ -7256,7 +7214,7 @@ const ccEmail1 = (sendToClient && clientEmailValue) ? clientEmailValue : '';
         }
 
         function goToCheckIn() {
-            switchCafeTab('checkin');
+            openCafePage('checkin');
         }
 
         async function cancelCafeBooking(bookingId, btn) {
