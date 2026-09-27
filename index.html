@@ -2823,6 +2823,136 @@
             color: #CBD5E1;
             margin-bottom: 10px;
         }
+                /* ===== CAFE BOOKING MODAL ===== */
+        .cafe-bm-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.65);
+            backdrop-filter: blur(8px);
+            display: none;
+            align-items: flex-end;
+            justify-content: center;
+            z-index: 200;
+        }
+        .cafe-bm-overlay.active {
+            display: flex;
+            animation: fadeIn 0.2s ease-out;
+        }
+        .cafe-bm-box {
+            background: var(--surface);
+            border-radius: 24px 24px 0 0;
+            width: 100%;
+            max-width: 500px;
+            max-height: 88vh;
+            overflow-y: auto;
+            padding: 20px 20px 28px;
+            padding-bottom: calc(28px + env(safe-area-inset-bottom, 0px));
+            animation: slideUp 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+        .cafe-bm-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 14px;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 18px;
+        }
+        .cafe-bm-title {
+            font-size: 17px;
+            font-weight: 800;
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .cafe-bm-title i { color: var(--navy); }
+        .cafe-bm-close {
+            width: 34px;
+            height: 34px;
+            background: #F1F5F9;
+            border: none;
+            border-radius: 50%;
+            font-size: 15px;
+            color: var(--muted);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .cafe-bm-field {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            margin-bottom: 14px;
+        }
+        .cafe-bm-field label {
+            font-size: 11.5px;
+            font-weight: 700;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .cafe-bm-field label .req { color: #EF4444; }
+        .cafe-bm-input,
+        .cafe-bm-select {
+            width: 100%;
+            padding: 12px 14px;
+            border: 1.5px solid var(--border);
+            border-radius: 12px;
+            font-family: inherit;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text);
+            background: #fff;
+            outline: none;
+            transition: all 0.2s;
+        }
+        .cafe-bm-input:focus,
+        .cafe-bm-select:focus {
+            border-color: var(--navy-light);
+            box-shadow: 0 0 0 4px rgba(45, 63, 166, 0.1);
+        }
+        .cafe-bm-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+        .cafe-bm-cafe-preview {
+            background: #F0F3FF;
+            border: 1px dashed #BFDBFE;
+            border-radius: 12px;
+            padding: 10px 12px;
+            font-size: 12.5px;
+            color: #1E40AF;
+            line-height: 1.6;
+            margin-top: 6px;
+            display: none;
+        }
+        .cafe-bm-cafe-preview.active { display: block; }
+        .cafe-bm-cafe-preview b { color: #1B2B7A; font-weight: 700; }
+        .cafe-bm-submit {
+            width: 100%;
+            background: var(--navy);
+            color: #fff;
+            border: none;
+            padding: 14px 18px;
+            border-radius: 12px;
+            font-family: inherit;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.2s;
+            box-shadow: 0 6px 24px rgba(27, 43, 122, 0.25);
+            margin-top: 8px;
+        }
+        .cafe-bm-submit:hover { background: var(--navy-deep); }
+        .cafe-bm-submit:active { transform: translateY(1px); }
+        .cafe-bm-submit:disabled { opacity: 0.6; cursor: not-allowed; }
+
         .cafe-info-box {
             background: #EFF6FF;
             border: 1px solid #BFDBFE;
@@ -3371,6 +3501,60 @@
                 </div>
             </div>
         </div>
+                <!-- ========== CAFE BOOKING MODAL ========== -->
+        <div id="cafeBookingModal" class="cafe-bm-overlay">
+            <div class="cafe-bm-box">
+                <div class="cafe-bm-header">
+                    <div class="cafe-bm-title">
+                        <i class="fa-solid fa-calendar-plus"></i>
+                        <span data-i18n="cafe_bm_title">Đặt chỗ mới</span>
+                    </div>
+                    <button class="cafe-bm-close" onclick="closeCafeBookingModal()">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+
+                <div class="cafe-bm-field">
+                    <label>Chọn quán <span class="req">*</span></label>
+                    <select id="cafeBmCafe" class="cafe-bm-select" onchange="onCafeBmSelect()">
+                        <option value="">-- Chọn quán --</option>
+                    </select>
+                    <div id="cafeBmCafePreview" class="cafe-bm-cafe-preview"></div>
+                </div>
+
+                <div class="cafe-bm-field">
+                    <label>Ngày <span class="req">*</span></label>
+                    <input type="date" id="cafeBmDate" class="cafe-bm-input">
+                </div>
+
+                <div class="cafe-bm-row">
+                    <div class="cafe-bm-field">
+                        <label>Giờ bắt đầu <span class="req">*</span></label>
+                        <input type="time" id="cafeBmStart" class="cafe-bm-input">
+                    </div>
+                    <div class="cafe-bm-field">
+                        <label>Giờ kết thúc <span class="req">*</span></label>
+                        <input type="time" id="cafeBmEnd" class="cafe-bm-input">
+                    </div>
+                </div>
+
+                <div class="cafe-bm-field">
+                    <label>Tên khách hàng</label>
+                    <input type="text" id="cafeBmGuest" class="cafe-bm-input" placeholder="VD: Anh Hoàng - Cty ABC" maxlength="100">
+                </div>
+
+                <div class="cafe-bm-field">
+                    <label>Ghi chú</label>
+                    <input type="text" id="cafeBmNote" class="cafe-bm-input" placeholder="Mục đích gặp, yêu cầu đặc biệt..." maxlength="200">
+                </div>
+
+                <button id="cafeBmSubmitBtn" class="cafe-bm-submit" onclick="submitCafeBooking()">
+                    <i class="fa-solid fa-check"></i>
+                    <span data-i18n="cafe_bm_submit">Xác nhận đặt chỗ</span>
+                </button>
+            </div>
+        </div>
+
         <!-- ========== RECORDER MODAL ========== -->
         <div id="recorderModal" class="modal-overlay">
             <div class="modal-box recorder-modal">
@@ -5159,7 +5343,8 @@ if (event.data.type === 'NOTIFICATION_CLICK') {
 let currentEmail = "",
     currentSalesName = "",
     currentCompanyName = "",
-    currentSalesId = "";
+    currentSalesId = "",
+    currentEnterpriseId = "";
 
         // ========================================================================
         //  ĐĂNG NHẬP
@@ -5189,7 +5374,8 @@ let currentEmail = "",
                     currentSalesName = result.sales.name;
                     currentCompanyName = result.enterprise.name;
                     currentSalesId = result.sales.id || '';
-                                        // ================================================================
+                    window.__currentEnterpriseId = result.enterprise?.id || '';
+                    // ================================================================
                     //  AFFILIATE: Attach referral nếu có
                     // ================================================================
                     try {
@@ -6295,6 +6481,7 @@ for (let attempt = 1; attempt <= 3; attempt++) {
                     currentSalesName = result.sales.name;
                     currentCompanyName = result.enterprise.name;
                     currentSalesId = result.sales.id || '';
+                    window.__currentEnterpriseId = result.enterprise?.id || '';
                     setTimeout(() => applyLanguage(currentLang), 100);
 
                     // SYNC LANGUAGE LÊN FIRESTORE
@@ -7357,10 +7544,173 @@ const ccEmail1 = (sendToClient && clientEmailValue) ? clientEmailValue : '';
             }
         }
 
-        // Placeholder cho P5b
-        function openCafeBookingModal() {
-            alert('Booking modal sẽ có ở P5b');
+        // ================================================================
+        // ============ CAFE BOOKING MODAL — P5b ==========================
+        // ================================================================
+
+        async function openCafeBookingModal() {
+            if (!currentEmail) {
+                alert(t('toast_login_required'));
+                return;
+            }
+
+            // Reset form
+            const cafeSelect = document.getElementById('cafeBmCafe');
+            const dateInput = document.getElementById('cafeBmDate');
+            const startInput = document.getElementById('cafeBmStart');
+            const endInput = document.getElementById('cafeBmEnd');
+            const guestInput = document.getElementById('cafeBmGuest');
+            const noteInput = document.getElementById('cafeBmNote');
+
+            guestInput.value = '';
+            noteInput.value = '';
+            document.getElementById('cafeBmCafePreview').classList.remove('active');
+
+            // Set default date = today
+            const today = new Date();
+            const yyyy = today.getFullYear();
+            const mm = String(today.getMonth() + 1).padStart(2, '0');
+            const dd = String(today.getDate()).padStart(2, '0');
+            dateInput.value = yyyy + '-' + mm + '-' + dd;
+
+            // Set default giờ = giờ hiện tại + 1h, duration 1h
+            const now = new Date();
+            now.setMinutes(0, 0, 0);
+            const startHour = now.getHours() + 1;
+            const endHour = startHour + 1;
+            startInput.value = String(startHour).padStart(2, '0') + ':00';
+            endInput.value = String(endHour).padStart(2, '0') + ':00';
+
+            // Load cafes vào dropdown
+            cafeSelect.innerHTML = '<option value="">-- Đang tải --</option>';
+            const cafes = await fetchCafesForSales();
+            if (cafes.length === 0) {
+                cafeSelect.innerHTML = '<option value="">-- Không có quán nào --</option>';
+            } else {
+                let opts = '<option value="">-- Chọn quán --</option>';
+                cafes.forEach(c => {
+                    opts += `<option value="${escapeHtml(c.cafe_id)}">${escapeHtml(c.name)} - ${fmtCafeMoney(c.price_per_hour)}/h</option>`;
+                });
+                cafeSelect.innerHTML = opts;
+            }
+
+            // Show modal
+            document.getElementById('cafeBookingModal').classList.add('active');
         }
+
+        function closeCafeBookingModal() {
+            document.getElementById('cafeBookingModal').classList.remove('active');
+        }
+
+        function onCafeBmSelect() {
+            const cafeId = document.getElementById('cafeBmCafe').value;
+            const preview = document.getElementById('cafeBmCafePreview');
+            if (!cafeId) {
+                preview.classList.remove('active');
+                return;
+            }
+            const cafe = getCafeById(cafeId);
+            if (!cafe) {
+                preview.classList.remove('active');
+                return;
+            }
+            preview.innerHTML = `
+                <div><i class="fa-solid fa-store"></i> <b>${escapeHtml(cafe.name)}</b></div>
+                <div style="margin-top:4px;"><i class="fa-solid fa-location-dot"></i> ${escapeHtml(cafe.address)}</div>
+                <div style="margin-top:4px;"><i class="fa-solid fa-money-bill"></i> ${fmtCafeMoney(cafe.price_per_hour)}/giờ</div>
+            `;
+            preview.classList.add('active');
+        }
+
+        async function submitCafeBooking() {
+            const cafeId = document.getElementById('cafeBmCafe').value;
+            const dateVal = document.getElementById('cafeBmDate').value;
+            const startVal = document.getElementById('cafeBmStart').value;
+            const endVal = document.getElementById('cafeBmEnd').value;
+            const guestName = document.getElementById('cafeBmGuest').value.trim();
+            const note = document.getElementById('cafeBmNote').value.trim();
+
+            // Validate
+            if (!cafeId) {
+                showToast('Vui lòng chọn quán', false);
+                return;
+            }
+            if (!dateVal) {
+                showToast('Vui lòng chọn ngày', false);
+                return;
+            }
+            if (!startVal || !endVal) {
+                showToast('Vui lòng chọn giờ bắt đầu và kết thúc', false);
+                return;
+            }
+
+            // Build timestamp (local TZ)
+            const startMs = new Date(dateVal + 'T' + startVal + ':00').getTime();
+            const endMs = new Date(dateVal + 'T' + endVal + ':00').getTime();
+
+            if (isNaN(startMs) || isNaN(endMs)) {
+                showToast('Ngày giờ không hợp lệ', false);
+                return;
+            }
+            if (startMs >= endMs) {
+                showToast('Giờ kết thúc phải sau giờ bắt đầu', false);
+                return;
+            }
+            if (endMs - startMs > 8 * 60 * 60 * 1000) {
+                showToast('Booking tối đa 8 giờ', false);
+                return;
+            }
+            if (startMs < Date.now() - 5 * 60 * 1000) {
+                showToast('Không thể đặt chỗ trong quá khứ', false);
+                return;
+            }
+
+            // Enterprise ID — lấy từ localStorage hoặc fallback
+            const enterpriseId = window.__currentEnterpriseId || '';
+            if (!enterpriseId) {
+                showToast('Không tìm thấy Enterprise ID', false);
+                return;
+            }
+
+            const btn = document.getElementById('cafeBmSubmitBtn');
+            const orig = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> <span>Đang gửi...</span>';
+
+            try {
+                const res = await fetch(CLOUD_FUNCTION_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: new URLSearchParams({
+                        action: 'cafeBookingCreate',
+                        salesEmail: currentEmail,
+                        enterpriseId: enterpriseId,
+                        cafeId: cafeId,
+                        startTime: String(startMs),
+                        endTime: String(endMs),
+                        guestName: guestName,
+                        note: note
+                    }).toString()
+                });
+                const data = await res.json();
+                if (data.status === 200) {
+                    showToast('Đã đặt chỗ, đợi quán xác nhận', true);
+                    closeCafeBookingModal();
+                    setTimeout(() => {
+                        loadCafeBookings();
+                    }, 600);
+                } else {
+                    showToast(data.message || 'Lỗi đặt chỗ', false);
+                    btn.disabled = false;
+                    btn.innerHTML = orig;
+                }
+            } catch (e) {
+                showToast(e.message, false);
+                btn.disabled = false;
+                btn.innerHTML = orig;
+            }
+        }
+
 
                 // ===== QR CODE — Render + Download =====
         function drawRoundedRect(ctx, x, y, w, h, r) {
