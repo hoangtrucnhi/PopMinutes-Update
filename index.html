@@ -5360,9 +5360,13 @@ let currentEmail = "",
                     requestAnimationFrame(() => {
                         window.scrollTo({ top: homeScrollY, behavior: 'instant' });
                     });
-                } else {
+                    } else {
                     // Page mới: scroll lên đầu
-                    window.scrollTo({ top: 0, behavior: 'instant' });
+                    requestAnimationFrame(() => {
+                        window.scrollTo({ top: 0, behavior: 'instant' });
+                        document.documentElement.scrollTop = 0;
+                        document.body.scrollTop = 0;
+                    });
                 }
 
                 // Load data cho page mới
@@ -6814,7 +6818,12 @@ const ccEmail1 = (sendToClient && clientEmailValue) ? clientEmailValue : '';
             document.getElementById('notifications-page').classList.add('hidden');
             document.getElementById('profile-page').classList.add('hidden');
             document.getElementById('affiliate-page').classList.remove('hidden');
-            window.scrollTo({ top: 0, behavior: 'instant' });
+            
+            requestAnimationFrame(() => {
+                window.scrollTo({ top: 0, behavior: 'instant' });
+                document.documentElement.scrollTop = 0;
+                document.body.scrollTop = 0;
+            });
 
             // Update nav active — nút "Quà" sáng lên
             document.querySelectorAll('.bottom-nav .nav-item').forEach(item => {
@@ -7076,7 +7085,13 @@ const ccEmail1 = (sendToClient && clientEmailValue) ? clientEmailValue : '';
 
             // Show cafe page
             document.getElementById('cafe-page').classList.remove('hidden');
-            window.scrollTo({ top: 0, behavior: 'instant' });
+            
+            // Force scroll to top (đợi DOM reflow)
+            requestAnimationFrame(() => {
+                window.scrollTo({ top: 0, behavior: 'instant' });
+                document.documentElement.scrollTop = 0;
+                document.body.scrollTop = 0;
+            });
 
             // Clear nav highlight
             document.querySelectorAll('.bottom-nav .nav-item').forEach(item => item.classList.remove('active'));
