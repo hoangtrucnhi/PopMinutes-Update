@@ -8272,13 +8272,6 @@ const ccEmail1 = (sendToClient && clientEmailValue) ? clientEmailValue : '';
                 cafeSelect.innerHTML = opts;
             }
 
-            // Reset button state
-            const submitBtn = document.getElementById('cafeBmSubmitBtn');
-            if (submitBtn) {
-                submitBtn.disabled = false;
-                submitBtn.innerHTML = '<i class="fa-solid fa-check"></i><span>' + (t('cafe_bm_submit') || 'Xác nhận đặt chỗ') + '</span>';
-            }
-
             // Apply i18n cho modal
             document.querySelectorAll('#cafeBookingModal [data-i18n]').forEach(el => {
                 const key = el.getAttribute('data-i18n');
