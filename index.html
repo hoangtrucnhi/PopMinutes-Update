@@ -4983,6 +4983,7 @@
                 cafe_status_confirmed: 'Đã xác nhận',
                 cafe_status_seated: 'Đang ngồi',
                 cafe_status_waiting_confirm: 'Chờ quán xác nhận',
+                cafe_auto_checkout_closing: 'Đã tự động check-out lúc quán đóng cửa. Dùng {n}h',
                 cafe_status_completed: 'Đã xong',
                 cafe_status_cancelled: 'Đã hủy',
                 bank_section_title: 'Thông tin nhận tiền',
@@ -5342,6 +5343,7 @@
                 cafe_status_confirmed: 'Confirmed',
                 cafe_status_seated: 'Seated',
                 cafe_status_waiting_confirm: 'Waiting for confirmation',
+                cafe_auto_checkout_closing: 'Auto check-out at cafe closing time. Used {n}h',
                 cafe_status_completed: 'Completed',
                 cafe_status_cancelled: 'Cancelled',
                 bank_section_title: 'Payment information',
@@ -7978,19 +7980,26 @@ const ccEmail1 = (sendToClient && clientEmailValue) ? clientEmailValue : '';
             const now = Date.now();
             const endMs = active.booking_end_time_ms || 0;
 
-            const timePassed = !endMs || now >= endMs;
-            const farEnough = typeof distKm === 'number' ? distKm > 0.1 : null;
+            if (!endMs) {
+                btn.style.display = 'none';
+                if (notice) notice.textContent = '';
+                return;
+            }
 
-            if (timePassed && (farEnough === true || farEnough === null)) {
+            const timePassed = now >= endMs;
+            const farEnough = typeof distKm === 'number' ? distKm > 0.1 : false;
+
+            // BẮT BUỘC cả 2: đã qua end_time VÀ đã đi xa > 100m
+            if (timePassed && farEnough) {
                 btn.style.display = '';
                 if (notice) notice.textContent = '';
             } else {
                 btn.style.display = 'none';
                 if (notice) {
-                    if (!timePassed && endMs) {
+                    if (!timePassed) {
                         const remaining = Math.ceil((endMs - now) / 60000);
                         notice.textContent = t('cafe_checkout_wait_time').replace('{n}', remaining);
-                    } else if (farEnough === false) {
+                    } else if (!farEnough) {
                         notice.textContent = t('cafe_checkout_move_away');
                     }
                 }
