@@ -3784,6 +3784,7 @@
                         <label><span data-i18n="cafe_bm_end">Giờ kết thúc</span> <span class="req">*</span></label>
                         <input type="time" id="cafeBmEnd" class="cafe-bm-input">
                     </div>
+                </div>
 
                 <div class="cafe-bm-field">
                     <label><span data-i18n="cafe_bm_guest">Tên khách hàng</span></label>
@@ -8225,8 +8226,8 @@ const ccEmail1 = (sendToClient && clientEmailValue) ? clientEmailValue : '';
             });
         });
 
-        // Placeholder cho P5b
-        function openCafeBookingModal() {
+        // ============ CAFE BOOKING MODAL ============
+        async function openCafeBookingModal() {
             if (!currentEmail) {
                 alert(t('toast_login_required'));
                 return;
