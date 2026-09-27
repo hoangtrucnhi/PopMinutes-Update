@@ -5319,7 +5319,12 @@ let currentEmail = "",
 
             // Lưu scroll Home nếu đang ở Home
             if (currentPage && currentPage.id === 'dashboard-screen') {
-                homeScrollY = window.scrollY || document.documentElement.scrollTop || 0;
+                const app = document.querySelector('.app');
+                if (app && app.scrollHeight > app.clientHeight + 1) {
+                    homeScrollY = app.scrollTop || 0;
+                } else {
+                    homeScrollY = window.scrollY || document.documentElement.scrollTop || document.body.scrollTop || 0;
+                }
             }
 
             // Ẩn tất cả page + dashboard
@@ -5358,17 +5363,14 @@ let currentEmail = "",
                 if (page === 'home') {
                     // Restore scroll position của Home
                     requestAnimationFrame(() => {
-                        window.scrollTo({ top: homeScrollY, behavior: 'instant' });
+                        const app = document.querySelector('.app');
+                        if (app) app.scrollTop = homeScrollY;
+                        try { window.scrollTo({ top: homeScrollY, behavior: 'instant' }); } catch (e) {}
                     });
-                    } else {
+                } else {
                     // Page mới: scroll lên đầu
-                    requestAnimationFrame(() => {
-                        window.scrollTo({ top: 0, behavior: 'instant' });
-                        document.documentElement.scrollTop = 0;
-                        document.body.scrollTop = 0;
-                    });
+                    forceScrollTop();
                 }
-
                 // Load data cho page mới
                 if (page === 'notifications') {
                     loadNotificationsPage();
@@ -6818,6 +6820,7 @@ const ccEmail1 = (sendToClient && clientEmailValue) ? clientEmailValue : '';
             document.getElementById('notifications-page').classList.add('hidden');
             document.getElementById('profile-page').classList.add('hidden');
             document.getElementById('affiliate-page').classList.remove('hidden');
+            forceScrollTop();
             
             requestAnimationFrame(() => {
                 window.scrollTo({ top: 0, behavior: 'instant' });
@@ -7063,6 +7066,26 @@ const ccEmail1 = (sendToClient && clientEmailValue) ? clientEmailValue : '';
         // =================================================heights=========
         let cafeCurrentTab = 'bookings';
         let cafeCafesCache = [];
+                // ===== HELPER: Reset scroll mọi container =====
+        function resetScrollTop() {
+            try {
+                const app = document.querySelector('.app');
+                if (app) app.scrollTop = 0;
+            } catch (e) {}
+            try { document.documentElement.scrollTop = 0; } catch (e) {}
+            try { document.body.scrollTop = 0; } catch (e) {}
+            try { window.scrollTo({ top: 0, left: 0, behavior: 'instant' }); } catch (e) {}
+        }
+
+        function forceScrollTop() {
+            // Gọi đồng bộ + async để chắc chắn
+            resetScrollTop();
+            requestAnimationFrame(() => {
+                resetScrollTop();
+                setTimeout(resetScrollTop, 50);
+                setTimeout(resetScrollTop, 150);
+            });
+        }
 
         function openCafePage(mode) {
             // mode: 'bookings' | 'checkin' | 'history'
@@ -7085,6 +7108,7 @@ const ccEmail1 = (sendToClient && clientEmailValue) ? clientEmailValue : '';
 
             // Show cafe page
             document.getElementById('cafe-page').classList.remove('hidden');
+            forceScrollTop();
             
             // Force scroll to top (đợi DOM reflow)
             requestAnimationFrame(() => {
@@ -7124,7 +7148,7 @@ const ccEmail1 = (sendToClient && clientEmailValue) ? clientEmailValue : '';
         function closeCafePage() {
             document.getElementById('cafe-page').classList.add('hidden');
             document.getElementById('dashboard-screen').classList.remove('hidden');
-            window.scrollTo({ top: 0, behavior: 'instant' });
+            forceScrollTop();
             document.querySelectorAll('.bottom-nav .nav-item').forEach(item => {
                 item.classList.toggle('active', item.dataset.page === 'home');
             });
