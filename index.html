@@ -8006,7 +8006,7 @@ const ccEmail1 = (sendToClient && clientEmailValue) ? clientEmailValue : '';
                 if (data.status === 200) {
                     showToast(t('cafe_auto_checkout_done').replace('{n}', data.billable_hours), true);
                     stopCheckoutWatcher();
-                    setTimeout(loadCafeCheckin, 500);
+                    
                 }
             } catch (e) {
                 console.warn('[AutoCheckout] failed:', e.message);
@@ -8186,35 +8186,6 @@ const ccEmail1 = (sendToClient && clientEmailValue) ? clientEmailValue : '';
                 return;
             }
             showToast(t('cafe_checkin_processing') || 'Đang check-in...', true);
-            try {
-                const res = await fetch(CLOUD_FUNCTION_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                    body: new URLSearchParams({
-                        action: 'cafeCheckIn',
-                        salesEmail: currentEmail,
-                        enterpriseId: enterpriseId,
-                        cafeId: cafeId,
-                        lat: String(lat),
-                        lng: String(lng)
-                    }).toString()
-                });
-                const data = await res.json();
-                if (data.status === 200) {
-                    showToast(t('cafe_checkin_success') || 'Check-in thành công!', true);
-                    setTimeout(loadCafeCheckin, 500);
-                } else {
-                    showToast(data.message || 'Lỗi check-in', false);
-                }
-            } catch (e) {
-                showToast(e.message, false);
-            }
-        }
-            const enterpriseId = window.__currentEnterpriseId || currentEnterpriseId;
-            if (!enterpriseId) {
-                showToast('Không tìm thấy Enterprise ID. Vui lòng login lại.', false);
-                return;
-            }
             try {
                 const res = await fetch(CLOUD_FUNCTION_URL, {
                     method: 'POST',
