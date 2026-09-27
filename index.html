@@ -19,6 +19,7 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link rel="icon" type="image/png" href="./launchericon-192x192.png">
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 
     <style>
         /* ========== TOÀN BỘ STYLE ========== */
@@ -2823,6 +2824,203 @@
             color: #CBD5E1;
             margin-bottom: 10px;
         }
+                /* ===== CAFE CHECK-IN PROMPT ===== */
+        .cafe-checkin-prompt {
+            text-align: center;
+            padding: 30px 20px;
+            background: #fff;
+            border-radius: 16px;
+            border: 1px solid var(--border);
+        }
+        .cafe-checkin-icon {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #2D3FA6, #1B2B7A);
+            border-radius: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 18px;
+            color: #fff;
+            font-size: 36px;
+            box-shadow: 0 12px 32px rgba(27, 43, 122, 0.28);
+        }
+        .cafe-checkin-title {
+            font-size: 18px;
+            font-weight: 800;
+            color: var(--text);
+            margin: 0 0 8px;
+        }
+        .cafe-checkin-desc {
+            font-size: 14px;
+            color: var(--muted);
+            margin: 0 0 24px;
+            line-height: 1.6;
+        }
+        .cafe-secondary-btn {
+            width: 100%;
+            margin-top: 10px;
+            background: #fff;
+            border: 1.5px solid var(--border);
+            color: var(--text);
+            padding: 14px 18px;
+            border-radius: 14px;
+            font-family: inherit;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.2s;
+        }
+        .cafe-secondary-btn:hover { border-color: var(--navy-light); color: var(--navy); }
+        .cafe-secondary-btn:active { transform: scale(0.98); }
+
+        /* ===== ACTIVE SESSION ===== */
+        .cafe-active-card {
+            background: #fff;
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 18px;
+        }
+        .cafe-active-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 14px;
+        }
+        .cafe-active-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: #D1FAE5;
+            color: #065F46;
+            font-size: 11px;
+            font-weight: 800;
+            padding: 4px 10px;
+            border-radius: 20px;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+        }
+        .cafe-pulse {
+            width: 8px;
+            height: 8px;
+            background: #10B981;
+            border-radius: 50%;
+            animation: cafePulse 1.5s ease-in-out infinite;
+        }
+        @keyframes cafePulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.6; transform: scale(1.2); }
+        }
+        .cafe-active-elapsed {
+            font-size: 20px;
+            font-weight: 800;
+            color: var(--navy);
+            letter-spacing: -0.3px;
+        }
+        .cafe-active-cafe {
+            font-size: 15px;
+            font-weight: 800;
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-bottom: 4px;
+        }
+        .cafe-active-cafe i { color: var(--navy); }
+        .cafe-active-address {
+            font-size: 12.5px;
+            color: var(--muted);
+            margin-bottom: 14px;
+        }
+        .cafe-active-meta {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            font-size: 12.5px;
+            color: var(--muted);
+            padding: 12px 0;
+            border-top: 1px dashed var(--border);
+            border-bottom: 1px dashed var(--border);
+            margin-bottom: 14px;
+        }
+        .cafe-active-meta > div { display: flex; align-items: center; gap: 6px; }
+        .cafe-active-meta i {
+            color: var(--navy-light);
+            font-size: 11px;
+            width: 14px;
+            text-align: center;
+        }
+        .cafe-active-meta b { color: var(--navy); font-weight: 700; }
+
+        .cafe-qr-section {
+            text-align: center;
+            padding: 14px;
+            background: #F8FAFC;
+            border-radius: 12px;
+            margin-bottom: 14px;
+        }
+        .cafe-qr-title {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 10px;
+        }
+        .cafe-qr-wrap {
+            display: flex;
+            justify-content: center;
+        }
+        .cafe-qr-wrap canvas {
+            max-width: 220px;
+            width: 100%;
+            height: auto;
+        }
+        .cafe-active-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        /* ===== QR SCANNER MODAL ===== */
+        #cafeQrScannerModal .cafe-bm-box { padding-top: 16px; }
+        #cafeQrScannerView {
+            width: 100%;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        /* ===== EXTEND MODAL ===== */
+        .cafe-extend-options {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-top: 8px;
+        }
+        .cafe-extend-option {
+            background: #fff;
+            border: 1.5px solid var(--border);
+            border-radius: 12px;
+            padding: 20px 10px;
+            font-family: inherit;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .cafe-extend-option:hover {
+            border-color: var(--navy);
+            background: var(--navy-pale);
+            transform: translateY(-2px);
+        }
+        .cafe-extend-option:active { transform: translateY(0) scale(0.98); }
+        .cafe-extend-time {
+            font-size: 18px;
+            font-weight: 800;
+            color: var(--navy);
+        }
+
                 /* ===== CAFE BOOKING MODAL ===== */
         .cafe-bm-overlay {
             position: fixed;
@@ -3501,6 +3699,56 @@
                 </div>
             </div>
         </div>
+                <!-- ========== CAFE QR SCANNER MODAL ========== -->
+        <div id="cafeQrScannerModal" class="cafe-bm-overlay">
+            <div class="cafe-bm-box">
+                <div class="cafe-bm-header">
+                    <div class="cafe-bm-title">
+                        <i class="fa-solid fa-qrcode"></i>
+                        <span data-i18n="cafe_qr_scan_title">Quét QR quán</span>
+                    </div>
+                    <button class="cafe-bm-close" onclick="closeQrScanner()">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+                <p style="font-size:13px; color:var(--muted); margin-bottom:14px; line-height:1.6;">
+                    <span data-i18n="cafe_qr_scan_hint">Đưa camera vào QR dán tại quán để check-in</span>
+                </p>
+                <div id="cafeQrScannerView"></div>
+            </div>
+        </div>
+
+        <!-- ========== CAFE EXTEND MODAL ========== -->
+        <div id="cafeExtendModal" class="cafe-bm-overlay">
+            <div class="cafe-bm-box">
+                <div class="cafe-bm-header">
+                    <div class="cafe-bm-title">
+                        <i class="fa-solid fa-clock-rotate-left"></i>
+                        <span data-i18n="cafe_extend_title">Gia hạn thêm giờ</span>
+                    </div>
+                    <button class="cafe-bm-close" onclick="closeExtendModal()">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+
+                <p style="font-size:13px; color:var(--muted); margin-bottom:16px; line-height:1.6;">
+                    <span data-i18n="cafe_extend_hint">Chọn thời gian muốn gia hạn thêm</span>
+                </p>
+
+                <div class="cafe-extend-options">
+                    <button class="cafe-extend-option" onclick="submitExtend(30)">
+                        <span class="cafe-extend-time">+30p</span>
+                    </button>
+                    <button class="cafe-extend-option" onclick="submitExtend(60)">
+                        <span class="cafe-extend-time">+1h</span>
+                    </button>
+                    <button class="cafe-extend-option" onclick="submitExtend(120)">
+                        <span class="cafe-extend-time">+2h</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
                 <!-- ========== CAFE BOOKING MODAL ========== -->
         <div id="cafeBookingModal" class="cafe-bm-overlay">
             <div class="cafe-bm-box">
@@ -4698,6 +4946,22 @@
                 cafe_bm_end: 'Giờ kết thúc',
                 cafe_bm_guest: 'Tên khách hàng',
                 cafe_bm_note: 'Ghi chú',
+                cafe_checkin_no_active: 'Chưa có check-in nào',
+                cafe_checkin_scan_hint: 'Quét QR dán tại quán để bắt đầu tính giờ',
+                cafe_checkin_btn_scan: 'Quét QR quán',
+                cafe_checkin_btn_nearby: 'Chọn quán gần đây',
+                cafe_checkin_btn_checkin_here: 'Check-in tại đây',
+                cafe_checkin_btn_extend: 'Gia hạn',
+                cafe_checkin_btn_checkout: 'Check-out',
+                cafe_checkin_qr_hint: 'Đưa QR này cho nhân viên quán',
+                cafe_checkin_success: 'Check-in thành công!',
+                cafe_checkout_confirm: 'Bạn có chắc muốn check-out?',
+                cafe_nearby_empty: 'Không có quán nào gần đây',
+                cafe_qr_scan_title: 'Quét QR quán',
+                cafe_qr_scan_hint: 'Đưa camera vào QR dán tại quán để check-in',
+                cafe_extend_title: 'Gia hạn thêm giờ',
+                cafe_extend_hint: 'Chọn thời gian muốn gia hạn thêm',
+                cafe_extend_no_booking: 'Không có booking để gia hạn',
                 cafe_page_title_history: 'Lịch sử check-in',
                 cafe_tab_bookings: 'Đặt chỗ',
                 cafe_tab_checkin: 'Check-in',
@@ -5027,6 +5291,22 @@
                 cafe_bm_end: 'End time',
                 cafe_bm_guest: 'Guest name',
                 cafe_bm_note: 'Note',
+                cafe_checkin_no_active: 'No active check-in',
+                cafe_checkin_scan_hint: 'Scan the QR posted at the cafe to start your session',
+                cafe_checkin_btn_scan: 'Scan cafe QR',
+                cafe_checkin_btn_nearby: 'Choose nearby cafe',
+                cafe_checkin_btn_checkin_here: 'Check-in here',
+                cafe_checkin_btn_extend: 'Extend',
+                cafe_checkin_btn_checkout: 'Check-out',
+                cafe_checkin_qr_hint: 'Show this QR to the cafe staff',
+                cafe_checkin_success: 'Check-in successful!',
+                cafe_checkout_confirm: 'Are you sure you want to check out?',
+                cafe_nearby_empty: 'No cafes nearby',
+                cafe_qr_scan_title: 'Scan cafe QR',
+                cafe_qr_scan_hint: 'Point camera at the QR posted at the cafe',
+                cafe_extend_title: 'Extend time',
+                cafe_extend_hint: 'Choose how much time to add',
+                cafe_extend_no_booking: 'No booking to extend',
                 cafe_bm_guest_ph: 'Ex: Mr. Hoang - ABC Corp',
                 cafe_bm_note_ph: 'Purpose, special requests...',
                 cafe_bm_submit: 'Confirm booking',
@@ -5035,7 +5315,6 @@
                 cafe_bm_start: 'Start time',
                 cafe_bm_end: 'End time',
                 cafe_bm_guest: 'Guest name',
-                cafe_bm_note: 'Note',
                 cafe_page_title_history: 'Check-in History',
                 cafe_tab_bookings: 'Bookings',
                 cafe_tab_checkin: 'Check-in',
@@ -7511,13 +7790,127 @@ const ccEmail1 = (sendToClient && clientEmailValue) ? clientEmailValue : '';
             const container = document.getElementById('cafeCheckinContent');
             if (!container) return;
             container.innerHTML = `<p class="cafe-loading">${t('loading')}</p>`;
-            // Placeholder — sẽ làm ở P5c
+
+            try {
+                const url = `${CLOUD_FUNCTION_URL}?action=cafeCheckInGetActive&salesEmail=${encodeURIComponent(currentEmail)}`;
+                const res = await fetch(url);
+                const data = await res.json();
+
+                if (data.status === 200 && data.active) {
+                    renderActiveCheckin(data.active);
+                } else {
+                    renderCheckinPrompt();
+                }
+            } catch (e) {
+                console.error('Load checkin error:', e);
+                container.innerHTML = `<div class="cafe-empty"><i class="fa-solid fa-circle-exclamation"></i>${t('cafe_loading_error')}</div>`;
+            }
+        }
+
+        function renderCheckinPrompt() {
+            const container = document.getElementById('cafeCheckinContent');
             container.innerHTML = `
-                <div class="cafe-info-box">
-                    🚧 Check-in flow sẽ có ở P5c — tạm thời hiển thị placeholder
+                <div class="cafe-checkin-prompt">
+                    <div class="cafe-checkin-icon">
+                        <i class="fa-solid fa-qrcode"></i>
+                    </div>
+                    <h3 class="cafe-checkin-title">${t('cafe_checkin_no_active')}</h3>
+                    <p class="cafe-checkin-desc">${t('cafe_checkin_scan_hint')}</p>
+                    <button class="cafe-primary-btn" onclick="openQrScanner()">
+                        <i class="fa-solid fa-camera"></i>
+                        <span>${t('cafe_checkin_btn_scan')}</span>
+                    </button>
+                    <button class="cafe-secondary-btn" onclick="showNearbyCafes()">
+                        <i class="fa-solid fa-location-dot"></i>
+                        <span>${t('cafe_checkin_btn_nearby')}</span>
+                    </button>
                 </div>
+                <div id="cafeNearbyList" style="display:none; margin-top:20px;"></div>
             `;
         }
+
+        function renderActiveCheckin(active) {
+            const container = document.getElementById('cafeCheckinContent');
+            const elapsed = active.elapsed_hours || 0;
+            const hours = Math.floor(elapsed);
+            const mins = Math.floor((elapsed - hours) * 60);
+            const timeText = hours > 0 ? `${hours}h${String(mins).padStart(2, '0')}p` : `${mins}p`;
+
+            const bookingIdSafe = active.booking_id || '';
+
+            container.innerHTML = `
+                <div class="cafe-active-card">
+                    <div class="cafe-active-header">
+                        <div class="cafe-active-badge">
+                            <span class="cafe-pulse"></span>
+                            <span>${t('cafe_status_checked_in')}</span>
+                        </div>
+                        <div class="cafe-active-elapsed">${timeText}</div>
+                    </div>
+                    <div class="cafe-active-cafe">
+                        <i class="fa-solid fa-store"></i>
+                        <span>${escapeHtml(active.cafe_name)}</span>
+                    </div>
+                    <div class="cafe-active-address">${escapeHtml(active.cafe_address)}</div>
+
+                    <div class="cafe-active-meta">
+                        <div><i class="fa-regular fa-clock"></i> In: <b>${fmtCafeDateTime(active.check_in_at)}</b></div>
+                        <div><i class="fa-solid fa-money-bill"></i> <b>${fmtCafeMoney(active.price_per_hour_snapshot)}</b>/h</div>
+                        <div><i class="fa-solid fa-lock"></i> Ký quỹ: <b>1h</b></div>
+                    </div>
+
+                    <div class="cafe-qr-section">
+                        <div class="cafe-qr-title">${t('cafe_checkin_qr_hint')}</div>
+                        <div class="cafe-qr-wrap">
+                            <canvas id="cafeActiveQR" width="400" height="400"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="cafe-active-actions">
+                        <button class="cafe-btn-sm outline" onclick="openExtendModal('${escapeHtml(active.checkin_id)}', '${escapeHtml(bookingIdSafe)}')">
+                            <i class="fa-solid fa-clock-rotate-left"></i>
+                            <span>${t('cafe_checkin_btn_extend')}</span>
+                        </button>
+                        <button class="cafe-btn-sm danger" onclick="submitCheckOut('${escapeHtml(active.checkin_id)}')">
+                            <i class="fa-solid fa-right-from-bracket"></i>
+                            <span>${t('cafe_checkin_btn_checkout')}</span>
+                        </button>
+                    </div>
+                </div>
+            `;
+
+            setTimeout(() => drawActiveQR(active.checkin_id), 100);
+        }
+
+        async function drawActiveQR(checkinId) {
+            const canvas = document.getElementById('cafeActiveQR');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            const W = 400, H = 400;
+            ctx.fillStyle = '#FFFFFF';
+            ctx.fillRect(0, 0, W, H);
+
+            const qrContent = 'PM_QR_CHK_' + checkinId;
+            const apiUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=400x400&ecc=H&color=1B2B7A&bgcolor=FFFFFF&margin=0&data=' + encodeURIComponent(qrContent);
+
+            try {
+                const img = new Image();
+                img.crossOrigin = 'anonymous';
+                await new Promise((resolve, reject) => {
+                    img.onload = resolve;
+                    img.onerror = reject;
+                    img.src = apiUrl;
+                    setTimeout(() => reject(new Error('timeout')), 8000);
+                });
+                ctx.drawImage(img, 0, 0, W, H);
+            } catch (e) {
+                ctx.fillStyle = '#EF4444';
+                ctx.font = '20px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText('Không tải được QR', W / 2, H / 2);
+            }
+        }
+
 
         async function loadCafeHistory() {
             const container = document.getElementById('cafeHistoryList');
@@ -7573,7 +7966,267 @@ const ccEmail1 = (sendToClient && clientEmailValue) ? clientEmailValue : '';
         // ============ CAFE BOOKING MODAL — P5b ==========================
         // ================================================================
 
-        async function openCafeBookingModal() {
+                // ================================================================
+        // ============ QR SCANNER + CHECK-IN + EXTEND ====================
+        // ================================================================
+
+        let _qrScanner = null;
+        let _extendCheckinId = null;
+        let _extendBookingId = null;
+
+        async function openQrScanner() {
+            if (!currentEmail) {
+                alert(t('toast_login_required'));
+                return;
+            }
+            const modal = document.getElementById('cafeQrScannerModal');
+            modal.classList.add('active');
+
+            // Apply i18n
+            document.querySelectorAll('#cafeQrScannerModal [data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                const txt = t(key);
+                if (txt && txt !== key) el.textContent = txt;
+            });
+
+            try {
+                _qrScanner = new Html5Qrcode("cafeQrScannerView");
+                await _qrScanner.start(
+                    { facingMode: "environment" },
+                    { fps: 10, qrbox: { width: 250, height: 250 } },
+                    (decodedText) => { onQrScanned(decodedText); },
+                    () => {} // ignore scan errors
+                );
+            } catch (err) {
+                showToast('Không mở được camera: ' + err.message, false);
+                closeQrScanner();
+            }
+        }
+
+        async function closeQrScanner() {
+            if (_qrScanner) {
+                try {
+                    await _qrScanner.stop();
+                    _qrScanner.clear();
+                } catch (e) {}
+                _qrScanner = null;
+            }
+            document.getElementById('cafeQrScannerModal').classList.remove('active');
+        }
+
+        async function onQrScanned(text) {
+            await closeQrScanner();
+
+            const m = String(text).match(/^PM_CAFE_(.+)$/);
+            if (!m) {
+                showToast('QR không phải của quán trong hệ thống', false);
+                return;
+            }
+            const qrStatic = 'PM_CAFE_' + m[1];
+
+            const cafes = await fetchCafesForSales();
+            const cafe = cafes.find(c => c.qr_static === qrStatic);
+            if (!cafe) {
+                showToast('Không tìm thấy quán trong hệ thống', false);
+                return;
+            }
+
+            showToast('Đang lấy vị trí GPS...', true);
+            navigator.geolocation.getCurrentPosition(
+                (pos) => {
+                    submitCheckIn(cafe.cafe_id, pos.coords.latitude, pos.coords.longitude);
+                },
+                (err) => {
+                    showToast('Không lấy được GPS: ' + err.message, false);
+                },
+                { enableHighAccuracy: true, timeout: 10000 }
+            );
+        }
+
+        async function submitCheckIn(cafeId, lat, lng) {
+            const enterpriseId = window.__currentEnterpriseId || currentEnterpriseId;
+            if (!enterpriseId) {
+                showToast('Không tìm thấy Enterprise ID. Vui lòng login lại.', false);
+                return;
+            }
+            try {
+                const res = await fetch(CLOUD_FUNCTION_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: new URLSearchParams({
+                        action: 'cafeCheckIn',
+                        salesEmail: currentEmail,
+                        enterpriseId: enterpriseId,
+                        cafeId: cafeId,
+                        lat: String(lat),
+                        lng: String(lng)
+                    }).toString()
+                });
+                const data = await res.json();
+                if (data.status === 200) {
+                    showToast(t('cafe_checkin_success') || 'Check-in thành công!', true);
+                    setTimeout(loadCafeCheckin, 500);
+                } else {
+                    showToast(data.message || 'Lỗi check-in', false);
+                }
+            } catch (e) {
+                showToast(e.message, false);
+            }
+        }
+
+        async function showNearbyCafes() {
+            const listEl = document.getElementById('cafeNearbyList');
+            if (!listEl) return;
+            listEl.style.display = 'block';
+            listEl.innerHTML = `<p class="cafe-loading">${t('loading')}</p>`;
+
+            navigator.geolocation.getCurrentPosition(
+                async (pos) => {
+                    try {
+                        const url = `${CLOUD_FUNCTION_URL}?action=cafeGetNearby&lat=${pos.coords.latitude}&lng=${pos.coords.longitude}&maxKm=5`;
+                        const res = await fetch(url);
+                        const data = await res.json();
+                        if (data.status !== 200 || !data.cafes || data.cafes.length === 0) {
+                            listEl.innerHTML = `<div class="cafe-empty">${t('cafe_nearby_empty') || 'Không có quán nào gần đây'}</div>`;
+                            return;
+                        }
+                        let html = '';
+                        data.cafes.forEach(c => {
+                            html += `
+                                <div class="cafe-card">
+                                    <div class="cafe-card-header">
+                                        <div class="cafe-card-title">
+                                            <i class="fa-solid fa-store"></i>
+                                            ${escapeHtml(c.name)}
+                                        </div>
+                                        <span class="cafe-badge confirmed">${c.distance_km}km</span>
+                                    </div>
+                                    <div class="cafe-card-meta">
+                                        <div><i class="fa-solid fa-location-dot"></i> ${escapeHtml(c.address)}</div>
+                                        <div><i class="fa-solid fa-money-bill"></i> ${fmtCafeMoney(c.price_per_hour)}/h</div>
+                                    </div>
+                                    <div class="cafe-card-actions">
+                                        <button class="cafe-btn-sm primary" onclick="submitCheckIn('${escapeHtml(c.cafe_id)}', ${pos.coords.latitude}, ${pos.coords.longitude})">
+                                            <i class="fa-solid fa-right-to-bracket"></i>
+                                            <span>${t('cafe_checkin_btn_checkin_here') || 'Check-in tại đây'}</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            `;
+                        });
+                        listEl.innerHTML = html;
+                    } catch (e) {
+                        listEl.innerHTML = `<div class="cafe-empty">${t('cafe_loading_error')}</div>`;
+                    }
+                },
+                (err) => {
+                    listEl.innerHTML = `<div class="cafe-empty">Không lấy được GPS: ${err.message}</div>`;
+                },
+                { enableHighAccuracy: true, timeout: 10000 }
+            );
+        }
+
+        async function submitCheckOut(checkinId) {
+            if (!confirm(t('cafe_checkout_confirm') || 'Bạn có chắc muốn check-out?')) return;
+
+            showToast('Đang lấy GPS để check-out...', true);
+            navigator.geolocation.getCurrentPosition(
+                async (pos) => {
+                    try {
+                        const res = await fetch(CLOUD_FUNCTION_URL, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                            body: new URLSearchParams({
+                                action: 'cafeCheckOut',
+                                checkinId: checkinId,
+                                lat: String(pos.coords.latitude),
+                                lng: String(pos.coords.longitude)
+                            }).toString()
+                        });
+                        const data = await res.json();
+                        if (data.status === 200) {
+                            showToast(`Check-out thành công. Dùng ${data.billable_hours}h`, true);
+                            setTimeout(loadCafeCheckin, 500);
+                        } else {
+                            showToast(data.message || 'Lỗi check-out', false);
+                        }
+                    } catch (e) {
+                        showToast(e.message, false);
+                    }
+                },
+                (err) => {
+                    showToast('Không lấy được GPS: ' + err.message, false);
+                },
+                { enableHighAccuracy: true, timeout: 10000 }
+            );
+        }
+
+        function openExtendModal(checkinId, bookingId) {
+            if (!bookingId) {
+                showToast(t('cafe_extend_no_booking') || 'Không có booking để gia hạn', false);
+                return;
+            }
+            _extendCheckinId = checkinId;
+            _extendBookingId = bookingId;
+
+            document.querySelectorAll('#cafeExtendModal [data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                const txt = t(key);
+                if (txt && txt !== key) el.textContent = txt;
+            });
+
+            document.getElementById('cafeExtendModal').classList.add('active');
+        }
+
+        function closeExtendModal() {
+            document.getElementById('cafeExtendModal').classList.remove('active');
+            _extendCheckinId = null;
+            _extendBookingId = null;
+        }
+
+        async function submitExtend(minutes) {
+            if (!_extendBookingId) return;
+            const addMs = minutes * 60 * 1000;
+            const bkId = _extendBookingId;
+            closeExtendModal();
+
+            try {
+                const res = await fetch(CLOUD_FUNCTION_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: new URLSearchParams({
+                        action: 'cafeBookingExtend',
+                        bookingId: bkId,
+                        salesEmail: currentEmail,
+                        addMs: String(addMs)
+                    }).toString()
+                });
+                const data = await res.json();
+                if (data.status === 200) {
+                    showToast(`Đã gia hạn thêm ${minutes}p`, true);
+                    setTimeout(loadCafeCheckin, 500);
+                } else {
+                    showToast(data.message || 'Lỗi gia hạn', false);
+                }
+            } catch (e) {
+                showToast(e.message, false);
+            }
+        }
+        
+        // Bind close on overlay click
+        document.addEventListener('DOMContentLoaded', function() {
+            const qrModal = document.getElementById('cafeQrScannerModal');
+            if (qrModal) qrModal.addEventListener('click', function(e) {
+                if (e.target === qrModal) closeQrScanner();
+            });
+            const extModal = document.getElementById('cafeExtendModal');
+            if (extModal) extModal.addEventListener('click', function(e) {
+                if (e.target === extModal) closeExtendModal();
+            });
+        });
+
+        // Placeholder cho P5b
+        function openCafeBookingModal() {
             if (!currentEmail) {
                 alert(t('toast_login_required'));
                 return;
@@ -7637,6 +8290,13 @@ const ccEmail1 = (sendToClient && clientEmailValue) ? clientEmailValue : '';
                 const txt = t(key);
                 if (txt && txt !== key) el.placeholder = txt;
             });
+
+            // Reset submit button
+            const submitBtn = document.getElementById('cafeBmSubmitBtn');
+            if (submitBtn) {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<i class="fa-solid fa-check"></i><span>' + (t('cafe_bm_submit') || 'Xác nhận đặt chỗ') + '</span>';
+            }
 
             // Show modal
             document.getElementById('cafeBookingModal').classList.add('active');
