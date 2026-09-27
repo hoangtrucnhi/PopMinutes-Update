@@ -4949,6 +4949,11 @@
                 cafe_bm_note: 'Ghi chú',
                 cafe_checkin_no_active: 'Chưa có check-in nào',
                 cafe_checkin_scan_hint: 'Quét QR dán tại quán để bắt đầu tính giờ',
+                cafe_checkin_select_hint: 'Chọn quán bạn đang ngồi để bắt đầu tính giờ',
+                cafe_checkin_processing: 'Đang check-in...',
+                cafe_checkout_wait_time: 'Chờ thêm {n} phút để check-out',
+                cafe_checkout_move_away: 'Cần đi xa quán > 100m để check-out',
+                cafe_auto_checkout_done: 'Đã tự động check-out. Dùng {n}h',
                 cafe_checkin_btn_scan: 'Quét QR quán',
                 cafe_checkin_btn_nearby: 'Chọn quán gần đây',
                 cafe_checkin_btn_checkin_here: 'Check-in tại đây',
@@ -5294,6 +5299,11 @@
                 cafe_bm_note: 'Note',
                 cafe_checkin_no_active: 'No active check-in',
                 cafe_checkin_scan_hint: 'Scan the QR posted at the cafe to start your session',
+                cafe_checkin_select_hint: 'Select the cafe you are sitting at',
+                cafe_checkin_processing: 'Checking in...',
+                cafe_checkout_wait_time: 'Wait {n} more minutes to check out',
+                cafe_checkout_move_away: 'Move > 100m away from cafe to check out',
+                cafe_auto_checkout_done: 'Auto check-out. Used {n}h',
                 cafe_checkin_btn_scan: 'Scan cafe QR',
                 cafe_checkin_btn_nearby: 'Choose nearby cafe',
                 cafe_checkin_btn_checkin_here: 'Check-in here',
@@ -7813,21 +7823,19 @@ const ccEmail1 = (sendToClient && clientEmailValue) ? clientEmailValue : '';
             container.innerHTML = `
                 <div class="cafe-checkin-prompt">
                     <div class="cafe-checkin-icon">
-                        <i class="fa-solid fa-qrcode"></i>
+                        <i class="fa-solid fa-location-dot"></i>
                     </div>
                     <h3 class="cafe-checkin-title">${t('cafe_checkin_no_active')}</h3>
-                    <p class="cafe-checkin-desc">${t('cafe_checkin_scan_hint')}</p>
-                    <button class="cafe-primary-btn" onclick="openQrScanner()">
-                        <i class="fa-solid fa-camera"></i>
-                        <span>${t('cafe_checkin_btn_scan')}</span>
-                    </button>
-                    <button class="cafe-secondary-btn" onclick="showNearbyCafes()">
+                    <p class="cafe-checkin-desc">${t('cafe_checkin_select_hint')}</p>
+                    <button class="cafe-primary-btn" onclick="showNearbyCafes()">
                         <i class="fa-solid fa-location-dot"></i>
                         <span>${t('cafe_checkin_btn_nearby')}</span>
                     </button>
                 </div>
                 <div id="cafeNearbyList" style="display:none; margin-top:20px;"></div>
             `;
+            // Auto trigger nearby list load
+            setTimeout(showNearbyCafes, 200);
         }
 
         function renderActiveCheckin(active) {
@@ -7872,15 +7880,142 @@ const ccEmail1 = (sendToClient && clientEmailValue) ? clientEmailValue : '';
                             <i class="fa-solid fa-clock-rotate-left"></i>
                             <span>${t('cafe_checkin_btn_extend')}</span>
                         </button>
-                        <button class="cafe-btn-sm danger" onclick="submitCheckOut('${escapeHtml(active.checkin_id)}')">
+                        <button id="cafeCheckoutBtn" class="cafe-btn-sm danger" style="display:none" onclick="submitCheckOut('${escapeHtml(active.checkin_id)}')">
                             <i class="fa-solid fa-right-from-bracket"></i>
                             <span>${t('cafe_checkin_btn_checkout')}</span>
                         </button>
                     </div>
+                    <div id="cafeCheckoutNotice" style="margin-top:10px; font-size:12px; color:var(--muted); text-align:center; line-height:1.5;"></div>
                 </div>
             `;
 
-            setTimeout(() => drawActiveQR(active.checkin_id), 100);
+            setTimeout(() => {
+                drawActiveQR(active.checkin_id);
+                startCheckoutWatcher(active);
+            }, 100);
+        }
+                // ================================================================
+        // ========== CHECK-OUT WATCHER (GPS + TIME) ======================
+        // ================================================================
+        let _activeCheckinCache = null;
+        let _gpsWatchId = null;
+        let _eligibilityIntervalId = null;
+
+        function startCheckoutWatcher(active) {
+            _activeCheckinCache = active;
+            stopCheckoutWatcher();
+
+            // Initial eligibility check
+            updateCheckoutEligibility();
+
+            // Check every 30s for time pass
+            _eligibilityIntervalId = setInterval(updateCheckoutEligibility, 30000);
+
+            // GPS watcher for auto check-out
+            if (active.cafe_location && active.cafe_location.lat && active.cafe_location.lng) {
+                try {
+                    _gpsWatchId = navigator.geolocation.watchPosition(
+                        (pos) => {
+                            handleGpsUpdate(pos.coords.latitude, pos.coords.longitude);
+                        },
+                        (err) => {
+                            console.warn('[GPS watcher] error:', err.message);
+                        },
+                        { enableHighAccuracy: false, timeout: 60000, maximumAge: 120000 }
+                    );
+                } catch (e) {
+                    console.warn('[GPS watcher] cannot start:', e.message);
+                }
+            }
+        }
+
+        function stopCheckoutWatcher() {
+            if (_gpsWatchId !== null) {
+                try { navigator.geolocation.clearWatch(_gpsWatchId); } catch (e) {}
+                _gpsWatchId = null;
+            }
+            if (_eligibilityIntervalId) {
+                clearInterval(_eligibilityIntervalId);
+                _eligibilityIntervalId = null;
+            }
+            _activeCheckinCache = null;
+        }
+
+        function handleGpsUpdate(lat, lng) {
+            if (!_activeCheckinCache) return;
+            const active = _activeCheckinCache;
+
+            // Calc distance to cafe
+            const distKm = haversineKm(lat, lng, active.cafe_location.lat, active.cafe_location.lng);
+
+            // Update eligibility
+            updateCheckoutEligibility(distKm);
+
+            // Auto check-out if: past end_time + > 100m
+            const now = Date.now();
+            const endMs = active.booking_end_time_ms || 0;
+            if (endMs && now >= endMs && distKm > 0.1 && !active._autoCheckoutTriggered) {
+                console.log('[AutoCheckout] Triggered. dist:', distKm, 'km');
+                active._autoCheckoutTriggered = true;
+                autoSubmitCheckOut(active.checkin_id, lat, lng);
+            }
+        }
+
+        function updateCheckoutEligibility(distKm) {
+            const btn = document.getElementById('cafeCheckoutBtn');
+            const notice = document.getElementById('cafeCheckoutNotice');
+            if (!btn || !_activeCheckinCache) return;
+
+            const active = _activeCheckinCache;
+            const now = Date.now();
+            const endMs = active.booking_end_time_ms || 0;
+
+            const timePassed = !endMs || now >= endMs;
+            const farEnough = typeof distKm === 'number' ? distKm > 0.1 : null;
+
+            if (timePassed && (farEnough === true || farEnough === null)) {
+                btn.style.display = '';
+                if (notice) notice.textContent = '';
+            } else {
+                btn.style.display = 'none';
+                if (notice) {
+                    if (!timePassed && endMs) {
+                        const remaining = Math.ceil((endMs - now) / 60000);
+                        notice.textContent = t('cafe_checkout_wait_time').replace('{n}', remaining);
+                    } else if (farEnough === false) {
+                        notice.textContent = t('cafe_checkout_move_away');
+                    }
+                }
+            }
+        }
+
+        async function autoSubmitCheckOut(checkinId, lat, lng) {
+            try {
+                const res = await fetch(CLOUD_FUNCTION_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: new URLSearchParams({
+                        action: 'cafeCheckOut',
+                        checkinId: checkinId,
+                        lat: String(lat),
+                        lng: String(lng),
+                        autoLeave: 'true'
+                    }).toString()
+                });
+                const data = await res.json();
+                if (data.status === 200) {
+                    showToast(t('cafe_auto_checkout_done').replace('{n}', data.billable_hours), true);
+                    stopCheckoutWatcher();
+                    setTimeout(loadCafeCheckin, 500);
+                }
+            } catch (e) {
+                console.warn('[AutoCheckout] failed:', e.message);
+            }
+        }
+
+        // Stop watcher khi đóng page cafe
+        function stopWatcherOnPageClose() {
+            // Keep watcher running — không stop, để auto-checkout chạy nền
         }
 
         async function drawActiveQR(checkinId) {
@@ -8044,7 +8179,37 @@ const ccEmail1 = (sendToClient && clientEmailValue) ? clientEmailValue : '';
             );
         }
 
-        async function submitCheckIn(cafeId, lat, lng) {
+                async function submitCheckIn(cafeId, lat, lng) {
+            const enterpriseId = window.__currentEnterpriseId || currentEnterpriseId;
+            if (!enterpriseId) {
+                showToast('Không tìm thấy Enterprise ID. Vui lòng login lại.', false);
+                return;
+            }
+            showToast(t('cafe_checkin_processing') || 'Đang check-in...', true);
+            try {
+                const res = await fetch(CLOUD_FUNCTION_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: new URLSearchParams({
+                        action: 'cafeCheckIn',
+                        salesEmail: currentEmail,
+                        enterpriseId: enterpriseId,
+                        cafeId: cafeId,
+                        lat: String(lat),
+                        lng: String(lng)
+                    }).toString()
+                });
+                const data = await res.json();
+                if (data.status === 200) {
+                    showToast(t('cafe_checkin_success') || 'Check-in thành công!', true);
+                    setTimeout(loadCafeCheckin, 500);
+                } else {
+                    showToast(data.message || 'Lỗi check-in', false);
+                }
+            } catch (e) {
+                showToast(e.message, false);
+            }
+        }
             const enterpriseId = window.__currentEnterpriseId || currentEnterpriseId;
             if (!enterpriseId) {
                 showToast('Không tìm thấy Enterprise ID. Vui lòng login lại.', false);
