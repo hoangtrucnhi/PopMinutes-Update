@@ -5805,7 +5805,11 @@ for (let attempt = 1; attempt <= 3; attempt++) {
 
         async function loadBankInfoFromServer() {
             if (!currentSalesId) {
-                console.warn('No partner ID for bank info');
+                return;
+            }
+            // Skip nếu không có bank form trong DOM (đã chuyển sang modal)
+            const elName = document.getElementById('pfBankName');
+            if (!elName) {
                 return;
             }
             try {
@@ -5814,10 +5818,13 @@ for (let attempt = 1; attempt <= 3; attempt++) {
                 const data = await res.json();
                 if (data.status === 200 && data.bank_info) {
                     const b = data.bank_info;
-                    document.getElementById('pfBankName').value = b.bank_name || '';
-                    document.getElementById('pfBankAccount').value = b.bank_account || '';
-                    document.getElementById('pfBankHolder').value = b.bank_holder || '';
-                    document.getElementById('pfBankBranch').value = b.bank_branch || '';
+                    elName.value = b.bank_name || '';
+                    const elAcc = document.getElementById('pfBankAccount');
+                    const elHolder = document.getElementById('pfBankHolder');
+                    const elBranch = document.getElementById('pfBankBranch');
+                    if (elAcc) elAcc.value = b.bank_account || '';
+                    if (elHolder) elHolder.value = b.bank_holder || '';
+                    if (elBranch) elBranch.value = b.bank_branch || '';
                     console.log('✅ Loaded bank info');
                 }
             } catch (e) {
