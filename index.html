@@ -3515,7 +3515,7 @@
                 </div>
 
                 <div class="cafe-bm-field">
-                    <label>Chọn quán <span class="req">*</span></label>
+                    <label><span data-i18n="cafe_bm_select_cafe">Chọn quán</span> <span class="req">*</span></label>
                     <select id="cafeBmCafe" class="cafe-bm-select" onchange="onCafeBmSelect()">
                         <option value="">-- Chọn quán --</option>
                     </select>
@@ -3523,29 +3523,28 @@
                 </div>
 
                 <div class="cafe-bm-field">
-                    <label>Ngày <span class="req">*</span></label>
+                    <label><span data-i18n="cafe_bm_date">Ngày</span> <span class="req">*</span></label>
                     <input type="date" id="cafeBmDate" class="cafe-bm-input">
                 </div>
 
                 <div class="cafe-bm-row">
                     <div class="cafe-bm-field">
-                        <label>Giờ bắt đầu <span class="req">*</span></label>
+                        <label><span data-i18n="cafe_bm_start">Giờ bắt đầu</span> <span class="req">*</span></label>
                         <input type="time" id="cafeBmStart" class="cafe-bm-input">
                     </div>
                     <div class="cafe-bm-field">
-                        <label>Giờ kết thúc <span class="req">*</span></label>
+                        <label><span data-i18n="cafe_bm_end">Giờ kết thúc</span> <span class="req">*</span></label>
                         <input type="time" id="cafeBmEnd" class="cafe-bm-input">
                     </div>
+
+                <div class="cafe-bm-field">
+                    <label><span data-i18n="cafe_bm_guest">Tên khách hàng</span></label>
+                    <input type="text" id="cafeBmGuest" class="cafe-bm-input" data-i18n-placeholder="cafe_bm_guest_ph" placeholder="VD: Anh Hoàng - Cty ABC" maxlength="100">
                 </div>
 
                 <div class="cafe-bm-field">
-                    <label>Tên khách hàng</label>
-                    <input type="text" id="cafeBmGuest" class="cafe-bm-input" placeholder="VD: Anh Hoàng - Cty ABC" maxlength="100">
-                </div>
-
-                <div class="cafe-bm-field">
-                    <label>Ghi chú</label>
-                    <input type="text" id="cafeBmNote" class="cafe-bm-input" placeholder="Mục đích gặp, yêu cầu đặc biệt..." maxlength="200">
+                    <label><span data-i18n="cafe_bm_note">Ghi chú</span></label>
+                    <input type="text" id="cafeBmNote" class="cafe-bm-input" data-i18n-placeholder="cafe_bm_note_ph" placeholder="Mục đích gặp, yêu cầu đặc biệt..." maxlength="200">
                 </div>
 
                 <button id="cafeBmSubmitBtn" class="cafe-bm-submit" onclick="submitCafeBooking()">
@@ -4690,6 +4689,8 @@
                 cafe_page_title: 'Quán cafe',
                 cafe_page_title_checkin: 'Check-in',
                 cafe_bm_title: 'Đặt chỗ mới',
+                cafe_bm_guest_ph: 'VD: Anh Hoàng - Cty ABC',
+                cafe_bm_note_ph: 'Mục đích gặp, yêu cầu đặc biệt...',
                 cafe_bm_submit: 'Xác nhận đặt chỗ',
                 cafe_bm_select_cafe: 'Chọn quán',
                 cafe_bm_date: 'Ngày',
@@ -5020,6 +5021,14 @@
                 cafe_page_title: 'Cafes',
                 cafe_page_title_checkin: 'Check-in',
                 cafe_bm_title: 'New booking',
+                cafe_bm_select_cafe: 'Select cafe',
+                cafe_bm_date: 'Date',
+                cafe_bm_start: 'Start time',
+                cafe_bm_end: 'End time',
+                cafe_bm_guest: 'Guest name',
+                cafe_bm_note: 'Note',
+                cafe_bm_guest_ph: 'Ex: Mr. Hoang - ABC Corp',
+                cafe_bm_note_ph: 'Purpose, special requests...',
                 cafe_bm_submit: 'Confirm booking',
                 cafe_bm_select_cafe: 'Select cafe',
                 cafe_bm_date: 'Date',
@@ -7610,6 +7619,25 @@ const ccEmail1 = (sendToClient && clientEmailValue) ? clientEmailValue : '';
                 cafeSelect.innerHTML = opts;
             }
 
+            // Reset button state
+            const submitBtn = document.getElementById('cafeBmSubmitBtn');
+            if (submitBtn) {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<i class="fa-solid fa-check"></i><span>' + (t('cafe_bm_submit') || 'Xác nhận đặt chỗ') + '</span>';
+            }
+
+            // Apply i18n cho modal
+            document.querySelectorAll('#cafeBookingModal [data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                const txt = t(key);
+                if (txt && txt !== key) el.textContent = txt;
+            });
+            document.querySelectorAll('#cafeBookingModal [data-i18n-placeholder]').forEach(el => {
+                const key = el.getAttribute('data-i18n-placeholder');
+                const txt = t(key);
+                if (txt && txt !== key) el.placeholder = txt;
+            });
+
             // Show modal
             document.getElementById('cafeBookingModal').classList.add('active');
         }
@@ -7712,6 +7740,8 @@ const ccEmail1 = (sendToClient && clientEmailValue) ? clientEmailValue : '';
                 if (data.status === 200) {
                     showToast('Đã đặt chỗ, đợi quán xác nhận', true);
                     closeCafeBookingModal();
+                    btn.disabled = false;
+                    btn.innerHTML = orig;
                     setTimeout(() => {
                         loadCafeBookings();
                     }, 600);
