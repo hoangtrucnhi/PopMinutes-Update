@@ -4981,7 +4981,8 @@
                 cafe_loading_error: 'Không tải được',
                 cafe_status_pending: 'Chờ xác nhận',
                 cafe_status_confirmed: 'Đã xác nhận',
-                cafe_status_checked_in: 'Đang ngồi',
+                cafe_status_seated: 'Đang ngồi',
+                cafe_status_waiting_confirm: 'Chờ quán xác nhận',
                 cafe_status_completed: 'Đã xong',
                 cafe_status_cancelled: 'Đã hủy',
                 bank_section_title: 'Thông tin nhận tiền',
@@ -5339,7 +5340,8 @@
                 cafe_loading_error: 'Failed',
                 cafe_status_pending: 'Pending',
                 cafe_status_confirmed: 'Confirmed',
-                cafe_status_checked_in: 'Seated',
+                cafe_status_seated: 'Seated',
+                cafe_status_waiting_confirm: 'Waiting for confirmation',
                 cafe_status_completed: 'Completed',
                 cafe_status_cancelled: 'Cancelled',
                 bank_section_title: 'Payment information',
@@ -7850,10 +7852,16 @@ const ccEmail1 = (sendToClient && clientEmailValue) ? clientEmailValue : '';
             container.innerHTML = `
                 <div class="cafe-active-card">
                     <div class="cafe-active-header">
-                        <div class="cafe-active-badge">
-                            <span class="cafe-pulse"></span>
-                            <span>${t('cafe_status_checked_in')}</span>
-                        </div>
+                        ${active.manager_confirmed_at 
+                          ? `<div class="cafe-active-badge">
+                                <span class="cafe-pulse"></span>
+                                <span>${t('cafe_status_seated') || 'Đang ngồi'}</span>
+                             </div>`
+                          : `<div class="cafe-active-badge" style="background:#FEF3C7; color:#92400E;">
+                                <i class="fa-solid fa-clock"></i>
+                                <span>${t('cafe_status_waiting_confirm') || 'Chờ quán xác nhận'}</span>
+                             </div>`
+                        }
                         <div class="cafe-active-elapsed">${timeText}</div>
                     </div>
                     <div class="cafe-active-cafe">
