@@ -5027,6 +5027,50 @@
                 bank_branch: 'Chi nhánh',
                 bank_save_btn: 'Lưu',
                 bank_saved: 'Đã lưu',
+                // ===== CAFE ERROR CODES (VI) =====
+                cafe_missing_info: 'Thiếu thông tin',
+                cafe_missing_checkin_id: 'Thiếu mã check-in',
+                cafe_missing_sales_email: 'Thiếu email',
+                cafe_missing_gps: 'Không lấy được vị trí GPS',
+                cafe_missing_id: 'Thiếu mã quán',
+                cafe_not_found: 'Quán không tồn tại',
+                cafe_inactive: 'Quán đang tạm ngưng',
+                cafe_no_location: 'Quán chưa có tọa độ',
+                cafe_too_far: 'Bạn cách quán {distance}m. Cần ở trong {max}m',
+                cafe_not_far_enough: 'Còn cách quán {distance}m. Cần đi xa > {min}m',
+                cafe_already_checked_in: 'Bạn đang có 1 check-in đang hoạt động',
+                cafe_insufficient_hours: 'Không đủ giờ. Còn {available}h, cần ký quỹ 1h',
+                cafe_checkin_success_full: 'Check-in thành công tại {cafe_name}. Đã ký quỹ {deposit_hours}h',
+                cafe_checkout_success_full: 'Check-out thành công. Dùng {hours}h',
+                checkin_not_found: 'Check-in không tồn tại',
+                checkin_ended: 'Check-in đã kết thúc',
+                checkin_wrong_cafe: 'Check-in thuộc quán khác',
+                mgr_missing_params: 'Thiếu thông tin',
+                mgr_missing_id: 'Thiếu mã quản lý',
+                mgr_missing_email: 'Thiếu email',
+                mgr_invalid: 'Tài khoản quản lý không hợp lệ',
+                mgr_not_found: 'Email không có quyền quản lý quán',
+                mgr_manual_checkout_success: 'Đã check-out hộ khách. Dùng {hours}h',
+                qr_invalid_format: 'Mã QR không hợp lệ',
+                qr_already_used: 'Mã QR đã được sử dụng. Không thể quét lại',
+                qr_expired: 'Mã QR đã hết hạn (quá 15 phút). Vui lòng check-in lại',
+                qr_already_confirmed: 'Đã xác nhận từ trước',
+                qr_confirm_success: 'Xác nhận thành công',
+                booking_missing_info: 'Thiếu thông tin',
+                booking_not_found: 'Đặt chỗ không tồn tại',
+                booking_no_permission: 'Không có quyền',
+                booking_wrong_status: 'Trạng thái đặt chỗ không hợp lệ',
+                booking_invalid_time: 'Thời gian không hợp lệ',
+                booking_invalid_extend: 'Thời gian gia hạn không hợp lệ (tối đa 4h)',
+                booking_max_8h: 'Đặt chỗ tối đa 8 giờ',
+                booking_overlap: 'Bạn đã có đặt chỗ trong khung giờ này',
+                booking_create_success_full: 'Đã đặt chỗ tại {cafe_name}, đợi quán xác nhận',
+                booking_confirm_success: 'Đã xác nhận đặt chỗ',
+                booking_cancel_success: 'Đã hủy đặt chỗ',
+                booking_update_success: 'Đã cập nhật đặt chỗ',
+                booking_extend_success_full: 'Đã gia hạn thêm {add_minutes} phút',
+                ent_missing_id: 'Thiếu mã doanh nghiệp',
+                cafe_unknown_error: 'Đã có lỗi xảy ra',
             },
             en: {
                 login_title: 'Smart Meeting Minutes AI',
@@ -5388,14 +5432,64 @@
                 bank_branch: 'Branch',
                 bank_save_btn: 'Save',
                 bank_saved: 'Saved',
+                // ===== CAFE ERROR CODES (EN) =====
+                cafe_missing_info: 'Missing information',
+                cafe_missing_checkin_id: 'Missing check-in ID',
+                cafe_missing_sales_email: 'Missing email',
+                cafe_missing_gps: 'Cannot get GPS location',
+                cafe_missing_id: 'Missing cafe ID',
+                cafe_not_found: 'Cafe not found',
+                cafe_inactive: 'Cafe is inactive',
+                cafe_no_location: 'Cafe has no coordinates',
+                cafe_too_far: 'You are {distance}m away. Must be within {max}m',
+                cafe_not_far_enough: 'Still {distance}m away. Need to move > {min}m',
+                cafe_already_checked_in: 'You already have an active check-in',
+                cafe_insufficient_hours: 'Not enough hours. {available}h left, need 1h deposit',
+                cafe_checkin_success_full: 'Checked in at {cafe_name}. Deposited {deposit_hours}h',
+                cafe_checkout_success_full: 'Checked out. Used {hours}h',
+                checkin_not_found: 'Check-in not found',
+                checkin_ended: 'Check-in has ended',
+                checkin_wrong_cafe: 'Check-in belongs to another cafe',
+                mgr_missing_params: 'Missing information',
+                mgr_missing_id: 'Missing manager ID',
+                mgr_missing_email: 'Missing email',
+                mgr_invalid: 'Invalid manager account',
+                mgr_not_found: 'Email has no cafe management rights',
+                mgr_manual_checkout_success: 'Manual check-out done. Used {hours}h',
+                qr_invalid_format: 'Invalid QR code',
+                qr_already_used: 'QR code already used. Cannot scan again',
+                qr_expired: 'QR code expired (over 15 minutes). Please check-in again',
+                qr_already_confirmed: 'Already confirmed',
+                qr_confirm_success: 'Confirmed successfully',
+                booking_missing_info: 'Missing information',
+                booking_not_found: 'Booking not found',
+                booking_no_permission: 'No permission',
+                booking_wrong_status: 'Invalid booking status',
+                booking_invalid_time: 'Invalid time',
+                booking_invalid_extend: 'Invalid extension time (max 4h)',
+                booking_max_8h: 'Booking max 8 hours',
+                booking_overlap: 'You already have a booking in this time slot',
+                booking_create_success_full: 'Booked at {cafe_name}, waiting for cafe confirmation',
+                booking_confirm_success: 'Booking confirmed',
+                booking_cancel_success: 'Booking cancelled',
+                booking_update_success: 'Booking updated',
+                booking_extend_success_full: 'Extended by {add_minutes} minutes',
+                ent_missing_id: 'Missing enterprise ID',
+                cafe_unknown_error: 'An error occurred',
             }
         };
 
         let currentLang = localStorage.getItem('popminutes_lang') || 'vi';
         let lastErrorKey = null;
 
-        function t(key) {
-            return translations[currentLang]?.[key] || key;
+        function t(key, params) {
+            let str = translations[currentLang]?.[key] || translations.vi?.[key] || key;
+            if (params && typeof params === 'object') {
+                Object.keys(params).forEach(k => {
+                    str = String(str).replace(new RegExp('\\{' + k + '\\}', 'g'), String(params[k]));
+                });
+            }
+            return str;
         }
 
         // ========================================================================
@@ -7792,7 +7886,7 @@ const ccEmail1 = (sendToClient && clientEmailValue) ? clientEmailValue : '';
                     showToast(t('action_success'), true);
                     setTimeout(loadCafeBookings, 500);
                 } else {
-                    showToast(data.message || 'Lỗi', false);
+                    showToast(data.code ? t(data.code, data.params) : (data.message || t('cafe_unknown_error')), false);
                     btn.disabled = false;
                     btn.innerHTML = orig;
                 }
@@ -8054,7 +8148,7 @@ const ccEmail1 = (sendToClient && clientEmailValue) ? clientEmailValue : '';
                 if (notice) {
                     if (!timePassed) {
                         const remaining = Math.ceil((endMs - now) / 60000);
-                        notice.textContent = t('cafe_checkout_wait_time').replace('{n}', remaining);
+                        notice.textContent = t('cafe_checkout_wait_time', { n: remaining });
                     } else if (!farEnough) {
                         notice.textContent = t('cafe_checkout_move_away');
                     }
@@ -8077,9 +8171,8 @@ const ccEmail1 = (sendToClient && clientEmailValue) ? clientEmailValue : '';
                 });
                 const data = await res.json();
                 if (data.status === 200) {
-                    showToast(t('cafe_auto_checkout_done').replace('{n}', data.billable_hours), true);
+                    showToast(t('cafe_auto_checkout_done', { n: data.billable_hours }), true);
                     stopCheckoutWatcher();
-                    
                 }
             } catch (e) {
                 console.warn('[AutoCheckout] failed:', e.message);
@@ -8277,7 +8370,7 @@ const ccEmail1 = (sendToClient && clientEmailValue) ? clientEmailValue : '';
                     showToast(t('cafe_checkin_success') || 'Check-in thành công!', true);
                     setTimeout(loadCafeCheckin, 500);
                 } else {
-                    showToast(data.message || 'Lỗi check-in', false);
+                    showToast(data.code ? t(data.code, data.params) : (data.message || t('cafe_unknown_error')), false);
                 }
             } catch (e) {
                 showToast(e.message, false);
@@ -8358,7 +8451,7 @@ const ccEmail1 = (sendToClient && clientEmailValue) ? clientEmailValue : '';
                             showToast(`Check-out thành công. Dùng ${data.billable_hours}h`, true);
                             setTimeout(loadCafeCheckin, 500);
                         } else {
-                            showToast(data.message || 'Lỗi check-out', false);
+                            showToast(data.code ? t(data.code, data.params) : (data.message || t('cafe_unknown_error')), false);
                         }
                     } catch (e) {
                         showToast(e.message, false);
@@ -8416,7 +8509,7 @@ const ccEmail1 = (sendToClient && clientEmailValue) ? clientEmailValue : '';
                     showToast(`Đã gia hạn thêm ${minutes}p`, true);
                     setTimeout(loadCafeCheckin, 500);
                 } else {
-                    showToast(data.message || 'Lỗi gia hạn', false);
+                    showToast(data.code ? t(data.code, data.params) : (data.message || t('cafe_unknown_error')), false);
                 }
             } catch (e) {
                 showToast(e.message, false);
@@ -8609,7 +8702,7 @@ const ccEmail1 = (sendToClient && clientEmailValue) ? clientEmailValue : '';
                         loadCafeBookings();
                     }, 600);
                 } else {
-                    showToast(data.message || 'Lỗi đặt chỗ', false);
+                    showToast(data.code ? t(data.code, data.params) : (data.message || t('cafe_unknown_error')), false);
                     btn.disabled = false;
                     btn.innerHTML = orig;
                 }
