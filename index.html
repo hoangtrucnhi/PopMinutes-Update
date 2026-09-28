@@ -7929,6 +7929,31 @@ const ccEmail1 = (sendToClient && clientEmailValue) ? clientEmailValue : '';
             // Check every 30s for time pass
             _eligibilityIntervalId = setInterval(updateCheckoutEligibility, 30000);
 
+            // Polling mỗi 20s: refresh active check-in để bắt manager_confirmed_at
+            if (window._syncActiveInterval) clearInterval(window._syncActiveInterval);
+            window._syncActiveInterval = setInterval(async () => {
+                try {
+                    const r = await fetch(CLOUD_FUNCTION_URL + '?action=cafeCheckInGetActive&salesEmail=' + encodeURIComponent(currentEmail));
+                    const j = await r.json();
+                    if (j.status !== 200 || !j.active) return;
+
+                    const oldConfirmed = _activeCheckinCache?.manager_confirmed_at;
+                    const newConfirmed = j.active.manager_confirmed_at;
+
+                    // Nếu manager vừa confirm → re-render
+                    if (!oldConfirmed && newConfirmed) {
+                        console.log('[Sync] Manager vừa confirm → re-render');
+                        _activeCheckinCache = { ..._activeCheckinCache, ...j.active };
+                        renderActiveCheckin(_activeCheckinCache);
+                    } else {
+                        // Vẫn update cache (elapsed_hours mới, etc.)
+                        _activeCheckinCache = { ..._activeCheckinCache, ...j.active };
+                    }
+                } catch (e) {
+                    console.warn('[Sync] Poll error:', e.message);
+                }
+            }, 20000);
+
             // GPS watcher for auto check-out
             if (active.cafe_location && active.cafe_location.lat && active.cafe_location.lng) {
                 try {
@@ -7955,6 +7980,10 @@ const ccEmail1 = (sendToClient && clientEmailValue) ? clientEmailValue : '';
             if (_eligibilityIntervalId) {
                 clearInterval(_eligibilityIntervalId);
                 _eligibilityIntervalId = null;
+            }
+            if (window._syncActiveInterval) {
+                clearInterval(window._syncActiveInterval);
+                window._syncActiveInterval = null;
             }
             _activeCheckinCache = null;
         }
