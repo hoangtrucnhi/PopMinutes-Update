@@ -5483,7 +5483,11 @@
         let lastErrorKey = null;
 
         function t(key, params) {
-            let str = translations[currentLang]?.[key] || translations.vi?.[key] || key;
+            // Normalize: BE gửi UPPERCASE, FE translations dùng lowercase
+            const normalizedKey = key ? String(key).toLowerCase() : key;
+            let str = translations[currentLang]?.[normalizedKey] 
+                   || translations.vi?.[normalizedKey] 
+                   || key;
             if (params && typeof params === 'object') {
                 Object.keys(params).forEach(k => {
                     str = String(str).replace(new RegExp('\\{' + k + '\\}', 'g'), String(params[k]));
