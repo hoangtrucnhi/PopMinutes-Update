@@ -7847,10 +7847,15 @@ const ccEmail1 = (sendToClient && clientEmailValue) ? clientEmailValue : '';
         function renderActiveCheckin(active) {
             window.__currentActiveCheckin = active;
             const container = document.getElementById('cafeCheckinContent');
-            const elapsed = active.elapsed_hours || 0;
-            const hours = Math.floor(elapsed);
-            const mins = Math.floor((elapsed - hours) * 60);
-            const timeText = hours > 0 ? `${hours}h${String(mins).padStart(2, '0')}p` : `${mins}p`;
+            let timeText;
+            if (!active.manager_confirmed_at) {
+                timeText = '—';  // Chưa confirm → chưa tính giờ
+            } else {
+                const elapsed = active.elapsed_hours || 0;
+                const hours = Math.floor(elapsed);
+                const mins = Math.floor((elapsed - hours) * 60);
+                timeText = hours > 0 ? `${hours}h${String(mins).padStart(2, '0')}p` : `${mins}p`;
+            }
 
             const bookingIdSafe = active.booking_id || '';
 
@@ -7976,10 +7981,10 @@ const ccEmail1 = (sendToClient && clientEmailValue) ? clientEmailValue : '';
             // Update eligibility
             updateCheckoutEligibility(distKm);
 
-            // Auto check-out if: past end_time + > 100m
+            // Auto check-out if: past end_time + > 100m + manager đã confirm
             const now = Date.now();
             const endMs = active.booking_end_time_ms || 0;
-            if (endMs && now >= endMs && distKm > 0.1 && !active._autoCheckoutTriggered) {
+            if (active.manager_confirmed_at && endMs && now >= endMs && distKm > 0.1 && !active._autoCheckoutTriggered) {
                 console.log('[AutoCheckout] Triggered. dist:', distKm, 'km');
                 active._autoCheckoutTriggered = true;
                 autoSubmitCheckOut(active.checkin_id, lat, lng);
@@ -7998,6 +8003,13 @@ const ccEmail1 = (sendToClient && clientEmailValue) ? clientEmailValue : '';
             if (!endMs) {
                 btn.style.display = 'none';
                 if (notice) notice.textContent = '';
+                return;
+            }
+
+            // BẮT BUỘC: manager phải xác nhận trước khi tính check-out
+            if (!active.manager_confirmed_at) {
+                btn.style.display = 'none';
+                if (notice) notice.textContent = 'Chờ quán xác nhận để bắt đầu tính giờ';
                 return;
             }
 
