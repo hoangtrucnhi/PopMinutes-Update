@@ -7845,6 +7845,7 @@ const ccEmail1 = (sendToClient && clientEmailValue) ? clientEmailValue : '';
         }
 
         function renderActiveCheckin(active) {
+            window.__currentActiveCheckin = active;
             const container = document.getElementById('cafeCheckinContent');
             const elapsed = active.elapsed_hours || 0;
             const hours = Math.floor(elapsed);
