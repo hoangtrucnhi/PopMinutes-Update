@@ -7907,7 +7907,7 @@ const ccEmail1 = (sendToClient && clientEmailValue) ? clientEmailValue : '';
                 startCheckoutWatcher(active);
             }, 100);
         }
-                // ================================================================
+        // ================================================================
         // ========== CHECK-OUT WATCHER (GPS + TIME) ======================
         // ================================================================
         let _activeCheckinCache = null;
@@ -7915,8 +7915,8 @@ const ccEmail1 = (sendToClient && clientEmailValue) ? clientEmailValue : '';
         let _eligibilityIntervalId = null;
 
         function startCheckoutWatcher(active) {
-            _activeCheckinCache = active;
             stopCheckoutWatcher();
+            _activeCheckinCache = active;
 
             // Initial eligibility check
             updateCheckoutEligibility();
