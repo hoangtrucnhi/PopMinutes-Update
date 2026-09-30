@@ -7901,7 +7901,7 @@ const ccEmail1 = (sendToClient && clientEmailValue) ? clientEmailValue : '';
             }
         }
 
-        async function loadCafeCheckin() {
+                async function loadCafeCheckin() {
             const container = document.getElementById('cafeCheckinContent');
             if (!container) return;
             container.innerHTML = `<p class="cafe-loading">${t('loading')}</p>`;
@@ -7912,6 +7912,9 @@ const ccEmail1 = (sendToClient && clientEmailValue) ? clientEmailValue : '';
                 const data = await res.json();
 
                 if (data.status === 200 && data.active) {
+                    // ✅ Auto check-out khi LOAD: đã confirm + qua giờ + GPS xa > 100m
+                    const autoDone = await tryAutoCheckoutOnLoad(data.active);
+                    if (autoDone) { renderCheckinPrompt(); return; }
                     renderActiveCheckin(data.active);
                 } else {
                     renderCheckinPrompt();
@@ -7919,6 +7922,43 @@ const ccEmail1 = (sendToClient && clientEmailValue) ? clientEmailValue : '';
             } catch (e) {
                 console.error('Load checkin error:', e);
                 container.innerHTML = `<div class="cafe-empty"><i class="fa-solid fa-circle-exclamation"></i>${t('cafe_loading_error')}</div>`;
+            }
+        }
+
+        // ===== Helper: Auto check-out khi mở app (chỉ khi đã confirm + qua giờ + GPS xa > 100m) =====
+        async function tryAutoCheckoutOnLoad(active) {
+            if (!active.manager_confirmed_at) {
+                console.log('[AutoOnLoad] Skip: chưa confirm');
+                return false;
+            }
+            const endMs = active.booking_end_time_ms || 0;
+            if (!endMs || Date.now() < endMs) {
+                console.log('[AutoOnLoad] Skip: chưa qua giờ');
+                return false;
+            }
+            try {
+                const pos = await new Promise((resolve, reject) => {
+                    navigator.geolocation.getCurrentPosition(resolve, reject, {
+                        enableHighAccuracy: false,
+                        timeout: 5000,
+                        maximumAge: 60000
+                    });
+                });
+                const distKm = haversineKm(
+                    pos.coords.latitude, pos.coords.longitude,
+                    active.cafe_location.lat, active.cafe_location.lng
+                );
+                console.log('[AutoOnLoad] dist:', distKm, 'km');
+                if (distKm > 0.1) {
+                    console.log('[AutoOnLoad] Triggered! Xa quán → auto check-out');
+                    await autoSubmitCheckOut(active.checkin_id, pos.coords.latitude, pos.coords.longitude);
+                    return true;
+                }
+                console.log('[AutoOnLoad] Skip: vẫn ở gần quán');
+                return false;
+            } catch (e) {
+                console.warn('[AutoOnLoad] GPS failed:', e.message);
+                return false;
             }
         }
 
