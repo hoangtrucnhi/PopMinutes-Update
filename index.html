@@ -3754,7 +3754,7 @@
                 <div class="cafe-bm-header">
                     <div class="cafe-bm-title">
                         <i class="fa-solid fa-calendar-check"></i>
-                        <span id="cafePickerTitle">Chọn booking để check-in</span>
+                        <span id="cafePickerTitle" data-i18n="cafe_picker_title">Chọn booking để check-in</span>
                     </div>
                     <button class="cafe-bm-close" onclick="closeCheckinPicker()">
                         <i class="fa-solid fa-xmark"></i>
@@ -3774,12 +3774,12 @@
                 <!-- Actions -->
                 <button id="cafePickerNoBookingBtn" class="cafe-secondary-btn" style="width:100%; margin-bottom:8px;">
                     <i class="fa-solid fa-right-to-bracket"></i>
-                    <span>Check-in không có booking</span>
+                    <span data-i18n="cafe_picker_no_booking">Check-in không có booking</span>
                 </button>
 
                 <button class="cafe-secondary-btn" style="width:100%;" onclick="closeCheckinPicker()">
                     <i class="fa-solid fa-xmark"></i>
-                    <span>Hủy</span>
+                    <span data-i18n="cancel_btn">Hủy</span>
                 </button>
             </div>
         </div>
@@ -5105,6 +5105,13 @@
                 booking_extend_success_full: 'Đã gia hạn',
                 ent_missing_id: 'Thiếu mã doanh nghiệp',
                 cafe_unknown_error: 'Đã có lỗi xảy ra',
+                // ===== CAFE CHECKIN PICKER (VI) =====
+                cafe_picker_title: 'Chọn booking để check-in',
+                cafe_picker_your_bookings: 'Booking của bạn:',
+                cafe_picker_pick_btn: 'Chọn booking này',
+                cafe_picker_no_booking: 'Check-in không có booking',
+                cafe_picker_empty: 'Bạn không có booking nào tại quán này',
+                cafe_picker_load_error: 'Không tải được booking',
             },
             en: {
                 login_title: 'Smart Meeting Minutes AI',
@@ -5510,6 +5517,13 @@
                 booking_extend_success_full: 'Extended',
                 ent_missing_id: 'Missing enterprise ID',
                 cafe_unknown_error: 'An error occurred',
+                // ===== CAFE CHECKIN PICKER (EN) =====
+                cafe_picker_title: 'Pick a booking to check-in',
+                cafe_picker_your_bookings: 'Your bookings:',
+                cafe_picker_pick_btn: 'Pick this booking',
+                cafe_picker_no_booking: 'Check-in without booking',
+                cafe_picker_empty: 'You have no bookings at this cafe',
+                cafe_picker_load_error: 'Failed to load bookings',
             }
         };
 
@@ -8424,6 +8438,13 @@ const ccEmail1 = (sendToClient && clientEmailValue) ? clientEmailValue : '';
             const listEl = document.getElementById('cafePickerBookingList');
             const noBookingBtn = document.getElementById('cafePickerNoBookingBtn');
 
+            // Apply i18n cho modal (title + buttons)
+            document.querySelectorAll('#cafeCheckinPickerModal [data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                const txt = t(key);
+                if (txt && txt !== key) el.textContent = txt;
+            });
+
             // Render cafe info
             infoEl.innerHTML = `
                 <div style="display:flex; align-items:center; gap:6px;">
@@ -8455,11 +8476,11 @@ const ccEmail1 = (sendToClient && clientEmailValue) ? clientEmailValue : '';
                     listEl.innerHTML = `
                         <div style="text-align:center; padding:20px; color:var(--muted); background:#F8FAFC; border-radius:12px; font-size:13px;">
                             <i class="fa-regular fa-calendar-xmark" style="font-size:24px; color:#CBD5E1; display:block; margin-bottom:8px;"></i>
-                            Bạn không có booking nào tại quán này
+                            ${t('cafe_picker_empty')}
                         </div>
                     `;
                 } else {
-                    let html = '<div style="font-size:12px; font-weight:700; color:var(--muted); text-transform:uppercase; margin-bottom:8px;">Booking của bạn:</div>';
+                    let html = `<div style="font-size:12px; font-weight:700; color:var(--muted); text-transform:uppercase; margin-bottom:8px;">${t('cafe_picker_your_bookings')}</div>`;
                     bookings.forEach(b => {
                         const startStr = fmtCafeDateTime(b.start_time_iso);
                         const endStr = fmtCafeDateTime(b.end_time_iso);
@@ -8478,7 +8499,7 @@ const ccEmail1 = (sendToClient && clientEmailValue) ? clientEmailValue : '';
                                 <div class="cafe-card-actions">
                                     <button class="cafe-btn-sm primary" style="width:100%;">
                                         <i class="fa-solid fa-check"></i>
-                                        <span>Chọn booking này</span>
+                                        <span>${t('cafe_picker_pick_btn')}</span>
                                     </button>
                                 </div>
                             </div>
@@ -8488,13 +8509,12 @@ const ccEmail1 = (sendToClient && clientEmailValue) ? clientEmailValue : '';
                 }
             } catch (e) {
                 console.error('Load bookings for picker failed:', e);
-                listEl.innerHTML = `<p style="text-align:center; color:var(--danger); padding:20px;">Không tải được booking</p>`;
+                listEl.innerHTML = `<p style="text-align:center; color:var(--danger); padding:20px;">${t('cafe_picker_load_error')}</p>`;
             }
 
             // Bind no-booking button (dùng onclick để tránh duplicate listener)
             noBookingBtn.onclick = () => pickCheckinBooking(null);
         }
-
         function closeCheckinPicker() {
             document.getElementById('cafeCheckinPickerModal').classList.remove('active');
             _pendingCheckinCafeId = null;
