@@ -8141,21 +8141,16 @@ const ccEmail1 = (sendToClient && clientEmailValue) ? clientEmailValue : '';
             }
 
             const timePassed = now >= endMs;
-            const farEnough = typeof distKm === 'number' ? distKm > 0.1 : false;
 
-            // BẮT BUỘC cả 2: đã qua end_time VÀ đã đi xa > 100m
-            if (timePassed && farEnough) {
+            // Chỉ cần qua giờ — BỎ GPS requirement
+            if (timePassed) {
                 btn.style.display = '';
                 if (notice) notice.textContent = '';
             } else {
                 btn.style.display = 'none';
                 if (notice) {
-                    if (!timePassed) {
-                        const remaining = Math.ceil((endMs - now) / 60000);
-                        notice.textContent = t('cafe_checkout_wait_time', { n: remaining });
-                    } else if (!farEnough) {
-                        notice.textContent = t('cafe_checkout_move_away');
-                    }
+                    const remaining = Math.ceil((endMs - now) / 60000);
+                    notice.textContent = t('cafe_checkout_wait_time', { n: remaining });
                 }
             }
         }
