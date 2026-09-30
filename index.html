@@ -3748,7 +3748,41 @@
                 </div>
             </div>
         </div>
+                <!-- ========== CAFE CHECK-IN BOOKING PICKER MODAL ========== -->
+        <div id="cafeCheckinPickerModal" class="cafe-bm-overlay">
+            <div class="cafe-bm-box">
+                <div class="cafe-bm-header">
+                    <div class="cafe-bm-title">
+                        <i class="fa-solid fa-calendar-check"></i>
+                        <span id="cafePickerTitle">Chọn booking để check-in</span>
+                    </div>
+                    <button class="cafe-bm-close" onclick="closeCheckinPicker()">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
 
+                <!-- Cafe info preview -->
+                <div id="cafePickerCafeInfo" style="background:#F0F3FF; padding:12px; border-radius:12px; margin-bottom:16px; font-size:13px; color:#1E40AF;">
+                    <!-- Sẽ được JS render -->
+                </div>
+
+                <!-- Booking list -->
+                <div id="cafePickerBookingList" style="margin-bottom:16px;">
+                    <!-- Sẽ được JS render -->
+                </div>
+
+                <!-- Actions -->
+                <button id="cafePickerNoBookingBtn" class="cafe-secondary-btn" style="width:100%; margin-bottom:8px;">
+                    <i class="fa-solid fa-right-to-bracket"></i>
+                    <span>Check-in không có booking</span>
+                </button>
+
+                <button class="cafe-secondary-btn" style="width:100%;" onclick="closeCheckinPicker()">
+                    <i class="fa-solid fa-xmark"></i>
+                    <span>Hủy</span>
+                </button>
+            </div>
+        </div>
                 <!-- ========== CAFE BOOKING MODAL ========== -->
         <div id="cafeBookingModal" class="cafe-bm-overlay">
             <div class="cafe-bm-box">
@@ -8375,7 +8409,111 @@ const ccEmail1 = (sendToClient && clientEmailValue) ? clientEmailValue : '';
             );
         }
 
-                async function submitCheckIn(cafeId, lat, lng) {
+                        // ===== NEW: Mở modal chọn booking trước khi check-in =====
+        let _pendingCheckinCafeId = null;
+        let _pendingCheckinLat = null;
+        let _pendingCheckinLng = null;
+
+        async function showCheckinPicker(cafeId, lat, lng, cafeName) {
+            _pendingCheckinCafeId = cafeId;
+            _pendingCheckinLat = lat;
+            _pendingCheckinLng = lng;
+
+            const modal = document.getElementById('cafeCheckinPickerModal');
+            const infoEl = document.getElementById('cafePickerCafeInfo');
+            const listEl = document.getElementById('cafePickerBookingList');
+            const noBookingBtn = document.getElementById('cafePickerNoBookingBtn');
+
+            // Render cafe info
+            infoEl.innerHTML = `
+                <div style="display:flex; align-items:center; gap:6px;">
+                    <i class="fa-solid fa-store"></i>
+                    <b>${escapeHtml(cafeName)}</b>
+                </div>
+            `;
+
+            // Render loading state
+            listEl.innerHTML = `<p style="text-align:center; padding:20px; color:var(--muted);">${t('loading')}</p>`;
+            modal.classList.add('active');
+
+            // Load bookings confirmed cho user tại quán này
+            try {
+                const url = `${CLOUD_FUNCTION_URL}?action=cafeBookingList&salesEmail=${encodeURIComponent(currentEmail)}&cafeId=${encodeURIComponent(cafeId)}&status=confirmed`;
+                const res = await fetch(url);
+                const data = await res.json();
+
+                const bookings = (data.bookings || []).filter(b => {
+                    // Chỉ hiện booking confirmed + chưa check-in
+                    if (b.status !== 'confirmed') return false;
+                    if (b.checkin_id) return false;
+                    // Chỉ hiện booking chưa hết (end_time_ms > now)
+                    if (b.end_time_ms < Date.now()) return false;
+                    return true;
+                });
+
+                if (bookings.length === 0) {
+                    listEl.innerHTML = `
+                        <div style="text-align:center; padding:20px; color:var(--muted); background:#F8FAFC; border-radius:12px; font-size:13px;">
+                            <i class="fa-regular fa-calendar-xmark" style="font-size:24px; color:#CBD5E1; display:block; margin-bottom:8px;"></i>
+                            Bạn không có booking nào tại quán này
+                        </div>
+                    `;
+                } else {
+                    let html = '<div style="font-size:12px; font-weight:700; color:var(--muted); text-transform:uppercase; margin-bottom:8px;">Booking của bạn:</div>';
+                    bookings.forEach(b => {
+                        const startStr = fmtCafeDateTime(b.start_time_iso);
+                        const endStr = fmtCafeDateTime(b.end_time_iso);
+                        html += `
+                            <div class="cafe-card" style="cursor:pointer; margin-bottom:10px;" onclick="pickCheckinBooking('${escapeHtml(b.booking_id)}')">
+                                <div class="cafe-card-header">
+                                    <div class="cafe-card-title">
+                                        <i class="fa-regular fa-clock"></i>
+                                        ${startStr} → ${endStr}
+                                    </div>
+                                </div>
+                                <div class="cafe-card-meta">
+                                    ${b.guest_name ? `<div><i class="fa-regular fa-user"></i> ${escapeHtml(b.guest_name)}</div>` : ''}
+                                    ${b.note ? `<div><i class="fa-regular fa-note-sticky"></i> ${escapeHtml(b.note)}</div>` : ''}
+                                </div>
+                                <div class="cafe-card-actions">
+                                    <button class="cafe-btn-sm primary" style="width:100%;">
+                                        <i class="fa-solid fa-check"></i>
+                                        <span>Chọn booking này</span>
+                                    </button>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    listEl.innerHTML = html;
+                }
+            } catch (e) {
+                console.error('Load bookings for picker failed:', e);
+                listEl.innerHTML = `<p style="text-align:center; color:var(--danger); padding:20px;">Không tải được booking</p>`;
+            }
+
+            // Bind no-booking button (dùng onclick để tránh duplicate listener)
+            noBookingBtn.onclick = () => pickCheckinBooking(null);
+        }
+
+        function closeCheckinPicker() {
+            document.getElementById('cafeCheckinPickerModal').classList.remove('active');
+            _pendingCheckinCafeId = null;
+            _pendingCheckinLat = null;
+            _pendingCheckinLng = null;
+        }
+
+        async function pickCheckinBooking(bookingId) {
+            const cafeId = _pendingCheckinCafeId;
+            const lat = _pendingCheckinLat;
+            const lng = _pendingCheckinLng;
+            closeCheckinPicker();
+            if (!cafeId) return;
+
+            await submitCheckIn(cafeId, lat, lng, bookingId);
+        }
+
+        // ===== SUBMIT CHECK-IN (cập nhật để nhận bookingId) =====
+        async function submitCheckIn(cafeId, lat, lng, bookingId) {
             const enterpriseId = window.__currentEnterpriseId || currentEnterpriseId;
             if (!enterpriseId) {
                 showToast(t('ent_missing_id'), false);
@@ -8383,17 +8521,21 @@ const ccEmail1 = (sendToClient && clientEmailValue) ? clientEmailValue : '';
             }
             showToast(t('cafe_checkin_processing'), true);
             try {
+                const params = {
+                    action: 'cafeCheckIn',
+                    salesEmail: currentEmail,
+                    enterpriseId: enterpriseId,
+                    cafeId: cafeId,
+                    lat: String(lat),
+                    lng: String(lng)
+                };
+                // Chỉ gửi bookingId khi có
+                if (bookingId) params.bookingId = bookingId;
+
                 const res = await fetch(CLOUD_FUNCTION_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                    body: new URLSearchParams({
-                        action: 'cafeCheckIn',
-                        salesEmail: currentEmail,
-                        enterpriseId: enterpriseId,
-                        cafeId: cafeId,
-                        lat: String(lat),
-                        lng: String(lng)
-                    }).toString()
+                    body: new URLSearchParams(params).toString()
                 });
                 const data = await res.json();
                 if (data.status === 200) {
@@ -8406,7 +8548,6 @@ const ccEmail1 = (sendToClient && clientEmailValue) ? clientEmailValue : '';
                 showToast(e.message, false);
             }
         }
-
         async function showNearbyCafes() {
             const listEl = document.getElementById('cafeNearbyList');
             if (!listEl) return;
@@ -8439,7 +8580,7 @@ const ccEmail1 = (sendToClient && clientEmailValue) ? clientEmailValue : '';
                                         <div><i class="fa-solid fa-money-bill"></i> ${fmtCafeMoney(c.price_per_hour)}/h</div>
                                     </div>
                                     <div class="cafe-card-actions">
-                                        <button class="cafe-btn-sm primary" onclick="submitCheckIn('${escapeHtml(c.cafe_id)}', ${pos.coords.latitude}, ${pos.coords.longitude})">
+                                        <button class="cafe-btn-sm primary" onclick="showCheckinPicker('${escapeHtml(c.cafe_id)}', ${pos.coords.latitude}, ${pos.coords.longitude}, '${escapeHtml(c.name).replace(/'/g, "\\'")}')">
                                             <i class="fa-solid fa-right-to-bracket"></i>
                                             <span>${t('cafe_checkin_btn_checkin_here') || 'Check-in tại đây'}</span>
                                         </button>
