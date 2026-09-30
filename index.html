@@ -8595,7 +8595,7 @@ const ccEmail1 = (sendToClient && clientEmailValue) ? clientEmailValue : '';
             const submitBtn = document.getElementById('cafeBmSubmitBtn');
             if (submitBtn) {
                 submitBtn.disabled = false;
-                submitBtn.innerHTML = '<span>' + (t('cafe_bm_submit') || 'Xác nhận đặt chỗ') + '</span>';
+                submitBtn.innerHTML = '<i class="fa-solid fa-check"></i><span>' + (t('cafe_bm_submit') || 'Xác nhận đặt chỗ') + '</span>';
             }
 
             // Show modal
