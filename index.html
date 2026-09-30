@@ -8105,17 +8105,8 @@ const ccEmail1 = (sendToClient && clientEmailValue) ? clientEmailValue : '';
             // Calc distance to cafe
             const distKm = haversineKm(lat, lng, active.cafe_location.lat, active.cafe_location.lng);
 
-            // Update eligibility
+            // Chỉ update UI. KHÔNG auto check-out khi đang mở app.
             updateCheckoutEligibility(distKm);
-
-            // Auto check-out if: past end_time + > 100m + manager đã confirm
-            const now = Date.now();
-            const endMs = active.booking_end_time_ms || 0;
-            if (active.manager_confirmed_at && endMs && now >= endMs && distKm > 0.1 && !active._autoCheckoutTriggered) {
-                console.log('[AutoCheckout] Triggered. dist:', distKm, 'km');
-                active._autoCheckoutTriggered = true;
-                autoSubmitCheckOut(active.checkin_id, lat, lng);
-            }
         }
 
         function updateCheckoutEligibility(distKm) {
