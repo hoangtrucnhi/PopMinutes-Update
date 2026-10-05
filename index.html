@@ -12152,6 +12152,30 @@ window.addEventListener('message', async function(event) {
                 desc.textContent = t('set_pw_desc');
                 submitText.setAttribute('data-i18n', 'set_pw_btn');
                 submitText.textContent = t('set_pw_btn');
+                closeBtn.style.display = 'none';
+            } else if (mode === 'reset') {
+                title.setAttribute('data-i18n', 'reset_pw_title');
+                title.textContent = t('reset_pw_title');
+                desc.setAttribute('data-i18n', 'reset_pw_desc');
+                desc.textContent = t('reset_pw_desc');
+                submitText.setAttribute('data-i18n', 'reset_pw_btn');
+                submitText.textContent = t('reset_pw_btn');
+                closeBtn.style.display = 'none';
+            } else {
+                title.setAttribute('data-i18n', 'change_pw_title');
+                title.textContent = t('change_pw_title');
+                desc.setAttribute('data-i18n', 'change_pw_desc');
+                desc.textContent = t('change_pw_desc');
+                submitText.setAttribute('data-i18n', 'change_pw_btn');
+                submitText.textContent = t('change_pw_btn');
+                closeBtn.style.display = 'flex';
+            }
+                title.setAttribute('data-i18n', 'set_pw_title');
+                title.textContent = t('set_pw_title');
+                desc.setAttribute('data-i18n', 'set_pw_desc');
+                desc.textContent = t('set_pw_desc');
+                submitText.setAttribute('data-i18n', 'set_pw_btn');
+                submitText.textContent = t('set_pw_btn');
                 closeBtn.style.display = 'none'; // bắt buộc, không cho đóng
             } else {
                 title.setAttribute('data-i18n', 'change_pw_title');
@@ -12528,42 +12552,11 @@ window.addEventListener('message', async function(event) {
         // Biến global lưu reset token
         window.__resetToken = '';
 
-        function openResetPasswordModal(token) {
+                function openResetPasswordModal(token) {
             window.__resetToken = token;
-
-            // Đóng login screen, hiện passwordModal với mode "reset"
             document.getElementById('login-screen').classList.add('hidden');
-
-            _pwModalMode = 'reset';
-            _pwModalCtx = { resetToken: token };
-
-            const modal = document.getElementById('passwordModal');
-            const title = document.getElementById('pwModalTitle');
-            const desc = document.getElementById('pwModalDesc');
-            const submitText = document.getElementById('pwSubmitText');
-            const closeBtn = document.getElementById('closePasswordModalBtn');
-
-            // Reset fields
-            document.getElementById('newPasswordInput').value = '';
-            document.getElementById('confirmPasswordInput').value = '';
-            document.getElementById('pwModalError').classList.add('hidden');
-            document.getElementById('pwStrengthBar').style.width = '0%';
-            document.getElementById('pwStrengthText').textContent = '';
-
-            // Ẩn old password
-            const oldPwWrap = document.getElementById('oldPasswordFieldWrap');
-            if (oldPwWrap) oldPwWrap.style.display = 'none';
-
-            title.textContent = t('reset_pw_title');
-            title.setAttribute('data-i18n', 'reset_pw_title');
-            desc.textContent = t('reset_pw_desc');
-            desc.setAttribute('data-i18n', 'reset_pw_desc');
-            submitText.textContent = t('reset_pw_btn');
-            submitText.setAttribute('data-i18n', 'reset_pw_btn');
-            closeBtn.style.display = 'none'; // bắt buộc, không cho đóng
-
-            modal.classList.add('active');
-            setTimeout(() => document.getElementById('newPasswordInput').focus(), 200);
+            // Delegate sang openPasswordModal('reset') — tận dụng i18n refresh + logic chung
+            openPasswordModal('reset', { resetToken: token });
         }
     </script>
 </body>
