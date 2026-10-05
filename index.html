@@ -7082,42 +7082,82 @@ for (let attempt = 1; attempt <= 3; attempt++) {
         }
         async function handleLogout() {
             // 1. Unregister push token TRƯỚC KHI logout
-    try {
-        if (currentEmail) {
-            const reg = await navigator.serviceWorker.ready;
-            const sub = await reg.pushManager.getSubscription();
-            if (sub) {
-                await fetch(CLOUD_FUNCTION_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                    body: new URLSearchParams({
-                        action: 'unregisterPushToken',
-                        email: currentEmail,
-                        token: JSON.stringify(sub)
-                    }).toString()
-                });
-                await sub.unsubscribe();
-                console.log('✅ Push unregistered on logout');
+            try {
+                if (currentEmail) {
+                    const reg = await navigator.serviceWorker.ready;
+                    const sub = await reg.pushManager.getSubscription();
+                    if (sub) {
+                        await fetch(CLOUD_FUNCTION_URL, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                            body: new URLSearchParams({
+                                action: 'unregisterPushToken',
+                                email: currentEmail,
+                                token: JSON.stringify(sub)
+                            }).toString()
+                        });
+                        await sub.unsubscribe();
+                        console.log('✅ Push unregistered on logout');
+                    }
+                }
+            } catch (e) {
+                console.warn('Logout unregister failed:', e);
             }
-        }
-    } catch (e) {
-        console.warn('Logout unregister failed:', e);
-    }
 
-    // 2. Xoá localStorage (như cũ)
-    homeScrollY = 0;
-    hideBottomNav();
-    localStorage.removeItem(AUTH_STORAGE_KEY);
-    localStorage.removeItem('popminutes_connections');
-    localStorage.removeItem('tasks_data');
-    localStorage.removeItem('popminutes_date_format');
-    localStorage.removeItem('popminutes_timezone');
-    currentEmail = "";
-    currentSalesName = "";
-    currentCompanyName = "";
-            // 3. Reset UI — GIỮ email, xóa password, reset về mode password
-            // (giữ email để user đăng nhập lại nhanh)
-            // document.getElementById('emailInput').value = "";  // ← KHÔNG xóa email
+            // 2. Xoá localStorage
+            homeScrollY = 0;
+            hideBottomNav();
+            localStorage.removeItem(AUTH_STORAGE_KEY);
+            localStorage.removeItem('popminutes_connections');
+            localStorage.removeItem('tasks_data');
+            localStorage.removeItem('popminutes_date_format');
+            localStorage.removeItem('popminutes_timezone');
+            currentEmail = "";
+            currentSalesName = "";
+            currentCompanyName = "";
+            currentSalesId = "";
+            currentEnterpriseId = "";
+            window.__currentEnterpriseId = "";
+            window.__sessionToken = "";
+
+            // ===== 3. ẨN TẤT CẢ PAGES (fix bug chồng trang) =====
+            const allPages = [
+                'dashboard-screen',
+                'profile-page',
+                'notifications-page',
+                'cafe-page',
+                'affiliate-page'
+            ];
+            allPages.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.classList.add('hidden');
+            });
+
+            // Ẩn tất cả modal đang mở (nếu có)
+            const modalsToHide = [
+                'recorderModal', 'taskModal', 'historyModal', 'formatModal',
+                'connectionsModal', 'notifSettingsModal', 'bankInfoModal',
+                'editTaskModal', 'deleteTaskModal', 'passwordModal',
+                'cafeBookingModal', 'cafeQrScannerModal', 'cafeExtendModal',
+                'cafeCheckinPickerModal', 'trelloBoardModal'
+            ];
+            modalsToHide.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.classList.remove('active', 'flex');
+            });
+
+            // Reset scroll về đầu
+            try {
+                const app = document.querySelector('.app');
+                if (app) app.scrollTop = 0;
+                window.scrollTo({ top: 0, behavior: 'instant' });
+            } catch (e) {}
+
+            // ===== 4. HIỆN LOGIN SCREEN =====
+            const loginScreen = document.getElementById('login-screen');
+            if (loginScreen) loginScreen.classList.remove('hidden');
+
+            // ===== 5. Reset form login (giữ email, xóa password) =====
             document.getElementById('passwordInput').value = '';
             document.getElementById('userIdInput').value = '';
 
@@ -7129,17 +7169,20 @@ for (let attempt = 1; attempt <= 3; attempt++) {
             if (uidWrap) uidWrap.style.display = 'none';
             const toggleBtn = document.getElementById('toggleLoginModeBtn');
             if (toggleBtn) toggleBtn.textContent = t('login_first_time');
+
+            // Reset dashboard text
             document.getElementById('user-name-display').textContent = "";
             document.getElementById('company-name-display').textContent = "";
             document.getElementById('remaining-hours-display').textContent = "--";
             document.getElementById('package-display').textContent = t('undefined_package');
             document.getElementById('expiry-display').textContent = t('undefined_expiry');
-            document.getElementById('dashboard-screen').classList.add('hidden');
-            document.getElementById('login-screen').classList.remove('hidden');
-            closeModal();
+
+            // Reset error
             const errorMsg = document.getElementById('error-message');
             errorMsg.classList.add('hidden');
             lastErrorKey = null;
+
+            // Reset connections
             connections = { google: false, trello: false };
             updateSettingsUI();
         }
