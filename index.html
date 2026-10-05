@@ -3611,7 +3611,6 @@
                 <div id="cafeContentBookings" class="cafe-content">
                     <div class="cafe-action-row">
                         <button class="cafe-primary-btn" onclick="openCafeBookingModal()">
-                            <i class="fa-solid fa-plus"></i>
                             <span data-i18n="cafe_new_booking">Đặt chỗ mới</span>
                         </button>
                     </div>
@@ -3713,10 +3712,10 @@
 
                 <div class="profile-danger-zone">
                     <button class="profile-danger-btn" id="changePasswordBtn">
-                        <i class="fa-solid fa-lock"></i> <span data-i18n="change_pw_menu">Đổi mật khẩu</span>
+                        <span data-i18n="change_pw_menu">Đổi mật khẩu</span>
                     </button>
                     <button class="profile-danger-btn" onclick="handleLogout()" style="margin-top:10px;">
-                        <i class="fa-solid fa-arrow-right-from-bracket"></i> <span data-i18n="logout_btn">Đăng xuất</span>
+                        <span data-i18n="logout_btn">Đăng xuất</span>
                     </button>
                 </div>
             </div>
@@ -3795,12 +3794,10 @@
 
                 <!-- Actions -->
                 <button id="cafePickerNoBookingBtn" class="cafe-secondary-btn" style="width:100%; margin-bottom:8px;">
-                    <i class="fa-solid fa-right-to-bracket"></i>
                     <span data-i18n="cafe_picker_no_booking">Check-in không có booking</span>
                 </button>
 
                 <button class="cafe-secondary-btn" style="width:100%;" onclick="closeCheckinPicker()">
-                    <i class="fa-solid fa-xmark"></i>
                     <span data-i18n="cancel_btn">Hủy</span>
                 </button>
             </div>
@@ -3853,7 +3850,6 @@
                 </div>
 
                 <button id="cafeBmSubmitBtn" class="cafe-bm-submit" onclick="submitCafeBooking()">
-                    <i class="fa-solid fa-check"></i>
                     <span data-i18n="cafe_bm_submit">Xác nhận đặt chỗ</span>
                 </button>
             </div>
@@ -3979,7 +3975,7 @@
                     </div>
 
                     <button id="uploadRecordBtn" class="btn-primary" style="margin-top:8px; height:56px;" disabled>
-                        <i class="fa-solid fa-play"></i> <span data-i18n="start_btn">Bắt đầu</span>
+                        <span data-i18n="start_btn">Bắt đầu</span>
                     </button>
 
                     <div id="recordStatus"></div>
@@ -4573,7 +4569,6 @@
                 </div>
 
                 <button class="affiliate-bank-save" id="affSaveBankBtn" style="margin-top:16px;">
-                    <i class="fa-solid fa-floppy-disk"></i>
                     <span data-i18n="bank_save_btn">Lưu thông tin</span>
                 </button>
             </div>
@@ -5924,7 +5919,7 @@
                 const isHidden = document.getElementById('ccFields').classList.contains('hidden');
                 const label = isHidden ? t('add_cc_btn') : t('hide_cc_btn');
                 const icon = isHidden ? 'fa-circle-plus' : 'fa-circle-minus';
-                toggleCcBtn.innerHTML = `<i class="fa-solid ${icon}"></i> ${label}`;
+                toggleCcBtn.innerHTML = label;
             }
 
             const recordBtn = document.getElementById('recordBtn');
@@ -7360,7 +7355,7 @@ for (let attempt = 1; attempt <= 3; attempt++) {
             if (ccFields && !ccFields.classList.contains('hidden')) {
                 ccFields.classList.add('hidden');
                 const toggle = document.getElementById('toggleCcBtn');
-                if (toggle) toggle.innerHTML = `<i class="fa-solid fa-circle-plus"></i> ${t('add_cc_btn')}`;
+                if (toggle) toggle.innerHTML = t('add_cc_btn');
             }
             if (document.getElementById('ccEmail2')) document.getElementById('ccEmail2').value = '';
             recordBtn.classList.remove('recording');
@@ -7693,10 +7688,10 @@ const ccEmail1 = (sendToClient && clientEmailValue) ? clientEmailValue : '';
                 const isHidden = ccFields.classList.contains('hidden');
                 if (isHidden) {
                     ccFields.classList.remove('hidden');
-                    toggleCcBtn.innerHTML = `<i class="fa-solid fa-circle-minus"></i> ${t('hide_cc_btn')}`;
+                    toggleCcBtn.innerHTML = t('hide_cc_btn');
                 } else {
                     ccFields.classList.add('hidden');
-                    toggleCcBtn.innerHTML = `<i class="fa-solid fa-circle-plus"></i> ${t('add_cc_btn')}`;
+                    toggleCcBtn.innerHTML = t('add_cc_btn');
                 }
             });
         }
@@ -7833,7 +7828,7 @@ const ccEmail1 = (sendToClient && clientEmailValue) ? clientEmailValue : '';
                 <div class="affiliate-link-box">
                     <input type="text" class="affiliate-link-input" id="affRefInput" value="${escapeHtml(refLink)}" readonly>
                     <button class="affiliate-copy-btn" onclick="copyAffiliateLink()">
-                        <i class="fa-solid fa-copy"></i> ${t('affiliate_copy')}
+                        ${t('affiliate_copy')}
                     </button>
                 </div>
             `;
@@ -7848,7 +7843,6 @@ const ccEmail1 = (sendToClient && clientEmailValue) ? clientEmailValue : '';
                         <canvas id="affQRCanvas" width="1080" height="1080"></canvas>
                     </div>
                     <button class="affiliate-qr-download" id="affQRDownloadBtn">
-                        <i class="fa-solid fa-download"></i>
                         <span>${t('affiliate_qr_download')}</span>
                     </button>
                 </div>
@@ -8184,8 +8178,8 @@ const ccEmail1 = (sendToClient && clientEmailValue) ? clientEmailValue : '';
                                 ${b.note ? `<div><i class="fa-regular fa-note-sticky"></i> <span>${escapeHtml(b.note)}</span></div>` : ''}
                             </div>
                             <div class="cafe-card-actions">
-                                ${b.status === 'pending' ? `<button class="cafe-btn-sm outline" onclick="cancelCafeBooking('${escapeHtml(b.booking_id)}', this)"><i class="fa-solid fa-xmark"></i> <span>${t('cancel_btn')}</span></button>` : ''}
-                                ${b.status === 'confirmed' ? `<button class="cafe-btn-sm primary" onclick="goToCheckIn()"><i class="fa-solid fa-location-dot"></i> <span>Check-in</span></button>` : ''}
+                                ${b.status === 'pending' ? `<button class="cafe-btn-sm outline" onclick="cancelCafeBooking('${escapeHtml(b.booking_id)}', this)"><span>${t('cancel_btn')}</span></button>` : ''}
+                                ${b.status === 'confirmed' ? `<button class="cafe-btn-sm primary" onclick="goToCheckIn()"><span>Check-in</span></button>` : ''}
                             </div>
                         </div>
                     `;
@@ -8304,7 +8298,6 @@ const ccEmail1 = (sendToClient && clientEmailValue) ? clientEmailValue : '';
                     <h3 class="cafe-checkin-title">${t('cafe_checkin_no_active')}</h3>
                     <p class="cafe-checkin-desc">${t('cafe_checkin_select_hint')}</p>
                     <button class="cafe-primary-btn" onclick="showNearbyCafes()">
-                        <i class="fa-solid fa-location-dot"></i>
                         <span>${t('cafe_checkin_btn_nearby')}</span>
                     </button>
                 </div>
@@ -8365,11 +8358,9 @@ const ccEmail1 = (sendToClient && clientEmailValue) ? clientEmailValue : '';
 
                     <div class="cafe-active-actions">
                         <button class="cafe-btn-sm outline" onclick="openExtendModal('${escapeHtml(active.checkin_id)}', '${escapeHtml(bookingIdSafe)}')">
-                            <i class="fa-solid fa-clock-rotate-left"></i>
                             <span>${t('cafe_checkin_btn_extend')}</span>
                         </button>
                         <button id="cafeCheckoutBtn" class="cafe-btn-sm danger" style="display:none" onclick="submitCheckOut('${escapeHtml(active.checkin_id)}')">
-                            <i class="fa-solid fa-right-from-bracket"></i>
                             <span>${t('cafe_checkin_btn_checkout')}</span>
                         </button>
                     </div>
@@ -8883,12 +8874,11 @@ const ccEmail1 = (sendToClient && clientEmailValue) ? clientEmailValue : '';
                                         <div><i class="fa-solid fa-location-dot"></i> ${escapeHtml(c.address)}</div>
                                         <div><i class="fa-solid fa-money-bill"></i> ${fmtCafeMoney(c.price_per_hour)}/h</div>
                                     </div>
-                                    <div class="cafe-card-actions">
-                                        <button class="cafe-btn-sm primary" onclick="showCheckinPicker('${escapeHtml(c.cafe_id)}', ${pos.coords.latitude}, ${pos.coords.longitude}, '${escapeHtml(c.name).replace(/'/g, "\\'")}')">
-                                            <i class="fa-solid fa-right-to-bracket"></i>
-                                            <span>${t('cafe_checkin_btn_checkin_here') || 'Check-in tại đây'}</span>
-                                        </button>
-                                    </div>
+                                <div class="cafe-card-actions">
+                                    <button class="cafe-btn-sm primary" style="width:100%;">
+                                        <span>${t('cafe_picker_pick_btn')}</span>
+                                    </button>
+                                </div>
                                 </div>
                             `;
                         });
@@ -9066,7 +9056,7 @@ const ccEmail1 = (sendToClient && clientEmailValue) ? clientEmailValue : '';
             const submitBtn = document.getElementById('cafeBmSubmitBtn');
             if (submitBtn) {
                 submitBtn.disabled = false;
-                submitBtn.innerHTML = '<i class="fa-solid fa-check"></i><span>' + (t('cafe_bm_submit') || 'Xác nhận đặt chỗ') + '</span>';
+                submitBtn.innerHTML = '<span>' + (t('cafe_bm_submit') || 'Xác nhận đặt chỗ') + '</span>';
             }
 
             // Show modal
