@@ -5289,6 +5289,8 @@
                 reset_pw_title: 'Đặt lại mật khẩu',
                 reset_pw_desc: 'Nhập mật khẩu mới cho tài khoản của bạn',
                 reset_pw_btn: 'Đặt lại mật khẩu',
+                resend_link_btn: 'Gửi lại link mới',
+                reset_token_expired_msg: 'Link đã hết hạn. Vui lòng yêu cầu link mới.',
                 },
             en: {
                 login_title: 'Smart Meeting Minutes AI',
@@ -5763,6 +5765,8 @@
                 reset_pw_title: 'Reset password',
                 reset_pw_desc: 'Enter a new password for your account',
                 reset_pw_btn: 'Reset password',
+                resend_link_btn: 'Send new link',
+                reset_token_expired_msg: 'Link has expired. Please request a new one.',
             }
         };
 
@@ -12159,8 +12163,53 @@ window.addEventListener('message', async function(event) {
                 closeBtn.style.display = 'flex';
             }
 
+                        // ===== Reset nút toggle password về trạng thái mặc định =====
+            ['newPasswordInput', 'confirmPasswordInput', 'oldPasswordInput'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.type = 'password';
+            });
+            const toggleMap = {
+                'toggleNewPwBtn': 'newPasswordInput',
+                'toggleConfirmPwBtn': 'confirmPasswordInput',
+                'toggleOldPwBtn': 'oldPasswordInput'
+            };
+            Object.keys(toggleMap).forEach(btnId => {
+                const btn = document.getElementById(btnId);
+                if (btn) btn.textContent = t('show_password');
+            });
+
             modal.classList.add('active');
-            setTimeout(() => document.getElementById('newPasswordInput').focus(), 200);
+
+            // ===== Refresh i18n toàn bộ modal theo ngôn ngữ hiện tại =====
+            setTimeout(() => {
+                modal.querySelectorAll('[data-i18n]').forEach(el => {
+                    const key = el.getAttribute('data-i18n');
+                    const translation = t(key);
+                    if (translation) el.textContent = translation;
+                });
+                modal.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+                    const key = el.getAttribute('data-i18n-placeholder');
+                    const translation = t(key);
+                    if (translation) el.placeholder = translation;
+                });
+
+                // Update title/desc/submitText theo mode (sau khi applyLanguage)
+                if (_pwModalMode === 'setup') {
+                    document.getElementById('pwModalTitle').textContent = t('set_pw_title');
+                    document.getElementById('pwModalDesc').textContent = t('set_pw_desc');
+                    document.getElementById('pwSubmitText').textContent = t('set_pw_btn');
+                } else if (_pwModalMode === 'reset') {
+                    document.getElementById('pwModalTitle').textContent = t('reset_pw_title');
+                    document.getElementById('pwModalDesc').textContent = t('reset_pw_desc');
+                    document.getElementById('pwSubmitText').textContent = t('reset_pw_btn');
+                } else {
+                    document.getElementById('pwModalTitle').textContent = t('change_pw_title');
+                    document.getElementById('pwModalDesc').textContent = t('change_pw_desc');
+                    document.getElementById('pwSubmitText').textContent = t('change_pw_btn');
+                }
+
+                document.getElementById('newPasswordInput').focus();
+            }, 200);
         }
 
         function closePasswordModal() {
@@ -12360,12 +12409,44 @@ window.addEventListener('message', async function(event) {
                         }, 800);
                     }
                 } else {
+                } else {
                     const errKey = data.code ? String(data.code).toLowerCase() : '';
-                    const errText = translations[currentLang]?.[errKey]
-                        ? t(data.code, data.params || {})
-                        : (data.message || t('server_error'));
-                    errorDiv.textContent = errText;
-                    errorDiv.classList.remove('hidden');
+                    const isTokenExpired = (data.code === 'RESET_PW_TOKEN_INVALID');
+
+                    if (isTokenExpired) {
+                        // Hiện cảnh báo + nút "Gửi lại link"
+                        errorDiv.innerHTML = ''
+                            + '<div style="text-align:center;">'
+                            + '  <div style="font-size:13.5px; margin-bottom:10px;">' + t('reset_token_expired_msg') + '</div>'
+                            + '  <button type="button" id="resendLinkBtn" style="background:#1B2B7A; color:#fff; border:none; padding:10px 20px; border-radius:10px; font-family:inherit; font-size:13.5px; font-weight:700; cursor:pointer;">'
+                            + '    <i class="fa-solid fa-paper-plane" style="margin-right:6px;"></i>' + t('resend_link_btn')
+                            + '  </button>'
+                            + '</div>';
+                        errorDiv.classList.remove('hidden');
+
+                        // Bind nút "Gửi lại link"
+                        setTimeout(() => {
+                            const resendBtn = document.getElementById('resendLinkBtn');
+                            if (resendBtn) {
+                                resendBtn.onclick = () => {
+                                    // Đóng modal reset, mở lại modal quên mật khẩu
+                                    document.getElementById('passwordModal').classList.remove('active');
+                                    window.__resetToken = '';
+                                    // Reset input nếu có sẵn email
+                                    const fpInput = document.getElementById('forgotPwEmail');
+                                    if (fpInput) fpInput.value = '';
+                                    document.getElementById('login-screen').classList.remove('hidden');
+                                    document.getElementById('forgotPasswordModal').classList.add('active');
+                                };
+                            }
+                        }, 50);
+                    } else {
+                        const errText = translations[currentLang]?.[errKey]
+                            ? t(data.code, data.params || {})
+                            : (data.message || t('server_error'));
+                        errorDiv.textContent = errText;
+                        errorDiv.classList.remove('hidden');
+                    }
                 }
             } catch (e) {
                 errorDiv.textContent = 'Lỗi: ' + e.message;
