@@ -3377,7 +3377,7 @@
     <div class="app">
 
         <!-- ========== LOGIN SCREEN ========== -->
-        <div id="login-screen" class="screen">
+                <div id="login-screen" class="screen">
             <div class="login-hero">
                 <div class="login-lang-wrapper" style="position:absolute; top:16px; right:16px; z-index:20;">
                     <button class="lang-btn" id="loginLangToggleBtn" title="Chọn ngôn ngữ">
@@ -3395,24 +3395,46 @@
             </div>
             <div class="login-body">
                 <h2 data-i18n="login_heading">Đăng nhập</h2>
-                <p data-i18n="login_desc">Nhập Email và User ID gửi trong email xác thực</p>
+                <p id="loginSubtitle" data-i18n="login_desc">Nhập Email và User ID gửi trong email xác thực</p>
 
+                <!-- Email -->
                 <label class="field-label" data-i18n="email_label">Email</label>
                 <div class="input-wrap">
                     <i class="fa-regular fa-envelope"></i>
                     <input type="email" id="emailInput" class="modal-input" data-i18n-placeholder="email_placeholder" placeholder="sales@congty.com" onkeydown="if(event.key==='Enter') handleLogin()" style="padding-left:44px;">
                 </div>
 
-                <label class="field-label" data-i18n="userid_label">User ID</label>
-                <div class="input-wrap">
-                    <i class="fa-regular fa-id-card"></i>
-                    <input type="text" id="userIdInput" class="modal-input" data-i18n-placeholder="userid_placeholder" placeholder="S-PM-APP-000" onkeydown="if(event.key==='Enter') handleLogin()" style="padding-left:44px;">
+                <!-- Password (mode mặc định) -->
+                <div id="passwordFieldWrap">
+                    <label class="field-label" data-i18n="password_label">Mật khẩu</label>
+                    <div class="input-wrap" style="position:relative;">
+                        <i class="fa-solid fa-lock"></i>
+                        <input type="password" id="passwordInput" class="modal-input" data-i18n-placeholder="password_placeholder" placeholder="Nhập mật khẩu" onkeydown="if(event.key==='Enter') handleLogin()" style="padding-left:44px; padding-right:70px;">
+                        <button type="button" id="togglePasswordBtn" style="position:absolute; right:12px; top:50%; transform:translateY(-50%); background:none; border:none; color:var(--muted); font-size:12px; font-weight:700; cursor:pointer; padding:4px 8px; border-radius:6px;" data-i18n="show_password">Hiện</button>
+                    </div>
+                    <div style="text-align:right; margin-top:-12px; margin-bottom:20px;">
+                        <button type="button" id="forgotPasswordBtn" style="background:none; border:none; color:var(--navy-light); font-size:12.5px; font-weight:700; cursor:pointer; padding:4px 0;" data-i18n="forgot_password">Quên mật khẩu?</button>
+                    </div>
+                </div>
+
+                <!-- User ID (mode lần đầu — ẩn mặc định) -->
+                <div id="userIdFieldWrap" style="display:none;">
+                    <label class="field-label" data-i18n="userid_label">User ID</label>
+                    <div class="input-wrap">
+                        <i class="fa-regular fa-id-card"></i>
+                        <input type="text" id="userIdInput" class="modal-input" data-i18n-placeholder="userid_placeholder" placeholder="S-PM-APP-000" onkeydown="if(event.key==='Enter') handleLogin()" style="padding-left:44px;">
+                    </div>
                 </div>
 
                 <button class="btn-primary" onclick="handleLogin()">
                     <span id="login-text" data-i18n="login_btn">Tiếp tục</span>
                     <div id="login-loader" class="loader"></div>
                 </button>
+
+                <!-- Link chuyển mode -->
+                <div style="text-align:center; margin-top:16px;">
+                    <button type="button" id="toggleLoginModeBtn" style="background:none; border:none; color:var(--navy-light); font-size:13px; font-weight:700; cursor:pointer; padding:6px 12px;" data-i18n="login_first_time">Lần đầu? Dùng User ID</button>
+                </div>
 
                 <div id="error-message" class="error-pill hidden"></div>
                 <div id="https-warning" class="warning-pill hidden"></div>
@@ -4644,7 +4666,62 @@
                 </div>
             </div>
         </div>
+        <!-- ========== SET / CHANGE PASSWORD MODAL ========== -->
+        <div id="passwordModal" class="modal-overlay">
+            <div class="modal-box" style="max-width:460px;">
+                <div class="modal-header">
+                    <h2 class="modal-title" id="pwModalTitle" data-i18n="set_pw_title">Đặt mật khẩu lần đầu</h2>
+                    <button class="modal-close" id="closePasswordModalBtn" style="display:none;"><i class="fa-solid fa-xmark"></i></button>
+                </div>
 
+                <p id="pwModalDesc" style="font-size:13.5px; color:var(--muted); line-height:1.6; margin-bottom:20px;" data-i18n="set_pw_desc">
+                    Vì lý do bảo mật, bạn cần đặt mật khẩu mới cho tài khoản
+                </p>
+
+                <div style="display:flex; flex-direction:column; gap:14px; margin-bottom:20px;">
+                    <!-- New password -->
+                    <div>
+                        <label class="field-label" data-i18n="new_password_label">Mật khẩu mới</label>
+                        <div class="input-wrap" style="position:relative; margin-bottom:0;">
+                            <i class="fa-solid fa-lock"></i>
+                            <input type="password" id="newPasswordInput" class="modal-input" data-i18n-placeholder="new_password_placeholder" placeholder="Nhập mật khẩu mới" style="padding-left:44px; padding-right:70px;">
+                            <button type="button" id="toggleNewPwBtn" style="position:absolute; right:12px; top:50%; transform:translateY(-50%); background:none; border:none; color:var(--muted); font-size:12px; font-weight:700; cursor:pointer; padding:4px 8px; border-radius:6px;" data-i18n="show_password">Hiện</button>
+                        </div>
+                    </div>
+
+                    <!-- Confirm password -->
+                    <div>
+                        <label class="field-label" data-i18n="confirm_password_label">Xác nhận mật khẩu</label>
+                        <div class="input-wrap" style="position:relative; margin-bottom:0;">
+                            <i class="fa-solid fa-lock"></i>
+                            <input type="password" id="confirmPasswordInput" class="modal-input" data-i18n-placeholder="confirm_password_placeholder" placeholder="Nhập lại mật khẩu" style="padding-left:44px; padding-right:70px;">
+                            <button type="button" id="toggleConfirmPwBtn" style="position:absolute; right:12px; top:50%; transform:translateY(-50%); background:none; border:none; color:var(--muted); font-size:12px; font-weight:700; cursor:pointer; padding:4px 8px; border-radius:6px;" data-i18n="show_password">Hiện</button>
+                        </div>
+                    </div>
+
+                    <!-- Strength bar -->
+                    <div style="display:flex; align-items:center; gap:8px; margin-top:-4px;">
+                        <div style="flex:1; height:5px; background:#E2E8F0; border-radius:99px; overflow:hidden;">
+                            <div id="pwStrengthBar" style="height:100%; width:0%; background:#EF4444; transition:all 0.3s;"></div>
+                        </div>
+                        <span id="pwStrengthText" style="font-size:11.5px; font-weight:700; color:var(--muted); min-width:60px; text-align:right;"></span>
+                    </div>
+
+                    <!-- Rule hint -->
+                    <div class="input-tip" style="margin-top:0;">
+                        <i class="fas fa-info-circle" style="margin-top:2px;"></i>
+                        <span data-i18n="pw_rule_hint">Tối thiểu 8 ký tự, gồm chữ HOA, chữ thường, số và ký tự đặc biệt (@#$%...)</span>
+                    </div>
+                </div>
+
+                <div id="pwModalError" class="error-pill hidden" style="margin-top:0; margin-bottom:16px;"></div>
+
+                <button class="btn-primary" id="submitPasswordBtn">
+                    <span id="pwSubmitText" data-i18n="set_pw_btn">Đặt mật khẩu</span>
+                    <div id="pwSubmitLoader" class="loader"></div>
+                </button>
+            </div>
+        </div>
         <!-- ========== HISTORY MODAL ========== -->
         <div id="historyModal" class="modal-overlay history-modal">
             <div class="modal-box">
