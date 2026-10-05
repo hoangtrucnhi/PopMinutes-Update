@@ -12170,22 +12170,6 @@ window.addEventListener('message', async function(event) {
                 submitText.textContent = t('change_pw_btn');
                 closeBtn.style.display = 'flex';
             }
-                title.setAttribute('data-i18n', 'set_pw_title');
-                title.textContent = t('set_pw_title');
-                desc.setAttribute('data-i18n', 'set_pw_desc');
-                desc.textContent = t('set_pw_desc');
-                submitText.setAttribute('data-i18n', 'set_pw_btn');
-                submitText.textContent = t('set_pw_btn');
-                closeBtn.style.display = 'none'; // bắt buộc, không cho đóng
-            } else {
-                title.setAttribute('data-i18n', 'change_pw_title');
-                title.textContent = t('change_pw_title');
-                desc.setAttribute('data-i18n', 'change_pw_desc');
-                desc.textContent = t('change_pw_desc');
-                submitText.setAttribute('data-i18n', 'change_pw_btn');
-                submitText.textContent = t('change_pw_btn');
-                closeBtn.style.display = 'flex';
-            }
 
                         // ===== Reset nút toggle password về trạng thái mặc định =====
             ['newPasswordInput', 'confirmPasswordInput', 'oldPasswordInput'].forEach(id => {
