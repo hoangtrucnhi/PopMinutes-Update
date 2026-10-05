@@ -12134,8 +12134,7 @@ window.addEventListener('message', async function(event) {
 
             if (submitBtn) submitBtn.addEventListener('click', submitPasswordChange);
         });
-
-        async function submitPasswordChange() {        async function submitPasswordChange() {
+        async function submitPasswordChange() {
             const oldPwd = document.getElementById('oldPasswordInput')?.value || '';
             const newPwd = document.getElementById('newPasswordInput').value;
             const confirmPwd = document.getElementById('confirmPasswordInput').value;
