@@ -12080,9 +12080,8 @@ window.addEventListener('message', async function(event) {
 
             const forgotBtn = document.getElementById('forgotPasswordBtn');
             if (forgotBtn) forgotBtn.addEventListener('click', () => {
-                const emailVal = document.getElementById('emailInput').value.trim();
                 const fpInput = document.getElementById('forgotPwEmail');
-                if (fpInput) fpInput.value = emailVal || '';
+                if (fpInput) fpInput.value = '';   // ← LUÔN xóa trống
 
                 const errDiv = document.getElementById('forgotPwError');
                 if (errDiv) errDiv.classList.add('hidden');
