@@ -5216,6 +5216,30 @@
                 RESET_PW_TOKEN_INVALID: 'Link đặt lại mật khẩu không hợp lệ hoặc đã hết hạn',
                 SERVER_ERROR: 'Lỗi hệ thống, vui lòng thử lại sau',
                 logout_success: 'Đã đăng xuất',
+                password_label: 'Mật khẩu',
+                password_placeholder: 'Nhập mật khẩu',
+                show_password: 'Hiện',
+                hide_password: 'Ẩn',
+                forgot_password: 'Quên mật khẩu?',
+                login_first_time: 'Lần đầu? Dùng User ID',
+                login_with_userid: 'Dùng User ID',
+                login_back_to_password: 'Quay lại đăng nhập mật khẩu',
+                set_pw_title: 'Đặt mật khẩu lần đầu',
+                set_pw_desc: 'Vì lý do bảo mật, bạn cần đặt mật khẩu mới cho tài khoản',
+                change_pw_title: 'Đổi mật khẩu',
+                change_pw_desc: 'Mật khẩu đã hết hạn (quá 12 tháng). Vui lòng đặt mật khẩu mới.',
+                new_password_label: 'Mật khẩu mới',
+                new_password_placeholder: 'Nhập mật khẩu mới',
+                confirm_password_label: 'Xác nhận mật khẩu',
+                confirm_password_placeholder: 'Nhập lại mật khẩu',
+                pw_rule_hint: 'Tối thiểu 8 ký tự, gồm chữ HOA, chữ thường, số và ký tự đặc biệt (@#$%...)',
+                set_pw_btn: 'Đặt mật khẩu',
+                change_pw_btn: 'Đổi mật khẩu',
+                pw_strength_weak: 'Yếu',
+                pw_strength_medium: 'Trung bình',
+                pw_strength_strong: 'Mạnh',
+                pw_not_match: 'Mật khẩu xác nhận không khớp',
+                pw_change_success: 'Đổi mật khẩu thành công! Vui lòng đăng nhập lại.',
                 },
             en: {
                 login_title: 'Smart Meeting Minutes AI',
@@ -5655,6 +5679,30 @@
                 RESET_PW_TOKEN_INVALID: 'Password reset link is invalid or expired',
                 SERVER_ERROR: 'System error, please try again later',
                 logout_success: 'Logged out successfully',
+                password_label: 'Password',
+                password_placeholder: 'Enter your password',
+                show_password: 'Show',
+                hide_password: 'Hide',
+                forgot_password: 'Forgot password?',
+                login_first_time: 'First time? Use User ID',
+                login_with_userid: 'Use User ID',
+                login_back_to_password: 'Back to password login',
+                set_pw_title: 'Set your password',
+                set_pw_desc: 'For security, please set a new password for your account',
+                change_pw_title: 'Change password',
+                change_pw_desc: 'Your password has expired (over 12 months). Please set a new one.',
+                new_password_label: 'New password',
+                new_password_placeholder: 'Enter new password',
+                confirm_password_label: 'Confirm password',
+                confirm_password_placeholder: 'Re-enter password',
+                pw_rule_hint: 'At least 8 characters, including uppercase, lowercase, number, and special character (@#$%...)',
+                set_pw_btn: 'Set password',
+                change_pw_btn: 'Change password',
+                pw_strength_weak: 'Weak',
+                pw_strength_medium: 'Medium',
+                pw_strength_strong: 'Strong',
+                pw_not_match: 'Confirm password does not match',
+                pw_change_success: 'Password changed successfully! Please log in again.',
             }
         };
 
@@ -5947,135 +5995,159 @@ let currentEmail = "",
         // ========================================================================
         //  ĐĂNG NHẬP
         // ========================================================================
+                // ===== LOGIN MODE STATE =====
+        let loginMode = 'password'; // 'password' | 'userid'
+
+        function toggleLoginMode() {
+            const passwordWrap = document.getElementById('passwordFieldWrap');
+            const userIdWrap = document.getElementById('userIdFieldWrap');
+            const toggleBtn = document.getElementById('toggleLoginModeBtn');
+
+            if (loginMode === 'password') {
+                loginMode = 'userid';
+                passwordWrap.style.display = 'none';
+                userIdWrap.style.display = 'block';
+                toggleBtn.textContent = t('login_back_to_password');
+                document.getElementById('userIdInput').focus();
+            } else {
+                loginMode = 'password';
+                passwordWrap.style.display = 'block';
+                userIdWrap.style.display = 'none';
+                toggleBtn.textContent = t('login_first_time');
+                document.getElementById('passwordInput').focus();
+            }
+        }
+
+        function togglePasswordVisibility() {
+            const pwdInput = document.getElementById('passwordInput');
+            const btn = document.getElementById('togglePasswordBtn');
+            if (pwdInput.type === 'password') {
+                pwdInput.type = 'text';
+                btn.textContent = t('hide_password');
+            } else {
+                pwdInput.type = 'password';
+                btn.textContent = t('show_password');
+            }
+        }
+
         async function handleLogin() {
-            const emailInput = document.getElementById('emailInput').value.trim();
-            const userIdInput = document.getElementById('userIdInput').value.trim();
             const errorMsg = document.getElementById('error-message');
-            if (!emailInput || !userIdInput) {
+            const emailInput = document.getElementById('emailInput').value.trim();
+            const passwordInput = document.getElementById('passwordInput').value;
+            const userIdInput = document.getElementById('userIdInput').value.trim();
+
+            // Validate theo mode
+            if (!emailInput) {
                 errorMsg.textContent = t('err_empty');
                 errorMsg.classList.remove('hidden');
-                lastErrorKey = 'err_empty';
                 return;
             }
+            if (loginMode === 'password' && !passwordInput) {
+                errorMsg.textContent = t('auth_missing_fields');
+                errorMsg.classList.remove('hidden');
+                return;
+            }
+            if (loginMode === 'userid' && !userIdInput) {
+                errorMsg.textContent = t('err_empty');
+                errorMsg.classList.remove('hidden');
+                return;
+            }
+
+            // Show loader
             document.getElementById('login-text').style.display = 'none';
             document.getElementById('login-loader').style.display = 'block';
             errorMsg.classList.add('hidden');
-            lastErrorKey = null;
 
             try {
-                const loginUrl =
-                    `${CLOUD_FUNCTION_URL}?action=authenticateSales&email=${encodeURIComponent(emailInput)}&userId=${encodeURIComponent(userIdInput)}`;
+                const qs = new URLSearchParams({
+                    action: 'authenticateSales',
+                    email: emailInput
+                });
+                if (loginMode === 'password') {
+                    qs.append('password', passwordInput);
+                } else {
+                    qs.append('userId', userIdInput);
+                }
+
+                const loginUrl = `${CLOUD_FUNCTION_URL}?${qs.toString()}`;
                 const response = await fetch(loginUrl);
                 const result = await response.json();
-                                if (result.status === 200 && result.authenticated) {
+
+                // ========== CASE 1: Login OK ==========
+                if (result.status === 200 && result.authenticated) {
                     currentEmail = emailInput;
                     currentSalesName = result.sales.name;
                     currentCompanyName = result.enterprise.name;
                     currentSalesId = result.sales.id || '';
                     window.__currentEnterpriseId = result.enterprise?.id || '';
-                    // ================================================================
-                    //  AFFILIATE: Attach referral nếu có
-                    // ================================================================
-                    try {
-                        const refId = localStorage.getItem('popminutes_affiliate_referral_id');
-                        if (refId) {
-                            const refData = JSON.parse(localStorage.getItem('popminutes_affiliate_ref') || '{}');
-                            if (refData.expires_at > Date.now()) {
-                                fetch(CLOUD_FUNCTION_URL, {
-                                    method: 'POST',
-                                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                                    body: new URLSearchParams({
-                                        action: 'affiliateAttach',
-                                        referralId: refId,
-                                        customerEmail: emailInput,
-                                        customerCompanyId: result.sales?.id || ''
-                                    }).toString()
-                                }).then(r => r.json())
-                                  .then(d => {
-                                      if (d.status === 200) {
-                                          console.log('✅ Referral attached:', refId);
-                                          localStorage.removeItem('popminutes_affiliate_referral_id');
-                                      }
-                                  })
-                                  .catch(e => console.warn('Attach referral failed:', e));
-                            }
-                        }
-                    } catch (e) {
-                        console.warn('Affiliate attach error:', e.message);
-                    }
+                    window.__sessionToken = result.session_token || '';
 
-                    setTimeout(() => applyLanguage(currentLang), 100);
                     saveAuthInfo(result);
-
-                    // SYNC LANGUAGE LÊN FIRESTORE NGAY SAU LOGIN
-                    try {
-                        await fetch(CLOUD_FUNCTION_URL, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                            body: new URLSearchParams({
-                                action: 'saveUserSettings',
-                                email: currentEmail,
-                                language: currentLang      // ← Gửi 'vi' hoặc 'en'
-                            }).toString()
-                        });
-                        console.log(`✅ Synced lang=${currentLang} to Firestore`);
-                    } catch (e) {
-                        console.warn('Sync lang failed:', e);
-                    }
-
-                    document.getElementById('login-screen').classList.add('hidden');
-                    document.getElementById('dashboard-screen').classList.remove('hidden');
-                    showBottomNav();
-                    await loadConnectionStatus();
-
-                    document.getElementById('user-name-display').textContent = currentSalesName;
-                    document.getElementById('company-name-display').textContent = currentCompanyName;
-                    document.getElementById('remaining-hours-display').textContent = result.enterprise.remainingHours;
-                    document.getElementById('package-display').textContent = result.enterprise.packageId || t(
-                    'undefined_package');
-                    document.getElementById('expiry-display').textContent = result.enterprise.expiryDate || t(
-                        'undefined_expiry');
-                                        await loadUserSettingsFromServer();
-                    await loadNotifStateFromServer();
-                    refreshNotifBadge();
-                    startNotifAutoRefresh();
-                    loadVapidKeyFromServer().then(() => {
-                        registerPushNotifications(true);
-                    });
-
-                    // SYNC NOTIF SCHEDULE SAU LOGIN
-                    setTimeout(async () => {
-                        if (currentEmail && timezone) {
-                            try {
-                                const notifRes = await fetch(CLOUD_FUNCTION_URL, {
-                                    method: 'POST',
-                                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                                    body: new URLSearchParams({
-                                        action: 'updateNotifSchedule',
-                                        email: currentEmail,
-                                        timezone: timezone
-                                    }).toString()
-                                });
-                                const notifData = await notifRes.json();
-                                console.log(`📅 Notif schedule synced after login: hour_utc=${notifData.notif_hour_utc}`);
-                            } catch (e) {
-                                console.warn('Sync notif schedule after login failed:', e);
-                            }
-                        }
-                    }, 800);
-                } else {
-                    errorMsg.textContent = t('err_invalid');
-                    errorMsg.classList.remove('hidden');
-                    lastErrorKey = 'err_invalid';
+                    await finalizeLogin(result);
+                    return;
                 }
-            } catch (e) {
-                errorMsg.innerHTML = `<i class='fa-solid fa-triangle-exclamation'></i> ${t('err_network')}`;
+
+                // ========== CASE 2: First login → mở modal đặt pass ==========
+                if (result.status === 200 && result.requires_password_setup) {
+                    currentEmail = emailInput;
+                    openPasswordModal('setup', {
+                        email: emailInput,
+                        userId: userIdInput,
+                        sales: result.sales,
+                        enterprise: result.enterprise
+                    });
+                    return;
+                }
+
+                // ========== CASE 3: Password hết hạn → mở modal đổi pass ==========
+                if (result.status === 200 && result.requires_password_change) {
+                    currentEmail = emailInput;
+                    openPasswordModal('change', {
+                        email: emailInput,
+                        sessionToken: result.session_token,
+                        sales: result.sales,
+                        enterprise: result.enterprise
+                    });
+                    return;
+                }
+
+                // ========== CASE 4: Lỗi ==========
+                const errKey = result.code ? String(result.code).toLowerCase() : '';
+                const errText = translations[currentLang]?.[errKey]
+                    ? t(result.code, result.params || {})
+                    : (result.message || t('err_invalid'));
+                errorMsg.textContent = errText;
                 errorMsg.classList.remove('hidden');
-                lastErrorKey = 'err_network';
+                lastErrorKey = errKey;
+
+            } catch (e) {
+                console.error('Login error:', e);
+                errorMsg.textContent = t('err_network');
+                errorMsg.classList.remove('hidden');
             } finally {
                 document.getElementById('login-text').style.display = '';
                 document.getElementById('login-loader').style.display = 'none';
             }
+        }
+
+        // ===== HELPER: Chuyển từ login sang dashboard =====
+        async function finalizeLogin(result) {
+            document.getElementById('login-screen').classList.add('hidden');
+            document.getElementById('dashboard-screen').classList.remove('hidden');
+            showBottomNav();
+
+            document.getElementById('user-name-display').textContent = currentSalesName;
+            document.getElementById('company-name-display').textContent = currentCompanyName;
+            document.getElementById('remaining-hours-display').textContent = result.enterprise.remainingHours;
+            document.getElementById('package-display').textContent = result.enterprise.packageId || t('undefined_package');
+            document.getElementById('expiry-display').textContent = result.enterprise.expiryDate || t('undefined_expiry');
+
+            try { await loadConnectionStatus(); } catch (_) {}
+            try { await loadUserSettingsFromServer(); } catch (_) {}
+            try { await loadNotifStateFromServer(); } catch (_) {}
+            refreshNotifBadge();
+            startNotifAutoRefresh();
+            loadVapidKeyFromServer().then(() => registerPushNotifications(true));
         }
                 // ========================================================================
         //  PAGE NAVIGATION
@@ -7048,21 +7120,22 @@ for (let attempt = 1; attempt <= 3; attempt++) {
             document.getElementById('salesEmailDisplay').value = currentEmail || "";
         }
 
-        function saveAuthInfo(data) {
+                function saveAuthInfo(data) {
             const authData = {
                 email: currentEmail,
-                salesId: data.sales.id,
-                salesName: data.sales.name,
-                companyName: data.enterprise.name,
-                remainingHours: data.enterprise.remainingHours,
-                packageId: data.enterprise.packageId,
-                expiryDate: data.enterprise.expiryDate,
+                salesId: data.sales?.id || currentSalesId,
+                salesName: data.sales?.name || currentSalesName,
+                companyName: data.enterprise?.name || currentCompanyName,
+                remainingHours: data.enterprise?.remainingHours,
+                packageId: data.enterprise?.packageId,
+                expiryDate: data.enterprise?.expiryDate,
+                sessionToken: data.session_token || window.__sessionToken || '',
                 timestamp: Date.now()
             };
             localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(authData));
         }
 
-        async function tryAutoLogin() {
+                async function tryAutoLogin() {
             const stored = localStorage.getItem(AUTH_STORAGE_KEY);
             if (!stored) return false;
             try {
@@ -7070,78 +7143,33 @@ for (let attempt = 1; attempt <= 3; attempt++) {
                 const age = Date.now() - auth.timestamp;
                 const maxAge = SESSION_DAYS * 24 * 60 * 60 * 1000;
                 if (age > maxAge) { localStorage.removeItem(AUTH_STORAGE_KEY); return false; }
-                const loginUrl =
-                    `${CLOUD_FUNCTION_URL}?action=authenticateSales&email=${encodeURIComponent(auth.email)}&userId=${encodeURIComponent(auth.salesId)}`;
-                const response = await fetch(loginUrl);
-                const result = await response.json();
-                if (result.status === 200 && result.authenticated) {
-                    currentEmail = auth.email;
-                    currentSalesName = result.sales.name;
-                    currentCompanyName = result.enterprise.name;
-                    currentSalesId = result.sales.id || '';
-                    window.__currentEnterpriseId = result.enterprise?.id || '';
-                    setTimeout(() => applyLanguage(currentLang), 100);
 
-                    // SYNC LANGUAGE LÊN FIRESTORE
-                    try {
-                        await fetch(CLOUD_FUNCTION_URL, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                            body: new URLSearchParams({
-                                action: 'saveUserSettings',
-                                email: currentEmail,
-                                language: currentLang
-                            }).toString()
+                // Nếu có session_token → validate qua /validateSalesSession
+                if (auth.sessionToken) {
+                    const url = `${CLOUD_FUNCTION_URL}?action=validateSalesSession&sessionToken=${encodeURIComponent(auth.sessionToken)}`;
+                    const response = await fetch(url);
+                    const result = await response.json();
+                    if (result.status === 200 && result.authenticated) {
+                        currentEmail = auth.email;
+                        currentSalesName = result.sales?.name || auth.salesName || '';
+                        currentCompanyName = result.enterprise?.name || auth.companyName || '';
+                        currentSalesId = result.sales?.id || auth.salesId || '';
+                        window.__currentEnterpriseId = result.enterprise?.id || '';
+                        await finalizeLogin({
+                            sales: { id: currentSalesId, name: currentSalesName },
+                            enterprise: result.enterprise || {}
                         });
-                    } catch (e) {
-                        console.warn('Sync lang (auto) failed:', e);
+                        return true;
                     }
-                    document.getElementById('login-screen').classList.add('hidden');
-                    document.getElementById('dashboard-screen').classList.remove('hidden');
-                    showBottomNav();
-                    document.getElementById('user-name-display').textContent = currentSalesName;
-                    document.getElementById('company-name-display').textContent = currentCompanyName;
-                    document.getElementById('remaining-hours-display').textContent = result.enterprise.remainingHours;
-                    document.getElementById('package-display').textContent = result.enterprise.packageId || t(
-                        'undefined_package');
-                    document.getElementById('expiry-display').textContent = result.enterprise.expiryDate || t(
-                        'undefined_expiry');
-                                        await loadUserSettingsFromServer();
-                    await loadNotifStateFromServer();
-                    refreshNotifBadge();
-                    saveAuthInfo(result);
-                    loadVapidKeyFromServer().then(() => {
-                        registerPushNotifications(true);
-                    });
-
-                    // SYNC NOTIF SCHEDULE SAU AUTO LOGIN
-                    setTimeout(async () => {
-                        if (currentEmail && timezone) {
-                            try {
-                                const notifRes = await fetch(CLOUD_FUNCTION_URL, {
-                                    method: 'POST',
-                                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                                    body: new URLSearchParams({
-                                        action: 'updateNotifSchedule',
-                                        email: currentEmail,
-                                        timezone: timezone
-                                    }).toString()
-                                });
-                                const notifData = await notifRes.json();
-                                console.log(`📅 Notif schedule synced (auto): hour_utc=${notifData.notif_hour_utc}`);
-                            } catch (e) {
-                                console.warn('Sync notif schedule auto failed:', e);
-                            }
-                        }
-                    }, 800);
-
-                    return true;
-                } else {
                     localStorage.removeItem(AUTH_STORAGE_KEY);
                     return false;
                 }
+
+                // Fallback: session cũ (chưa có token) → không auto login
+                localStorage.removeItem(AUTH_STORAGE_KEY);
+                return false;
             } catch (e) {
-                console.error(e);
+                console.error('autoLogin error:', e);
                 localStorage.removeItem(AUTH_STORAGE_KEY);
                 return false;
             }
@@ -11913,6 +11941,229 @@ window.addEventListener('message', async function(event) {
         const affiliateBtnEl = document.getElementById('affiliateBtn');
         if (affiliateBtnEl) {
             affiliateBtnEl.addEventListener('click', openBankInfoModal);
+        }
+            // ===== LOGIN UI EVENT LISTENERS =====
+        document.addEventListener('DOMContentLoaded', () => {
+            const toggleBtn = document.getElementById('toggleLoginModeBtn');
+            if (toggleBtn) toggleBtn.addEventListener('click', toggleLoginMode);
+
+            const togglePw = document.getElementById('togglePasswordBtn');
+            if (togglePw) togglePw.addEventListener('click', togglePasswordVisibility);
+
+            const forgotBtn = document.getElementById('forgotPasswordBtn');
+            if (forgotBtn) forgotBtn.addEventListener('click', () => {
+                showToast('Tính năng đang phát triển', false);
+            });
+        });
+                // ========================================================================
+        //  PASSWORD MODAL (Đặt / Đổi mật khẩu)
+        // ========================================================================
+        let _pwModalMode = 'setup'; // 'setup' | 'change'
+        let _pwModalCtx = {};
+
+        function openPasswordModal(mode, ctx) {
+            _pwModalMode = mode;
+            _pwModalCtx = ctx || {};
+
+            const modal = document.getElementById('passwordModal');
+            const title = document.getElementById('pwModalTitle');
+            const desc = document.getElementById('pwModalDesc');
+            const submitText = document.getElementById('pwSubmitText');
+            const closeBtn = document.getElementById('closePasswordModalBtn');
+
+            // Reset fields
+            document.getElementById('newPasswordInput').value = '';
+            document.getElementById('confirmPasswordInput').value = '';
+            document.getElementById('pwModalError').classList.add('hidden');
+            document.getElementById('pwStrengthBar').style.width = '0%';
+
+            if (mode === 'setup') {
+                title.setAttribute('data-i18n', 'set_pw_title');
+                title.textContent = t('set_pw_title');
+                desc.setAttribute('data-i18n', 'set_pw_desc');
+                desc.textContent = t('set_pw_desc');
+                submitText.setAttribute('data-i18n', 'set_pw_btn');
+                submitText.textContent = t('set_pw_btn');
+                closeBtn.style.display = 'none'; // bắt buộc, không cho đóng
+            } else {
+                title.setAttribute('data-i18n', 'change_pw_title');
+                title.textContent = t('change_pw_title');
+                desc.setAttribute('data-i18n', 'change_pw_desc');
+                desc.textContent = t('change_pw_desc');
+                submitText.setAttribute('data-i18n', 'change_pw_btn');
+                submitText.textContent = t('change_pw_btn');
+                closeBtn.style.display = 'flex';
+            }
+
+            modal.classList.add('active');
+            setTimeout(() => document.getElementById('newPasswordInput').focus(), 200);
+        }
+
+        function closePasswordModal() {
+            if (_pwModalMode === 'setup') {
+                // Không cho đóng khi đang setup
+                return;
+            }
+            document.getElementById('passwordModal').classList.remove('active');
+        }
+
+        function calcPasswordStrength(pwd) {
+            let score = 0;
+            if (pwd.length >= 8) score++;
+            if (pwd.length >= 12) score++;
+            if (/[A-Z]/.test(pwd)) score++;
+            if (/[a-z]/.test(pwd)) score++;
+            if (/[0-9]/.test(pwd)) score++;
+            if (/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?~`]/.test(pwd)) score++;
+
+            if (score <= 3) return { level: 'weak', pct: 33 };
+            if (score <= 4) return { level: 'medium', pct: 66 };
+            return { level: 'strong', pct: 100 };
+        }
+
+        // Bind events cho password modal
+        document.addEventListener('DOMContentLoaded', () => {
+            const newPwInput = document.getElementById('newPasswordInput');
+            const confirmPwInput = document.getElementById('confirmPasswordInput');
+            const strengthBar = document.getElementById('pwStrengthBar');
+            const strengthText = document.getElementById('pwStrengthText');
+            const modal = document.getElementById('passwordModal');
+            const closeBtn = document.getElementById('closePasswordModalBtn');
+            const submitBtn = document.getElementById('submitPasswordBtn');
+            const toggleNewBtn = document.getElementById('toggleNewPwBtn');
+            const toggleConfirmBtn = document.getElementById('toggleConfirmPwBtn');
+
+            if (newPwInput) {
+                newPwInput.addEventListener('input', () => {
+                    const pwd = newPwInput.value;
+                    const s = calcPasswordStrength(pwd);
+                    if (strengthBar) {
+                        strengthBar.style.width = s.pct + '%';
+                        strengthBar.style.background = s.level === 'weak' ? '#EF4444'
+                            : s.level === 'medium' ? '#F59E0B' : '#10B981';
+                    }
+                    if (strengthText) {
+                        strengthText.textContent = s.level === 'weak' ? t('pw_strength_weak')
+                            : s.level === 'medium' ? t('pw_strength_medium') : t('pw_strength_strong');
+                        strengthText.style.color = s.level === 'weak' ? '#EF4444'
+                            : s.level === 'medium' ? '#F59E0B' : '#10B981';
+                    }
+                });
+            }
+
+            if (toggleNewBtn) toggleNewBtn.addEventListener('click', () => {
+                if (newPwInput.type === 'password') {
+                    newPwInput.type = 'text';
+                    toggleNewBtn.textContent = t('hide_password');
+                } else {
+                    newPwInput.type = 'password';
+                    toggleNewBtn.textContent = t('show_password');
+                }
+            });
+
+            if (toggleConfirmBtn) toggleConfirmBtn.addEventListener('click', () => {
+                if (confirmPwInput.type === 'password') {
+                    confirmPwInput.type = 'text';
+                    toggleConfirmBtn.textContent = t('hide_password');
+                } else {
+                    confirmPwInput.type = 'password';
+                    toggleConfirmBtn.textContent = t('show_password');
+                }
+            });
+
+            if (closeBtn) closeBtn.addEventListener('click', closePasswordModal);
+
+            if (submitBtn) submitBtn.addEventListener('click', submitPasswordChange);
+        });
+
+        async function submitPasswordChange() {
+            const newPwd = document.getElementById('newPasswordInput').value;
+            const confirmPwd = document.getElementById('confirmPasswordInput').value;
+            const errorDiv = document.getElementById('pwModalError');
+            const submitBtn = document.getElementById('submitPasswordBtn');
+            const submitText = document.getElementById('pwSubmitText');
+            const submitLoader = document.getElementById('pwSubmitLoader');
+
+            errorDiv.classList.add('hidden');
+
+            // Validate
+            if (!newPwd || !confirmPwd) {
+                errorDiv.textContent = t('auth_missing_fields');
+                errorDiv.classList.remove('hidden');
+                return;
+            }
+            if (newPwd !== confirmPwd) {
+                errorDiv.textContent = t('pw_not_match');
+                errorDiv.classList.remove('hidden');
+                return;
+            }
+
+            submitBtn.disabled = true;
+            submitText.style.display = 'none';
+            submitLoader.style.display = 'block';
+
+            try {
+                let url, body;
+
+                if (_pwModalMode === 'setup') {
+                    // Gọi setPassword
+                    const qs = new URLSearchParams({
+                        action: 'setPassword',
+                        email: _pwModalCtx.email,
+                        userId: _pwModalCtx.userId || '',
+                        newPassword: newPwd
+                    });
+                    url = `${CLOUD_FUNCTION_URL}?${qs.toString()}`;
+                    body = null;
+                } else {
+                    // Đổi password (chưa có API — mình sẽ code sau, tạm báo)
+                    errorDiv.textContent = 'API đổi mật khẩu đang phát triển';
+                    errorDiv.classList.remove('hidden');
+                    submitBtn.disabled = false;
+                    submitText.style.display = '';
+                    submitLoader.style.display = 'none';
+                    return;
+                }
+
+                const res = await fetch(url, body ? {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body
+                } : undefined);
+                const data = await res.json();
+
+                if (data.status === 200 && data.code === 'SET_PW_SUCCESS') {
+                    // Thành công → đóng modal + tự login lại
+                    document.getElementById('passwordModal').classList.remove('active');
+                    showToast(t('set_pw_success'), true);
+
+                    // Auto login lại với password vừa set
+                    setTimeout(async () => {
+                        // Chuyển sang mode password
+                        loginMode = 'password';
+                        document.getElementById('passwordFieldWrap').style.display = 'block';
+                        document.getElementById('userIdFieldWrap').style.display = 'none';
+
+                        document.getElementById('passwordInput').value = newPwd;
+                        await handleLogin();
+                    }, 500);
+                } else {
+                    // Lỗi — hiện message (dịch theo code)
+                    const errKey = data.code ? String(data.code).toLowerCase() : '';
+                    const errText = translations[currentLang]?.[errKey]
+                        ? t(data.code, data.params || {})
+                        : (data.message || t('server_error'));
+                    errorDiv.textContent = errText;
+                    errorDiv.classList.remove('hidden');
+                }
+            } catch (e) {
+                errorDiv.textContent = 'Lỗi: ' + e.message;
+                errorDiv.classList.remove('hidden');
+            } finally {
+                submitBtn.disabled = false;
+                submitText.style.display = '';
+                submitLoader.style.display = 'none';
+            }
         }
     </script>
 </body>
