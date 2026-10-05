@@ -3712,8 +3712,8 @@
                 </div>
 
                 <div class="profile-danger-zone">
-                    <button class="profile-danger-btn" id="changeUserIdBtn">
-                        <i class="fa-solid fa-key"></i> <span data-i18n="profile_change_id">Đổi User ID</span>
+                    <button class="profile-danger-btn" id="changePasswordBtn">
+                        <i class="fa-solid fa-lock"></i> <span data-i18n="change_pw_menu">Đổi mật khẩu</span>
                     </button>
                     <button class="profile-danger-btn" onclick="handleLogout()" style="margin-top:10px;">
                         <i class="fa-solid fa-arrow-right-from-bracket"></i> <span data-i18n="logout_btn">Đăng xuất</span>
@@ -4679,6 +4679,15 @@
                 </p>
 
                 <div style="display:flex; flex-direction:column; gap:14px; margin-bottom:20px;">
+                    <!-- Old password (chỉ hiện khi đổi pass từ Profile) -->
+                    <div id="oldPasswordFieldWrap" style="display:none;">
+                        <label class="field-label" data-i18n="old_password_label">Mật khẩu hiện tại</label>
+                        <div class="input-wrap" style="position:relative; margin-bottom:0;">
+                            <i class="fa-solid fa-lock"></i>
+                            <input type="password" id="oldPasswordInput" class="modal-input" data-i18n-placeholder="old_password_placeholder" placeholder="Nhập mật khẩu hiện tại" style="padding-left:44px; padding-right:70px;">
+                            <button type="button" id="toggleOldPwBtn" style="position:absolute; right:12px; top:50%; transform:translateY(-50%); background:none; border:none; color:var(--muted); font-size:12px; font-weight:700; cursor:pointer; padding:4px 8px; border-radius:6px;" data-i18n="show_password">Hiện</button>
+                        </div>
+                    </div>
                     <!-- New password -->
                     <div>
                         <label class="field-label" data-i18n="new_password_label">Mật khẩu mới</label>
@@ -5241,6 +5250,9 @@
                 pw_not_match: 'Mật khẩu xác nhận không khớp',
                 pw_change_success: 'Đổi mật khẩu thành công! Vui lòng đăng nhập lại.',
                 feature_coming_soon: 'Tính năng đang phát triển',
+                old_password_label: 'Mật khẩu hiện tại',
+                old_password_placeholder: 'Nhập mật khẩu hiện tại',
+                change_pw_menu: 'Đổi mật khẩu',
                 },
             en: {
                 login_title: 'Smart Meeting Minutes AI',
@@ -5705,6 +5717,9 @@
                 pw_not_match: 'Confirm password does not match',
                 pw_change_success: 'Password changed successfully! Please log in again.',
                 feature_coming_soon: 'Feature coming soon',
+                old_password_label: 'Current password',
+                old_password_placeholder: 'Enter current password',
+                change_pw_menu: 'Change password',
             }
         };
 
@@ -7603,10 +7618,18 @@ const ccEmail1 = (sendToClient && clientEmailValue) ? clientEmailValue : '';
         const saveBankInfoBtnEl = document.getElementById('saveBankInfoBtn');
         if (saveBankInfoBtnEl) saveBankInfoBtnEl.addEventListener('click', saveBankInfo);
 
-        const changeUserIdBtnEl = document.getElementById('changeUserIdBtn');
-        if (changeUserIdBtnEl) {
-            changeUserIdBtnEl.addEventListener('click', function() {
-                alert(t('profile_change_id') + ' - ' + t('toast_upgrade_required'));
+        const changePasswordBtnEl = document.getElementById('changePasswordBtn');
+        if (changePasswordBtnEl) {
+            changePasswordBtnEl.addEventListener('click', function() {
+                if (!currentEmail) {
+                    showToast(t('toast_login_required'), false);
+                    return;
+                }
+                openPasswordModal('change', {
+                    email: currentEmail,
+                    salesId: currentSalesId
+                    // Không truyền sessionToken → bắt buộc nhập old password
+                });
             });
         }
 
@@ -11983,11 +12006,24 @@ window.addEventListener('message', async function(event) {
             const submitText = document.getElementById('pwSubmitText');
             const closeBtn = document.getElementById('closePasswordModalBtn');
 
-            // Reset fields
+                        // Reset fields
             document.getElementById('newPasswordInput').value = '';
             document.getElementById('confirmPasswordInput').value = '';
+            const oldPwInput = document.getElementById('oldPasswordInput');
+            if (oldPwInput) oldPwInput.value = '';
             document.getElementById('pwModalError').classList.add('hidden');
             document.getElementById('pwStrengthBar').style.width = '0%';
+            document.getElementById('pwStrengthText').textContent = '';
+
+            // Hiện/ẩn field "mật khẩu cũ" — chỉ khi mode change + KHÔNG có sessionToken
+            const oldPwWrap = document.getElementById('oldPasswordFieldWrap');
+            if (oldPwWrap) {
+                if (mode === 'change' && !ctx.sessionToken) {
+                    oldPwWrap.style.display = 'block';
+                } else {
+                    oldPwWrap.style.display = 'none';
+                }
+            }
 
             if (mode === 'setup') {
                 title.setAttribute('data-i18n', 'set_pw_title');
@@ -12082,13 +12118,25 @@ window.addEventListener('message', async function(event) {
                     toggleConfirmBtn.textContent = t('show_password');
                 }
             });
+                        const toggleOldBtn = document.getElementById('toggleOldPwBtn');
+            if (toggleOldBtn) toggleOldBtn.addEventListener('click', () => {
+                const el = document.getElementById('oldPasswordInput');
+                if (el.type === 'password') {
+                    el.type = 'text';
+                    toggleOldBtn.textContent = t('hide_password');
+                } else {
+                    el.type = 'password';
+                    toggleOldBtn.textContent = t('show_password');
+                }
+            });
 
             if (closeBtn) closeBtn.addEventListener('click', closePasswordModal);
 
             if (submitBtn) submitBtn.addEventListener('click', submitPasswordChange);
         });
 
-        async function submitPasswordChange() {
+        async function submitPasswordChange() {        async function submitPasswordChange() {
+            const oldPwd = document.getElementById('oldPasswordInput')?.value || '';
             const newPwd = document.getElementById('newPasswordInput').value;
             const confirmPwd = document.getElementById('confirmPasswordInput').value;
             const errorDiv = document.getElementById('pwModalError');
@@ -12104,8 +12152,14 @@ window.addEventListener('message', async function(event) {
                 errorDiv.classList.remove('hidden');
                 return;
             }
+            // Chỉ bắt buộc old password khi mode change + không có sessionToken
+            if (_pwModalMode === 'change' && !_pwModalCtx.sessionToken && !oldPwd) {
+                errorDiv.textContent = t('auth_missing_fields');
+                errorDiv.classList.remove('hidden');
+                return;
+            }
             if (newPwd !== confirmPwd) {
-                errorDiv.textContent = t('pw_not_match');
+                errorDiv.textContent = t('pwd_not_match');
                 errorDiv.classList.remove('hidden');
                 return;
             }
@@ -12118,7 +12172,7 @@ window.addEventListener('message', async function(event) {
                 let url, body;
 
                 if (_pwModalMode === 'setup') {
-                    // Gọi setPassword
+                    // Đặt password lần đầu
                     const qs = new URLSearchParams({
                         action: 'setPassword',
                         email: _pwModalCtx.email,
@@ -12128,13 +12182,19 @@ window.addEventListener('message', async function(event) {
                     url = `${CLOUD_FUNCTION_URL}?${qs.toString()}`;
                     body = null;
                 } else {
-                    // Đổi password (chưa có API — mình sẽ code sau, tạm báo)
-                    errorDiv.textContent = 'API đổi mật khẩu đang phát triển';
-                    errorDiv.classList.remove('hidden');
-                    submitBtn.disabled = false;
-                    submitText.style.display = '';
-                    submitLoader.style.display = 'none';
-                    return;
+                    // Đổi password (đã login hoặc pass hết hạn)
+                    const qs = new URLSearchParams({
+                        action: 'changePassword',
+                        email: _pwModalCtx.email || currentEmail,
+                        newPassword: newPwd
+                    });
+                    if (_pwModalCtx.sessionToken) {
+                        qs.append('sessionToken', _pwModalCtx.sessionToken);
+                    } else {
+                        qs.append('oldPassword', oldPwd);
+                    }
+                    url = `${CLOUD_FUNCTION_URL}?${qs.toString()}`;
+                    body = null;
                 }
 
                 const res = await fetch(url, body ? {
@@ -12144,23 +12204,31 @@ window.addEventListener('message', async function(event) {
                 } : undefined);
                 const data = await res.json();
 
-                if (data.status === 200 && data.code === 'SET_PW_SUCCESS') {
-                    // Thành công → đóng modal + tự login lại
+                const okCode = _pwModalMode === 'setup' ? 'SET_PW_SUCCESS' : 'CHANGE_PW_SUCCESS';
+
+                if (data.status === 200 && data.code === okCode) {
                     document.getElementById('passwordModal').classList.remove('active');
-                    showToast(t('set_pw_success'), true);
+                    const okMsg = _pwModalMode === 'setup' ? t('set_pw_success') : t('change_pw_success');
+                    showToast(okMsg, true);
 
-                    // Auto login lại với password vừa set
-                    setTimeout(async () => {
-                        // Chuyển sang mode password
-                        loginMode = 'password';
-                        document.getElementById('passwordFieldWrap').style.display = 'block';
-                        document.getElementById('userIdFieldWrap').style.display = 'none';
-
-                        document.getElementById('passwordInput').value = newPwd;
-                        await handleLogin();
-                    }, 500);
+                    if (_pwModalMode === 'setup') {
+                        // First login → auto đăng nhập lại
+                        setTimeout(async () => {
+                            loginMode = 'password';
+                            document.getElementById('passwordFieldWrap').style.display = 'block';
+                            document.getElementById('userIdFieldWrap').style.display = 'none';
+                            document.getElementById('passwordInput').value = newPwd;
+                            await handleLogin();
+                        }, 500);
+                    } else if (_pwModalCtx.sessionToken) {
+                        // Đổi pass do hết hạn → bắt login lại
+                        setTimeout(() => {
+                            handleLogout();
+                            document.getElementById('passwordInput').value = '';
+                        }, 800);
+                    }
+                    // Trường hợp đổi từ Profile → không làm gì thêm, user vẫn đang login
                 } else {
-                    // Lỗi — hiện message (dịch theo code)
                     const errKey = data.code ? String(data.code).toLowerCase() : '';
                     const errText = translations[currentLang]?.[errKey]
                         ? t(data.code, data.params || {})
