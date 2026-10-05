@@ -6146,7 +6146,6 @@ let currentEmail = "",
             try { await loadUserSettingsFromServer(); } catch (_) {}
             try { await loadNotifStateFromServer(); } catch (_) {}
             refreshNotifBadge();
-            startNotifAutoRefresh();
             loadVapidKeyFromServer().then(() => registerPushNotifications(true));
         }
                 // ========================================================================
@@ -7097,9 +7096,20 @@ for (let attempt = 1; attempt <= 3; attempt++) {
     currentEmail = "";
     currentSalesName = "";
     currentCompanyName = "";
-             // 3. Reset UI
-            document.getElementById('emailInput').value = "";
-            document.getElementById('userIdInput').value = "";
+            // 3. Reset UI — GIỮ email, xóa password, reset về mode password
+            // (giữ email để user đăng nhập lại nhanh)
+            // document.getElementById('emailInput').value = "";  // ← KHÔNG xóa email
+            document.getElementById('passwordInput').value = '';
+            document.getElementById('userIdInput').value = '';
+
+            // Reset về mode password
+            loginMode = 'password';
+            const pwWrap = document.getElementById('passwordFieldWrap');
+            const uidWrap = document.getElementById('userIdFieldWrap');
+            if (pwWrap) pwWrap.style.display = 'block';
+            if (uidWrap) uidWrap.style.display = 'none';
+            const toggleBtn = document.getElementById('toggleLoginModeBtn');
+            if (toggleBtn) toggleBtn.textContent = t('login_first_time');
             document.getElementById('user-name-display').textContent = "";
             document.getElementById('company-name-display').textContent = "";
             document.getElementById('remaining-hours-display').textContent = "--";
