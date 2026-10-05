@@ -4666,6 +4666,35 @@
                 </div>
             </div>
         </div>
+                <!-- ========== FORGOT PASSWORD MODAL ========== -->
+        <div id="forgotPasswordModal" class="modal-overlay">
+            <div class="modal-box" style="max-width:440px;">
+                <div class="modal-header">
+                    <h2 class="modal-title" data-i18n="forgot_pw_title">Quên mật khẩu</h2>
+                    <button class="modal-close" id="closeForgotPwBtn"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+
+                <p style="font-size:13.5px; color:var(--muted); line-height:1.6; margin-bottom:20px;" data-i18n="forgot_pw_desc">
+                    Nhập email của bạn, chúng tôi sẽ gửi link đặt lại mật khẩu
+                </p>
+
+                <div style="margin-bottom:20px;">
+                    <label class="field-label" data-i18n="email_label">Email</label>
+                    <div class="input-wrap" style="position:relative; margin-bottom:0;">
+                        <i class="fa-regular fa-envelope"></i>
+                        <input type="email" id="forgotPwEmail" class="modal-input" placeholder="sales@congty.com" style="padding-left:44px;">
+                    </div>
+                </div>
+
+                <div id="forgotPwError" class="error-pill hidden" style="margin-top:0; margin-bottom:16px;"></div>
+
+                <button class="btn-primary" id="submitForgotPwBtn">
+                    <span id="forgotPwSubmitText" data-i18n="forgot_pw_btn">Gửi link đặt lại</span>
+                    <div id="forgotPwSubmitLoader" class="loader"></div>
+                </button>
+            </div>
+        </div>
+
         <!-- ========== SET / CHANGE PASSWORD MODAL ========== -->
         <div id="passwordModal" class="modal-overlay">
             <div class="modal-box" style="max-width:460px;">
@@ -5198,7 +5227,7 @@
                 cafe_picker_no_booking: 'Check-in không có booking',
                 cafe_picker_empty: 'Bạn không có booking nào tại quán này',
                 cafe_picker_load_error: 'Không tải được booking',
-                                // ===== AUTH ERROR CODES =====
+                // ===== AUTH ERROR CODES =====
                 auth_missing_fields: 'Vui lòng nhập đầy đủ thông tin',
                 auth_email_not_found: 'Email không tồn tại',
                 auth_userid_mismatch: 'User ID không chính xác',
@@ -5254,6 +5283,12 @@
                 old_password_placeholder: 'Nhập mật khẩu hiện tại',
                 change_pw_menu: 'Đổi mật khẩu',
                 pwd_same_as_old: 'Mật khẩu mới phải khác mật khẩu hiện tại',
+                forgot_pw_title: 'Quên mật khẩu',
+                forgot_pw_desc: 'Nhập email của bạn, chúng tôi sẽ gửi link đặt lại mật khẩu',
+                forgot_pw_btn: 'Gửi link đặt lại',
+                reset_pw_title: 'Đặt lại mật khẩu',
+                reset_pw_desc: 'Nhập mật khẩu mới cho tài khoản của bạn',
+                reset_pw_btn: 'Đặt lại mật khẩu',
                 },
             en: {
                 login_title: 'Smart Meeting Minutes AI',
@@ -5666,7 +5701,7 @@
                 cafe_picker_no_booking: 'Check-in without booking',
                 cafe_picker_empty: 'You have no bookings at this cafe',
                 cafe_picker_load_error: 'Failed to load bookings',
-                               // ===== AUTH ERROR CODES =====
+                // ===== AUTH ERROR CODES =====
                 auth_missing_fields: 'Please fill in all fields',
                 auth_email_not_found: 'Email not found',
                 auth_userid_mismatch: 'User ID is incorrect',
@@ -5722,6 +5757,12 @@
                 old_password_placeholder: 'Enter current password',
                 change_pw_menu: 'Change password',
                 pwd_same_as_old: 'New password must be different from current',
+                forgot_pw_title: 'Forgot password',
+                forgot_pw_desc: 'Enter your email, we will send a password reset link',
+                forgot_pw_btn: 'Send reset link',
+                reset_pw_title: 'Reset password',
+                reset_pw_desc: 'Enter a new password for your account',
+                reset_pw_btn: 'Reset password',
             }
         };
 
@@ -11775,6 +11816,13 @@ if (taskSearchBtn && taskSearchInput && searchInlineWrap) {
         // ========================================================================
         document.addEventListener('DOMContentLoaded', async function() {
             // ================================================================
+            //  RESET PASSWORD từ URL ?reset=xxx
+            // ================================================================
+            if (checkResetTokenFromUrl()) {
+                return; // Ưu tiên reset — bỏ qua auto-login
+            }
+
+            // ================================================================
             //  AFFILIATE: Track ?ref=xxx từ URL
             // ================================================================
             try {
@@ -12032,8 +12080,32 @@ window.addEventListener('message', async function(event) {
 
             const forgotBtn = document.getElementById('forgotPasswordBtn');
             if (forgotBtn) forgotBtn.addEventListener('click', () => {
-                showToast(t('feature_coming_soon'), false);
+                const emailVal = document.getElementById('emailInput').value.trim();
+                const fpInput = document.getElementById('forgotPwEmail');
+                if (fpInput) fpInput.value = emailVal || '';
+
+                const errDiv = document.getElementById('forgotPwError');
+                if (errDiv) errDiv.classList.add('hidden');
+
+                document.getElementById('forgotPasswordModal').classList.add('active');
+                setTimeout(() => {
+                    const el = document.getElementById('forgotPwEmail');
+                    if (el) el.focus();
+                }, 200);
             });
+
+            const closeForgotBtn = document.getElementById('closeForgotPwBtn');
+            if (closeForgotBtn) closeForgotBtn.addEventListener('click', () => {
+                document.getElementById('forgotPasswordModal').classList.remove('active');
+            });
+
+            const forgotModal = document.getElementById('forgotPasswordModal');
+            if (forgotModal) forgotModal.addEventListener('click', (e) => {
+                if (e.target === forgotModal) forgotModal.classList.remove('active');
+            });
+
+            const submitForgotBtn = document.getElementById('submitForgotPwBtn');
+            if (submitForgotBtn) submitForgotBtn.addEventListener('click', submitForgotPassword);
         });
                 // ========================================================================
         //  PASSWORD MODAL (Đặt / Đổi mật khẩu)
@@ -12216,11 +12288,19 @@ window.addEventListener('message', async function(event) {
                 let url, body;
 
                 if (_pwModalMode === 'setup') {
-                    // Đặt password lần đầu
                     const qs = new URLSearchParams({
                         action: 'setPassword',
                         email: _pwModalCtx.email,
                         userId: _pwModalCtx.userId || '',
+                        newPassword: newPwd
+                    });
+                    url = `${CLOUD_FUNCTION_URL}?${qs.toString()}`;
+                    body = null;
+                } else if (_pwModalMode === 'reset') {
+                    // Đặt lại password qua token từ email
+                    const qs = new URLSearchParams({
+                        action: 'resetPassword',
+                        token: _pwModalCtx.resetToken || window.__resetToken || '',
                         newPassword: newPwd
                     });
                     url = `${CLOUD_FUNCTION_URL}?${qs.toString()}`;
@@ -12248,15 +12328,18 @@ window.addEventListener('message', async function(event) {
                 } : undefined);
                 const data = await res.json();
 
-                const okCode = _pwModalMode === 'setup' ? 'SET_PW_SUCCESS' : 'CHANGE_PW_SUCCESS';
+                const okCode = _pwModalMode === 'setup' ? 'SET_PW_SUCCESS'
+                             : _pwModalMode === 'reset' ? 'RESET_PW_SUCCESS'
+                             : 'CHANGE_PW_SUCCESS';
 
                 if (data.status === 200 && data.code === okCode) {
                     document.getElementById('passwordModal').classList.remove('active');
-                    const okMsg = _pwModalMode === 'setup' ? t('set_pw_success') : t('change_pw_success');
+                    const okMsg = _pwModalMode === 'setup' ? t('set_pw_success')
+                                : _pwModalMode === 'reset' ? t('reset_pw_success')
+                                : t('change_pw_success');
                     showToast(okMsg, true);
 
                     if (_pwModalMode === 'setup') {
-                        // First login → auto đăng nhập lại
                         setTimeout(async () => {
                             loginMode = 'password';
                             document.getElementById('passwordFieldWrap').style.display = 'block';
@@ -12264,14 +12347,19 @@ window.addEventListener('message', async function(event) {
                             document.getElementById('passwordInput').value = newPwd;
                             await handleLogin();
                         }, 500);
+                    } else if (_pwModalMode === 'reset') {
+                        // Reset qua email → quay về login screen
+                        setTimeout(() => {
+                            document.getElementById('login-screen').classList.remove('hidden');
+                            document.getElementById('passwordInput').value = '';
+                            window.__resetToken = '';
+                        }, 800);
                     } else if (_pwModalCtx.sessionToken) {
-                        // Đổi pass do hết hạn → bắt login lại
                         setTimeout(() => {
                             handleLogout();
                             document.getElementById('passwordInput').value = '';
                         }, 800);
                     }
-                    // Trường hợp đổi từ Profile → không làm gì thêm, user vẫn đang login
                 } else {
                     const errKey = data.code ? String(data.code).toLowerCase() : '';
                     const errText = translations[currentLang]?.[errKey]
@@ -12288,6 +12376,115 @@ window.addEventListener('message', async function(event) {
                 submitText.style.display = '';
                 submitLoader.style.display = 'none';
             }
+        }
+                // ========================================================================
+        //  FORGOT PASSWORD — Submit
+        // ========================================================================
+        async function submitForgotPassword() {
+            const email = document.getElementById('forgotPwEmail').value.trim();
+            const errDiv = document.getElementById('forgotPwError');
+            const btn = document.getElementById('submitForgotPwBtn');
+            const submitText = document.getElementById('forgotPwSubmitText');
+            const loader = document.getElementById('forgotPwSubmitLoader');
+
+            errDiv.classList.add('hidden');
+
+            if (!email) {
+                errDiv.textContent = t('auth_missing_fields');
+                errDiv.classList.remove('hidden');
+                return;
+            }
+
+            btn.disabled = true;
+            submitText.style.display = 'none';
+            loader.style.display = 'block';
+
+            try {
+                const url = `${CLOUD_FUNCTION_URL}?action=forgotPassword&email=${encodeURIComponent(email)}`;
+                const res = await fetch(url);
+                const data = await res.json();
+
+                if (data.status === 200) {
+                    document.getElementById('forgotPasswordModal').classList.remove('active');
+                    showToast(t('forgot_pw_email_sent'), true);
+                } else {
+                    const errKey = data.code ? String(data.code).toLowerCase() : '';
+                    const errText = translations[currentLang]?.[errKey]
+                        ? t(data.code, data.params || {})
+                        : (data.message || t('server_error'));
+                    errDiv.textContent = errText;
+                    errDiv.classList.remove('hidden');
+                }
+            } catch (e) {
+                errDiv.textContent = 'Lỗi: ' + e.message;
+                errDiv.classList.remove('hidden');
+            } finally {
+                btn.disabled = false;
+                submitText.style.display = '';
+                loader.style.display = 'none';
+            }
+        }
+
+        // ========================================================================
+        //  RESET PASSWORD — Check URL ?reset=xxx khi mở app
+        // ========================================================================
+        function checkResetTokenFromUrl() {
+            try {
+                const params = new URLSearchParams(window.location.search);
+                const token = params.get('reset');
+                if (!token) return false;
+
+                console.log('🔐 Reset token detected in URL');
+                openResetPasswordModal(token);
+
+                // Xóa token khỏi URL
+                window.history.replaceState({}, document.title, window.location.pathname);
+                return true;
+            } catch (e) {
+                console.warn('checkResetToken error:', e);
+                return false;
+            }
+        }
+
+        // Biến global lưu reset token
+        window.__resetToken = '';
+
+        function openResetPasswordModal(token) {
+            window.__resetToken = token;
+
+            // Đóng login screen, hiện passwordModal với mode "reset"
+            document.getElementById('login-screen').classList.add('hidden');
+
+            _pwModalMode = 'reset';
+            _pwModalCtx = { resetToken: token };
+
+            const modal = document.getElementById('passwordModal');
+            const title = document.getElementById('pwModalTitle');
+            const desc = document.getElementById('pwModalDesc');
+            const submitText = document.getElementById('pwSubmitText');
+            const closeBtn = document.getElementById('closePasswordModalBtn');
+
+            // Reset fields
+            document.getElementById('newPasswordInput').value = '';
+            document.getElementById('confirmPasswordInput').value = '';
+            document.getElementById('pwModalError').classList.add('hidden');
+            document.getElementById('pwStrengthBar').style.width = '0%';
+            document.getElementById('pwStrengthText').textContent = '';
+
+            // Ẩn old password
+            const oldPwWrap = document.getElementById('oldPasswordFieldWrap');
+            if (oldPwWrap) oldPwWrap.style.display = 'none';
+
+            title.textContent = t('reset_pw_title');
+            title.setAttribute('data-i18n', 'reset_pw_title');
+            desc.textContent = t('reset_pw_desc');
+            desc.setAttribute('data-i18n', 'reset_pw_desc');
+            submitText.textContent = t('reset_pw_btn');
+            submitText.setAttribute('data-i18n', 'reset_pw_btn');
+            closeBtn.style.display = 'none'; // bắt buộc, không cho đóng
+
+            modal.classList.add('active');
+            setTimeout(() => document.getElementById('newPasswordInput').focus(), 200);
         }
     </script>
 </body>
