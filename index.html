@@ -8879,11 +8879,28 @@ const ccEmail1 = (sendToClient && clientEmailValue) ? clientEmailValue : '';
                 if (data.status === 200) {
                     showToast(t('cafe_checkin_success'), true);
                     setTimeout(loadCafeCheckin, 500);
+                    // Refresh enterprise hours ngay
+                    refreshEnterpriseHours();
                 } else {
                     showToast(data.code ? t(data.code, data.params) : (data.message || t('cafe_unknown_error')), false);
                 }
             } catch (e) {
                 showToast(e.message, false);
+            }
+        }
+                // ===== Refresh enterprise hours sau check-in/out =====
+        async function refreshEnterpriseHours() {
+            try {
+                const url = `${CLOUD_FUNCTION_URL}?action=cafeEnterpriseGetHours&enterpriseId=${encodeURIComponent(window.__currentEnterpriseId || currentEnterpriseId)}`;
+                const res = await fetch(url);
+                const data = await res.json();
+                if (data.status === 200) {
+                    // Update dashboard
+                    document.getElementById('remaining-hours-display').textContent = data.actual_remaining;
+                    console.log('✅ Refreshed enterprise hours:', data.actual_remaining);
+                }
+            } catch (e) {
+                console.warn('Refresh enterprise hours failed:', e.message);
             }
         }
         async function showNearbyCafes() {
@@ -8956,8 +8973,9 @@ const ccEmail1 = (sendToClient && clientEmailValue) ? clientEmailValue : '';
                         });
                         const data = await res.json();
                         if (data.status === 200) {
-                            showToast(t('cafe_checkout_success_full'), true);
+                            showToast(`Đã check-out`, true);
                             setTimeout(loadCafeCheckin, 500);
+                            refreshEnterpriseHours();
                         } else {
                             showToast(data.code ? t(data.code, data.params) : (data.message || t('cafe_unknown_error')), false);
                         }
