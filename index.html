@@ -8179,7 +8179,7 @@ const ccEmail1 = (sendToClient && clientEmailValue) ? clientEmailValue : '';
                             </div>
                             <div class="cafe-card-actions">
                                 ${b.status === 'pending' ? `<button class="cafe-btn-sm outline" onclick="cancelCafeBooking('${escapeHtml(b.booking_id)}', this)"><span>${t('cancel_btn')}</span></button>` : ''}
-                                ${b.status === 'confirmed' ? `<button class="cafe-btn-sm primary" onclick="goToCheckIn()"><span>Check-in</span></button>` : ''}
+                                ${b.status === 'confirmed' ? `<button class="cafe-btn-sm primary" onclick="quickCheckInFromBooking('${escapeHtml(b.booking_id)}', '${escapeHtml(b.cafe_id)}', '${escapeHtml(b.cafe_name).replace(/'/g, "\\'")}')"><i class="fa-solid fa-location-dot"></i> <span>Check-in</span></button>` : ''}
                             </div>
                         </div>
                     `;
@@ -8191,8 +8191,51 @@ const ccEmail1 = (sendToClient && clientEmailValue) ? clientEmailValue : '';
             }
         }
 
-        function goToCheckIn() {
-            openCafePage('checkin');
+                // ===== QUICK CHECK-IN từ booking card =====
+        async function quickCheckInFromBooking(bookingId, cafeId, cafeName) {
+            if (!currentEmail) {
+                alert(t('toast_login_required'));
+                return;
+            }
+
+            showToast('Đang lấy vị trí GPS...', true);
+
+            let pos;
+            try {
+                pos = await new Promise((resolve, reject) => {
+                    navigator.geolocation.getCurrentPosition(resolve, reject, {
+                        enableHighAccuracy: true,
+                        timeout: 10000,
+                        maximumAge: 0
+                    });
+                });
+            } catch (e) {
+                showToast('Không lấy được GPS: ' + e.message, false);
+                return;
+            }
+
+            const cafes = await fetchCafesForSales();
+            const cafe = cafes.find(c => c.cafe_id === cafeId);
+            if (!cafe || !cafe.location) {
+                showToast('Không tìm thấy quán', false);
+                return;
+            }
+
+            const distKm = haversineKm(
+                pos.coords.latitude, pos.coords.longitude,
+                cafe.location.lat, cafe.location.lng
+            );
+
+            if (distKm > 0.05) {
+                showToast(`Bạn cách quán ${(distKm * 1000).toFixed(0)}m. Cần ở trong 50m`, false);
+                return;
+            }
+
+            await submitCheckIn(cafeId, pos.coords.latitude, pos.coords.longitude, bookingId);
+
+            setTimeout(() => {
+                openCafePage('checkin');
+            }, 800);
         }
 
         async function cancelCafeBooking(bookingId, btn) {
