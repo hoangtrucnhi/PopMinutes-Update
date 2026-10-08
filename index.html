@@ -11692,7 +11692,7 @@ if (taskSearchBtn && taskSearchInput && searchInlineWrap) {
                 position: fixed; bottom: 30px; left: 50%;
                 transform: translateX(-50%) translateY(20px);
                 background-color: ${isSuccess ? 'rgba(27,43,122,0.95)' : 'rgba(239,68,68,0.95)'};
-                color: white; padding: 10px 20px; border-radius: 60px;
+                color: white; padding: 12px 18px; border-radius: 18px;
                 font-size: 14px; font-weight: 600; font-family: 'Be Vietnam Pro', sans-serif;
                 box-shadow: 0 8px 20px rgba(0,0,0,0.15); z-index: 100000;
                 display: flex; align-items: flex-start; gap: 8px;
@@ -11704,7 +11704,7 @@ if (taskSearchBtn && taskSearchInput && searchInlineWrap) {
                 overflow-wrap: break-word;
                 text-align: left;
                 width: fit-content;
-                max-width: calc(100vw - 32px);
+                max-width: min(calc(100vw - 32px), 480px);
                 box-sizing: border-box;
                 line-height: 1.4;
             `;
