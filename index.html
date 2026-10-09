@@ -5221,6 +5221,10 @@
                 booking_create_success_full: 'Đã đặt chỗ',
                 booking_confirm_success: 'Đã xác nhận',
                 booking_cancel_success: 'Đã hủy',
+                cafe_cancel_confirm: 'Bạn có chắc muốn hủy đặt chỗ này?',
+                cafe_cancel_early_warning: 'Còn {until}h nữa đến giờ đặt.\nHủy sớm — miễn phạt, hoàn lại đủ {hours}h.\n\nXác nhận hủy?',
+                cafe_cancel_late_warning: 'Còn {until}h nữa đến giờ đặt.\nHủy muộn — phạt {penalty}h, chỉ hoàn {refund}h.\n\nXác nhận hủy?',
+                cafe_cancel_past_warning: 'Đã qua giờ đặt.\nHủy muộn — phạt {penalty}h, chỉ hoàn {refund}h.\n\nXác nhận hủy?',
                 booking_update_success: 'Đã cập nhật',
                 booking_extend_success_full: 'Đã gia hạn',
                 ent_missing_id: 'Thiếu mã doanh nghiệp',
@@ -5712,6 +5716,10 @@
                 booking_create_success_full: 'Booked',
                 booking_confirm_success: 'Confirmed',
                 booking_cancel_success: 'Cancelled',
+                cafe_cancel_confirm: 'Are you sure you want to cancel this booking?',
+                cafe_cancel_early_warning: 'Starts in {until}h.\nEarly cancel — free, refund full {hours}h.\n\nConfirm cancel?',
+                cafe_cancel_late_warning: 'Starts in {until}h.\nLate cancel — penalty {penalty}h, refund {refund}h.\n\nConfirm cancel?',
+                cafe_cancel_past_warning: 'Start time has passed.\nLate cancel — penalty {penalty}h, refund {refund}h.\n\nConfirm cancel?',
                 booking_update_success: 'Updated',
                 booking_extend_success_full: 'Extended',
                 ent_missing_id: 'Missing enterprise ID',
@@ -8215,7 +8223,7 @@ const ccEmail1 = (sendToClient && clientEmailValue) ? clientEmailValue : '';
                                 ${b.note ? `<div><i class="fa-regular fa-note-sticky"></i> <span>${escapeHtml(b.note)}</span></div>` : ''}
                             </div>
                             <div class="cafe-card-actions">
-                                ${b.status === 'pending' ? `<button class="cafe-btn-sm outline" onclick="cancelCafeBooking('${escapeHtml(b.booking_id)}', this)"><span>${t('cancel_btn')}</span></button>` : ''}
+                                ${(b.status === 'pending' || b.status === 'confirmed') ? `<button class="cafe-btn-sm danger" onclick="cancelCafeBooking('${escapeHtml(b.booking_id)}', this)"><i class="fa-solid fa-xmark"></i> <span>${t('cancel_btn')}</span></button>` : ''}
                                 ${b.status === 'confirmed' && !isBookingExpired(b) ? `<button class="cafe-btn-sm primary" onclick="quickCheckInFromBooking('${escapeHtml(b.booking_id)}', '${escapeHtml(b.cafe_id)}', '${escapeHtml(b.cafe_name).replace(/'/g, "\\'")}')"><i class="fa-solid fa-location-dot"></i> <span>Check-in</span></button>` : ''}
                                 ${b.status === 'confirmed' && isBookingExpired(b) ? `<div style="width:100%; text-align:center; font-size:12px; color:var(--muted); padding:8px; background:#F8FAFC; border-radius:8px;">${t('cafe_booking_expired_hint') || 'Đã quá hạn check-in (15 phút)'}</div>` : ''}
                             </div>
@@ -8277,7 +8285,55 @@ const ccEmail1 = (sendToClient && clientEmailValue) ? clientEmailValue : '';
         }
 
         async function cancelCafeBooking(bookingId, btn) {
-            if (!confirm(t('delete_confirm_msg') || 'Bạn có chắc muốn hủy booking này?')) return;
+            // Tìm booking trong cache để lấy start_time_ms + held_hours
+            // Cache: có thể là từ loadCafeBookings hoặc fetch lại
+            let booking = null;
+            try {
+                const url = `${CLOUD_FUNCTION_URL}?action=cafeBookingGet&bookingId=${encodeURIComponent(bookingId)}`;
+                const res = await fetch(url);
+                const data = await res.json();
+                if (data.status === 200 && data.booking) {
+                    booking = data.booking;
+                }
+            } catch (e) {
+                console.warn('Load booking for cancel warning failed:', e);
+            }
+
+            // Tính số giờ phạt dựa trên booking
+            let warningMsg = t('cafe_cancel_confirm') || 'Bạn có chắc muốn hủy booking này?';
+            if (booking && booking.start_time_ms) {
+                const HOURS_MS = 60 * 60 * 1000;
+                const hoursUntilStart = (booking.start_time_ms - Date.now()) / HOURS_MS;
+                const heldHours = Number(booking.held_hours) || 
+                    Math.round(((booking.end_time_ms - booking.start_time_ms) / 3600000) * 10) / 10;
+
+                if (hoursUntilStart >= 6) {
+                    // Hủy sớm — miễn phạt
+                    warningMsg = t('cafe_cancel_early_warning', { 
+                        hours: heldHours,
+                        until: Math.floor(hoursUntilStart)
+                    }) || `Hủy trước ${Math.floor(hoursUntilStart)}h so với giờ đặt.\nMiễn phạt, hoàn lại ${heldHours}h.\n\nXác nhận hủy?`;
+                } else if (hoursUntilStart > 0) {
+                    // Hủy muộn — phạt 10%
+                    const penalty = Math.round(heldHours * 0.1 * 100) / 100;
+                    const refund = Math.round((heldHours - penalty) * 100) / 100;
+                    warningMsg = t('cafe_cancel_late_warning', { 
+                        penalty: penalty,
+                        refund: refund,
+                        until: Math.floor(hoursUntilStart)
+                    }) || `Còn ${Math.floor(hoursUntilStart)}h nữa là đến giờ đặt.\nHủy muộn: phạt ${penalty}h, chỉ hoàn ${refund}h.\n\nXác nhận hủy?`;
+                } else {
+                    // Đã qua giờ đặt
+                    const penalty = Math.round(heldHours * 0.1 * 100) / 100;
+                    const refund = Math.round((heldHours - penalty) * 100) / 100;
+                    warningMsg = t('cafe_cancel_past_warning', { 
+                        penalty: penalty,
+                        refund: refund
+                    }) || `Đã quá giờ đặt.\nHủy muộn: phạt ${penalty}h, chỉ hoàn ${refund}h.\n\nXác nhận hủy?`;
+                }
+            }
+
+            if (!confirm(warningMsg)) return;
             const orig = btn.innerHTML;
             btn.disabled = true;
             btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
