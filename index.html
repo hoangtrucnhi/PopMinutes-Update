@@ -5103,6 +5103,7 @@
                 cafe_checkin_btn_checkin_here: 'Check-in tại đây',
                 cafe_checkin_btn_extend: 'Gia hạn',
                 cafe_checkin_btn_checkout: 'Check-out',
+                cafe_deposit_label: 'Cọc giữ chỗ',
                 cafe_checkin_qr_hint: 'Đưa QR này cho nhân viên quán',
                 cafe_checkin_success: 'Đã check-in',
                 cafe_checkout_confirm: 'Bạn có chắc muốn check-out?',
@@ -5222,9 +5223,9 @@
                 booking_confirm_success: 'Đã xác nhận',
                 booking_cancel_success: 'Đã hủy',
                 cafe_cancel_confirm: 'Bạn có chắc muốn hủy đặt chỗ này?',
-                cafe_cancel_early_warning: 'Còn {until}h nữa đến giờ đặt.\nHủy sớm — miễn phạt, hoàn lại đủ {hours}h.\n\nXác nhận hủy?',
-                cafe_cancel_late_warning: 'Còn {until}h nữa đến giờ đặt.\nHủy muộn — phạt {penalty}h, chỉ hoàn {refund}h.\n\nXác nhận hủy?',
-                cafe_cancel_past_warning: 'Đã qua giờ đặt.\nHủy muộn — phạt {penalty}h, chỉ hoàn {refund}h.\n\nXác nhận hủy?',
+                cafe_cancel_early_warning: 'Còn {until} nữa đến giờ check-in.\n\nHủy trước 6 giờ → miễn phạt.\nHoàn lại đủ cọc giữ chỗ: {held}h.\n\nXác nhận hủy?',
+                cafe_cancel_late_warning: 'Còn {until} nữa đến giờ check-in.\n\nHủy trước 6 giờ → miễn phạt. Hủy muộn → phạt 10% cọc giữ chỗ.\nPhạt: {penalty}h — Còn lại: {refund}h.\n\nXác nhận hủy?',
+                cafe_cancel_past_warning: 'Đã qua giờ check-in.\n\nPhạt 10% cọc giữ chỗ ({penalty}h) — Còn lại: {refund}h.\n\nXác nhận hủy?',
                 booking_update_success: 'Đã cập nhật',
                 booking_extend_success_full: 'Đã gia hạn',
                 ent_missing_id: 'Thiếu mã doanh nghiệp',
@@ -5590,6 +5591,7 @@
                 cafe_checkin_btn_checkin_here: 'Check-in here',
                 cafe_checkin_btn_extend: 'Extend',
                 cafe_checkin_btn_checkout: 'Check-out',
+                cafe_deposit_label: 'Hold deposit',
                 cafe_checkin_qr_hint: 'Show this QR to the cafe staff',
                 cafe_checkin_success: 'Checked in',
                 cafe_checkout_confirm: 'Are you sure you want to check out?',
@@ -5717,9 +5719,9 @@
                 booking_confirm_success: 'Confirmed',
                 booking_cancel_success: 'Cancelled',
                 cafe_cancel_confirm: 'Are you sure you want to cancel this booking?',
-                cafe_cancel_early_warning: 'Starts in {until}h.\nEarly cancel — free, refund full {hours}h.\n\nConfirm cancel?',
-                cafe_cancel_late_warning: 'Starts in {until}h.\nLate cancel — penalty {penalty}h, refund {refund}h.\n\nConfirm cancel?',
-                cafe_cancel_past_warning: 'Start time has passed.\nLate cancel — penalty {penalty}h, refund {refund}h.\n\nConfirm cancel?',
+                cafe_cancel_early_warning: 'Starts in {until}.\n\nEarly cancel (>6h) → free.\nRefund full hold deposit: {held}h.\n\nConfirm cancel?',
+                cafe_cancel_late_warning: 'Starts in {until}.\n\nEarly cancel (>6h) → free. Late cancel → 10% hold deposit fee.\nPenalty: {penalty}h — Refund: {refund}h.\n\nConfirm cancel?',
+                cafe_cancel_past_warning: 'Start time has passed.\n\n10% hold deposit fee ({penalty}h) — Refund: {refund}h.\n\nConfirm cancel?',
                 booking_update_success: 'Updated',
                 booking_extend_success_full: 'Extended',
                 ent_missing_id: 'Missing enterprise ID',
@@ -8307,12 +8309,21 @@ const ccEmail1 = (sendToClient && clientEmailValue) ? clientEmailValue : '';
                 const heldHours = Number(booking.held_hours) || 
                     Math.round(((booking.end_time_ms - booking.start_time_ms) / 3600000) * 10) / 10;
 
+                // Helper: đổi giờ thập phân thành "Xh Yp"
+                const fmtHM = (h) => {
+                    const H = Math.floor(h);
+                    const M = Math.round((h - H) * 60);
+                    if (H === 0) return `${M} phút`;
+                    if (M === 0) return `${H} giờ`;
+                    return `${H} giờ ${M} phút`;
+                };
+
                 if (hoursUntilStart >= 6) {
                     // Hủy sớm — miễn phạt
                     warningMsg = t('cafe_cancel_early_warning', { 
-                        hours: heldHours,
-                        until: Math.floor(hoursUntilStart)
-                    }) || `Hủy trước ${Math.floor(hoursUntilStart)}h so với giờ đặt.\nMiễn phạt, hoàn lại ${heldHours}h.\n\nXác nhận hủy?`;
+                        held: heldHours,
+                        until: fmtHM(hoursUntilStart)
+                    }) || `Còn ${fmtHM(hoursUntilStart)} nữa đến giờ check-in.\n\nHủy trước 6 giờ → miễn phạt.\nHoàn lại đủ cọc giữ chỗ: ${heldHours}h.\n\nXác nhận hủy?`;
                 } else if (hoursUntilStart > 0) {
                     // Hủy muộn — phạt 10%
                     const penalty = Math.round(heldHours * 0.1 * 100) / 100;
@@ -8320,16 +8331,18 @@ const ccEmail1 = (sendToClient && clientEmailValue) ? clientEmailValue : '';
                     warningMsg = t('cafe_cancel_late_warning', { 
                         penalty: penalty,
                         refund: refund,
-                        until: Math.floor(hoursUntilStart)
-                    }) || `Còn ${Math.floor(hoursUntilStart)}h nữa là đến giờ đặt.\nHủy muộn: phạt ${penalty}h, chỉ hoàn ${refund}h.\n\nXác nhận hủy?`;
+                        held: heldHours,
+                        until: fmtHM(hoursUntilStart)
+                    }) || `Còn ${fmtHM(hoursUntilStart)} nữa đến giờ check-in.\n\nHủy trước 6 giờ → miễn phạt. Hủy muộn → phạt 10% cọc giữ chỗ.\nPhạt: ${penalty}h — Còn lại: ${refund}h.\n\nXác nhận hủy?`;
                 } else {
                     // Đã qua giờ đặt
                     const penalty = Math.round(heldHours * 0.1 * 100) / 100;
                     const refund = Math.round((heldHours - penalty) * 100) / 100;
                     warningMsg = t('cafe_cancel_past_warning', { 
                         penalty: penalty,
-                        refund: refund
-                    }) || `Đã quá giờ đặt.\nHủy muộn: phạt ${penalty}h, chỉ hoàn ${refund}h.\n\nXác nhận hủy?`;
+                        refund: refund,
+                        held: heldHours
+                    }) || `Đã qua giờ check-in.\n\nPhạt 10% cọc giữ chỗ (${penalty}h) — Còn lại: ${refund}h.\n\nXác nhận hủy?`;
                 }
             }
 
@@ -8492,7 +8505,7 @@ const ccEmail1 = (sendToClient && clientEmailValue) ? clientEmailValue : '';
                     <div class="cafe-active-meta">
                         <div><i class="fa-regular fa-clock"></i> In: <b>${fmtCafeDateTime(active.check_in_at)}</b></div>
                         <div><i class="fa-solid fa-money-bill"></i> <b>${fmtCafeMoney(active.price_per_hour_snapshot)}</b>/h</div>
-                        <div><i class="fa-solid fa-lock"></i> Ký quỹ: <b>1h</b></div>
+                        <div><i class="fa-solid fa-lock"></i> ${t('cafe_deposit_label')}: <b>${active.deposit_hold || 1}h</b></div>
                     </div>
 
                     <div class="cafe-qr-section">
