@@ -8681,7 +8681,7 @@ const ccEmail1 = (sendToClient && clientEmailValue) ? clientEmailValue : '';
                             </div>
                             <div class="cafe-card-meta">
                                 <div><i class="fa-regular fa-clock"></i> <span>In: <b>${fmtCafeDateTime(c.check_in_at)}</b></span></div>
-                                ${c.check_out_at ? `<div><i class="fa-regular fa-clock"></i> <span>Out: <b>${fmtCafeDateTime(c.check_out_at)}</b></span></div>` : ''}
+                                ${c.check_out_ms ? `<div><i class="fa-regular fa-clock"></i> <span>Out: <b>${fmtCafeDateTime(new Date(c.check_out_ms).toISOString())}</b></span></div>` : ''}
                                 ${c.billable_hours !== null ? `<div><i class="fa-solid fa-hourglass-half"></i> <span><b>${c.billable_hours}h</b> • ${fmtCafeMoney(c.revenue_amount)}</span></div>` : ''}
                                 ${c.auto_checkout ? `<div style="color:#B45309;"><i class="fa-solid fa-triangle-exclamation"></i> <span>Auto check-out</span></div>` : ''}
                             </div>
