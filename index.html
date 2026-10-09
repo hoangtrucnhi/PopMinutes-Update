@@ -5131,6 +5131,7 @@
                 cafe_auto_checkout_closing: 'Đã check-out',
                 cafe_status_completed: 'Đã xong',
                 cafe_status_cancelled: 'Đã hủy',
+                cafe_status_expired: 'Tự hủy (quá hạn)',
                 cafe_booking_expired_hint: 'Đã quá hạn check-in (15 phút). Booking sẽ tự hủy.',
                 bank_section_title: 'Thông tin nhận tiền',
                 bank_method_label: 'Hình thức nhận tiền',
@@ -5621,6 +5622,7 @@
                 cafe_auto_checkout_closing: 'Checked-out',
                 cafe_status_completed: 'Completed',
                 cafe_status_cancelled: 'Cancelled',
+                cafe_status_expired: 'Auto-cancelled',
                 cafe_booking_expired_hint: 'Check-in window expired (15 min). Booking will auto-cancel.',
                 bank_section_title: 'Payment information',
                 bank_method_label: 'Payment method',
@@ -8186,7 +8188,7 @@ const ccEmail1 = (sendToClient && clientEmailValue) ? clientEmailValue : '';
                     container.innerHTML = `<div class="cafe-empty"><i class="fa-solid fa-circle-exclamation"></i>${t('cafe_loading_error')}</div>`;
                     return;
                 }
-                const bookings = (data.bookings || []).filter(b => b.status === 'pending' || b.status === 'confirmed');
+                const bookings = (data.bookings || []).filter(b => b.status === 'pending' || b.status === 'confirmed' || b.status === 'expired');
 
                 if (bookings.length === 0) {
                     container.innerHTML = `<div class="cafe-empty"><i class="fa-regular fa-calendar-xmark"></i>${t('cafe_empty_bookings')}</div>`;
@@ -8194,8 +8196,9 @@ const ccEmail1 = (sendToClient && clientEmailValue) ? clientEmailValue : '';
                 }
 
                 let html = '';
-                bookings.forEach(b => {
-                    const badgeClass = b.status === 'pending' ? 'pending' : 'confirmed';
+                    bookings.forEach(b => {
+                    const badgeClass = b.status === 'pending' ? 'pending' : (b.status === 'expired' ? 'cancelled' : 'confirmed');
+                    const statusLabel = b.status === 'expired' ? t('cafe_status_expired') : getCafeStatusLabel(b.status);
                     html += `
                         <div class="cafe-card">
                             <div class="cafe-card-header">
@@ -8203,7 +8206,7 @@ const ccEmail1 = (sendToClient && clientEmailValue) ? clientEmailValue : '';
                                     <i class="fa-solid fa-store"></i>
                                     ${escapeHtml(b.cafe_name)}
                                 </div>
-                                <span class="cafe-badge ${badgeClass}">${getCafeStatusLabel(b.status)}</span>
+                                <span class="cafe-badge ${badgeClass}">${statusLabel}</span>
                             </div>
                             <div class="cafe-card-meta">
                                 <div><i class="fa-regular fa-clock"></i> <span><b>${fmtCafeDateTime(b.start_time_iso)}</b> → <b>${fmtCafeDateTime(b.end_time_iso)}</b></span></div>
