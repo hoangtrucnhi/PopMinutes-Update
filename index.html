@@ -8221,6 +8221,7 @@ const ccEmail1 = (sendToClient && clientEmailValue) ? clientEmailValue : '';
                             <div class="cafe-card-meta">
                                 <div><i class="fa-regular fa-clock"></i> <span><b>${fmtCafeDateTime(b.start_time_iso)}</b> → <b>${fmtCafeDateTime(b.end_time_iso)}</b></span></div>
                                 <div><i class="fa-solid fa-location-dot"></i> <span>${escapeHtml(b.cafe_address)}</span></div>
+                                ${b.held_hours ? `<div><i class="fa-solid fa-lock"></i> <span>${t('cafe_deposit_label')}: <b>${b.held_hours}h</b></span></div>` : ''}
                                 ${b.guest_name ? `<div><i class="fa-regular fa-user"></i> <span>${escapeHtml(b.guest_name)}</span></div>` : ''}
                                 ${b.note ? `<div><i class="fa-regular fa-note-sticky"></i> <span>${escapeHtml(b.note)}</span></div>` : ''}
                             </div>
