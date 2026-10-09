@@ -2744,8 +2744,9 @@
         .cafe-badge.confirmed { background: #DBEAFE; color: #1E40AF; }
         .cafe-badge.checked_in { background: #D1FAE5; color: #065F46; }
         .cafe-badge.completed { background: #E2E8F0; color: #475569; }
-        .cafe-badge.cancelled { background: #FEE2E2; color: #991B1B; }
-        .cafe-badge.active { background: #D1FAE5; color: #065F46; }
+        .cafe-badge.cancelled { background: #E2E8F0; color: #475569; }
+        .cafe-badge.expired   { background: #E2E8F0; color: #475569; }
+        .cafe-badge.active    { background: #D1FAE5; color: #065F46; }
 
         .cafe-card-meta {
             font-size: 12.5px;
@@ -8226,8 +8227,8 @@ const ccEmail1 = (sendToClient && clientEmailValue) ? clientEmailValue : '';
                                 ${b.note ? `<div><i class="fa-regular fa-note-sticky"></i> <span>${escapeHtml(b.note)}</span></div>` : ''}
                             </div>
                             <div class="cafe-card-actions">
-                                ${(b.status === 'pending' || b.status === 'confirmed') ? `<button class="cafe-btn-sm danger" onclick="cancelCafeBooking('${escapeHtml(b.booking_id)}', this)"><i class="fa-solid fa-xmark"></i> <span>${t('cancel_btn')}</span></button>` : ''}
-                                ${b.status === 'confirmed' && !isBookingExpired(b) ? `<button class="cafe-btn-sm primary" onclick="quickCheckInFromBooking('${escapeHtml(b.booking_id)}', '${escapeHtml(b.cafe_id)}', '${escapeHtml(b.cafe_name).replace(/'/g, "\\'")}')"><i class="fa-solid fa-location-dot"></i> <span>Check-in</span></button>` : ''}
+                                ${(b.status === 'pending' || b.status === 'confirmed') ? `<button class="cafe-btn-sm outline" onclick="cancelCafeBooking('${escapeHtml(b.booking_id)}', this)"><span>${t('cancel_btn')}</span></button>` : ''}
+                                ${b.status === 'confirmed' && !isBookingExpired(b) ? `<button class="cafe-btn-sm primary" onclick="quickCheckInFromBooking('${escapeHtml(b.booking_id)}', '${escapeHtml(b.cafe_id)}', '${escapeHtml(b.cafe_name).replace(/'/g, "\\'")}')"><span>Check-in</span></button>` : ''}
                                 ${b.status === 'confirmed' && isBookingExpired(b) ? `<div style="width:100%; text-align:center; font-size:12px; color:var(--muted); padding:8px; background:#F8FAFC; border-radius:8px;">${t('cafe_booking_expired_hint') || 'Đã quá hạn check-in (15 phút)'}</div>` : ''}
                             </div>
                         </div>
