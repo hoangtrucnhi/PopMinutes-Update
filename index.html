@@ -9023,8 +9023,11 @@ const ccEmail1 = (sendToClient && clientEmailValue) ? clientEmailValue : '';
                             listEl.innerHTML = `<div class="cafe-empty">${t('cafe_nearby_empty') || 'Không có quán nào gần đây'}</div>`;
                             return;
                         }
-                        let html = '';
+                                                let html = '';
                         data.cafes.forEach(c => {
+                            const lat = pos.coords.latitude;
+                            const lng = pos.coords.longitude;
+                            const cafeNameSafe = escapeHtml(c.name).replace(/'/g, "\\'");
                             html += `
                                 <div class="cafe-card">
                                     <div class="cafe-card-header">
@@ -9039,7 +9042,7 @@ const ccEmail1 = (sendToClient && clientEmailValue) ? clientEmailValue : '';
                                         <div><i class="fa-solid fa-money-bill"></i> ${fmtCafeMoney(c.price_per_hour)}/h</div>
                                     </div>
                                 <div class="cafe-card-actions">
-                                    <button class="cafe-btn-sm primary" style="width:100%;">
+                                    <button class="cafe-btn-sm primary" style="width:100%;" onclick="showCheckinPicker('${c.cafe_id}', ${lat}, ${lng}, '${cafeNameSafe}')">
                                         <span>${t('cafe_picker_pick_btn')}</span>
                                     </button>
                                 </div>
