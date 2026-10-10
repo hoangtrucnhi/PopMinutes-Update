@@ -8378,7 +8378,19 @@ const ccEmail1 = (sendToClient && clientEmailValue) ? clientEmailValue : '';
             try {
                 const url = `${CLOUD_FUNCTION_URL}?action=cafeCheckInGetActive&salesEmail=${encodeURIComponent(currentEmail)}`;
                 const res = await fetch(url);
-                const data = await res.json();
+                if (!res.ok) {
+                    console.warn('[loadCafeCheckin] HTTP', res.status, '— bỏ qua, hiện prompt');
+                    renderCheckinPrompt();
+                    return;
+                }
+                let data;
+                try {
+                    data = await res.json();
+                } catch (e) {
+                    console.warn('[loadCafeCheckin] JSON parse fail:', e.message);
+                    renderCheckinPrompt();
+                    return;
+                }
 
                 if (data.status === 200 && data.active) {
                     // ✅ Auto check-out khi LOAD: đã confirm + qua giờ + GPS xa > 100m
