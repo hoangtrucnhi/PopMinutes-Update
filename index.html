@@ -5321,6 +5321,7 @@
                 cafe_undo_locked_alert: 'Check-in đã bị khóa. Không thể check-out. Vui lòng chờ giờ đóng cửa.',
                 cafe_undo_deadline_label: 'Còn {minutes} phút',
                 cafe_undo_deadline_expired: 'Đã hết thời gian phản hồi',
+                cafe_table_label: 'Bàn',
                 },
             en: {
                 login_title: 'Smart Meeting Minutes AI',
@@ -5830,6 +5831,7 @@
                 cafe_undo_locked_alert: 'Check-in is locked. Cannot check-out. Please wait until closing time.',
                 cafe_undo_deadline_label: '{minutes} min left',
                 cafe_undo_deadline_expired: 'Response time expired',
+                cafe_table_label: 'Table',
             }
         };
 
@@ -8600,12 +8602,12 @@ const ccEmail1 = (sendToClient && clientEmailValue) ? clientEmailValue : '';
                     <div class="cafe-active-cafe">
                         <i class="fa-solid fa-store"></i>
                         <span>${escapeHtml(active.cafe_name)}</span>
-                        ${active.table_number ? `<span style="margin-left:auto; background:#1B2B7A; color:#fff; font-size:12px; font-weight:800; padding:4px 12px; border-radius:20px; letter-spacing:0.5px;">BÀN ${active.table_number}</span>` : ''}
                     </div>
                     <div class="cafe-active-address">${escapeHtml(active.cafe_address)}</div>
 
                     <div class="cafe-active-meta">
                         <div><i class="fa-regular fa-clock"></i> In: <b>${fmtCafeDateTime(active.check_in_at)}</b></div>
+                        ${active.table_number ? `<div><i class="fa-solid fa-chair"></i> ${t('cafe_table_label')}: <b>${active.table_number}</b></div>` : ''}
                         <div><i class="fa-solid fa-money-bill"></i> <b>${fmtCafeMoney(active.price_per_hour_snapshot)}</b>/h</div>
                         <div><i class="fa-solid fa-lock"></i> ${t('cafe_deposit_label')}: <b>${active.deposit_hold || 1}h</b></div>
                     </div>
