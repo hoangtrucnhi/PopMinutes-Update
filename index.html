@@ -8600,6 +8600,7 @@ const ccEmail1 = (sendToClient && clientEmailValue) ? clientEmailValue : '';
                     <div class="cafe-active-cafe">
                         <i class="fa-solid fa-store"></i>
                         <span>${escapeHtml(active.cafe_name)}</span>
+                        ${active.table_number ? `<span style="margin-left:auto; background:#1B2B7A; color:#fff; font-size:12px; font-weight:800; padding:4px 12px; border-radius:20px; letter-spacing:0.5px;">BÀN ${active.table_number}</span>` : ''}
                     </div>
                     <div class="cafe-active-address">${escapeHtml(active.cafe_address)}</div>
 
