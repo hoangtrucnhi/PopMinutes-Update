@@ -3712,7 +3712,11 @@
                     </button>
                 </div>
 
-                <div class="profile-danger-zone">
+                <div class="profile-danger-zone" style="margin-bottom:16px;">
+                    <button class="profile-danger-btn" id="connectTelegramBtn" style="margin-bottom:10px;">
+                        <i class="fa-brands fa-telegram" style="color:#229ED9;"></i>
+                        <span id="connectTelegramText" data-i18n="connect_telegram">Kết nối Telegram</span>
+                    </button>
                     <button class="profile-danger-btn" id="changePasswordBtn">
                         <span data-i18n="change_pw_menu">Đổi mật khẩu</span>
                     </button>
@@ -6078,14 +6082,14 @@ if (event.data.type === 'NOTIFICATION_CLICK') {
         return;
     }
 
-    // ===== PHASE 5: Undo notification → mở Cafe check-in page =====
-    if (category === 'undo_request' || category === 'undo_timeout') {
-        if (typeof openCafePage === 'function') {
-            openCafePage('checkin');
+            // ===== PHASE 5: Undo notification → mở Cafe check-in page =====
+        if (category === 'undo_request' || category === 'undo_timeout' ||
+            category === 'cafe_undo' || category === 'cafe_undo_won' || category === 'cafe_undo_locked') {
+            if (typeof openCafePage === 'function') {
+                openCafePage('checkin');
+            }
+            return;
         }
-        return;
-    }
-
     // ===== MINUTES → Trang Thông báo (như cũ) =====
     if (typeof switchBottomNav === 'function') {
         switchBottomNav('notifications');
@@ -6401,6 +6405,55 @@ let currentEmail = "",
         // ========================================================================
         async function computeNotifications() {
             const notifs = [];
+
+            // ===== 0. CAFE UNDO PENDING (deadline 5p) =====
+            try {
+                const undoRes = await fetch(`${CLOUD_FUNCTION_URL}?action=cafeCheckInGetActive&salesEmail=${encodeURIComponent(currentEmail)}`);
+                if (undoRes.ok) {
+                    const undoData = await undoRes.json();
+                    if (undoData.status === 200 && undoData.active) {
+                        const a = undoData.active;
+                        if (a.undo_status === 'pending_respond') {
+                            const deadline = a.undo_deadline_ms || 0;
+                            const remainingMin = Math.max(0, Math.ceil((deadline - Date.now()) / 60000));
+                            notifs.push({
+                                id: `cafe_undo_${a.checkin_id}_${deadline}`,
+                                type: 'danger',
+                                icon: 'fa-triangle-exclamation',
+                                title: `Quán báo bạn còn ngồi`,
+                                desc: `${a.cafe_name}${a.table_number ? ' · Bàn ' + a.table_number : ''} · Còn ${remainingMin} phút để xác thực GPS`,
+                                timestamp: deadline,
+                                category: 'cafe_undo',
+                                recordId: a.checkin_id
+                            });
+                        } else if (a.undo_status === 'manager_won') {
+                            notifs.push({
+                                id: `cafe_undo_won_${a.checkin_id}`,
+                                type: 'warning',
+                                icon: 'fa-rotate-left',
+                                title: `Quán đã hoàn tác check-out`,
+                                desc: `${a.cafe_name} · Vui lòng check-out lại khi rời quán`,
+                                timestamp: Date.now(),
+                                category: 'cafe_undo_won',
+                                recordId: a.checkin_id
+                            });
+                        } else if (a.undo_status === 'manager_won_locked') {
+                            notifs.push({
+                                id: `cafe_undo_locked_${a.checkin_id}`,
+                                type: 'info',
+                                icon: 'fa-lock',
+                                title: `Check-in đã bị khóa`,
+                                desc: `${a.cafe_name} · Sẽ tự đóng lúc giờ đóng cửa`,
+                                timestamp: Date.now(),
+                                category: 'cafe_undo_locked',
+                                recordId: a.checkin_id
+                            });
+                        }
+                    }
+                }
+            } catch (e) {
+                console.warn('Cafe undo notif error:', e);
+            }
 
             // Force load tasks nếu chưa có (fix bug mất task notif sau login)
             if (!tasks.confirmed || tasks.confirmed.length === 0) {
@@ -6793,6 +6846,85 @@ for (let attempt = 1; attempt <= 3; attempt++) {
             }
                     // Load bank info
             loadBankInfoFromServer();
+            // Load Telegram status
+            loadSalesTelegramStatus();
+        }
+
+        // ===== TELEGRAM: Load status cho Sales =====
+        async function loadSalesTelegramStatus() {
+            if (!currentEmail) return;
+            const btn = document.getElementById('connectTelegramBtn');
+            const txt = document.getElementById('connectTelegramText');
+            if (!btn || !txt) return;
+            try {
+                const url = `${CLOUD_FUNCTION_URL}?action=telegramGenSetupLink&email=${encodeURIComponent(currentEmail)}`;
+                const res = await fetch(url);
+                const data = await res.json();
+                if (data.status === 200) {
+                    if (data.already_linked) {
+                        txt.textContent = 'Đã kết nối Telegram';
+                        txt.setAttribute('data-i18n', 'telegram_linked');
+                        btn.style.opacity = '0.7';
+                    } else {
+                        txt.textContent = 'Kết nối Telegram';
+                        txt.setAttribute('data-i18n', 'connect_telegram');
+                        btn.style.opacity = '1';
+                    }
+                    // Cache deep link để dùng khi click
+                    window.__telegramDeepLink = data.deep_link;
+                }
+            } catch (e) {
+                console.warn('loadSalesTelegramStatus error:', e);
+            }
+        }
+
+        // ===== TELEGRAM: Connect cho Sales =====
+        async function connectSalesTelegram() {
+            if (!currentEmail) return;
+            try {
+                // Nếu đã có deep link cache → mở luôn
+                let deepLink = window.__telegramDeepLink;
+
+                // Refresh để lấy token mới nhất (tránh expired)
+                const url = `${CLOUD_FUNCTION_URL}?action=telegramGenSetupLink&email=${encodeURIComponent(currentEmail)}`;
+                const res = await fetch(url);
+                const data = await res.json();
+                if (data.status !== 200 || !data.deep_link) {
+                    showToast('Không tạo được link: ' + (data.message || 'unknown'), false);
+                    return;
+                }
+                deepLink = data.deep_link;
+
+                // Mở popup Telegram
+                const w = 500, h = 700;
+                const left = (screen.width - w) / 2;
+                const top = (screen.height - h) / 2;
+                const popup = window.open(deepLink, 'TelegramConnect', `width=${w},height=${h},left=${left},top=${top}`);
+
+                // Polling check status 3s/lần, tối đa 5 phút
+                let attempts = 0;
+                const maxAttempts = 100;
+                const pollInterval = setInterval(async () => {
+                    attempts++;
+                    try {
+                        const checkRes = await fetch(`${CLOUD_FUNCTION_URL}?action=telegramGenSetupLink&email=${encodeURIComponent(currentEmail)}`);
+                        const checkData = await checkRes.json();
+                        if (checkData.status === 200 && checkData.already_linked) {
+                            clearInterval(pollInterval);
+                            showToast('Đã kết nối Telegram', true);
+                            loadSalesTelegramStatus();
+                            if (popup && !popup.closed) popup.close();
+                            return;
+                        }
+                    } catch (e) {}
+                    if (attempts >= maxAttempts) {
+                        clearInterval(pollInterval);
+                    }
+                }, 3000);
+
+            } catch (e) {
+                showToast('Lỗi kết nối Telegram: ' + e.message, false);
+            }
         }
 
         async function loadBankInfoFromServer() {
@@ -7780,6 +7912,9 @@ const ccEmail1 = (sendToClient && clientEmailValue) ? clientEmailValue : '';
         if (saveProfileBtnEl) saveProfileBtnEl.addEventListener('click', saveUserProfile);
         const saveBankInfoBtnEl = document.getElementById('saveBankInfoBtn');
         if (saveBankInfoBtnEl) saveBankInfoBtnEl.addEventListener('click', saveBankInfo);
+        // Bind Telegram connect button
+        const connectTgBtn = document.getElementById('connectTelegramBtn');
+        if (connectTgBtn) connectTgBtn.addEventListener('click', connectSalesTelegram);
 
         const changePasswordBtnEl = document.getElementById('changePasswordBtn');
         if (changePasswordBtnEl) {
