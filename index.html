@@ -8722,11 +8722,24 @@ const ccEmail1 = (sendToClient && clientEmailValue) ? clientEmailValue : '';
 
             const bookingIdSafe = active.booking_id || '';
 
-            // ===== PHASE 5: Undo status =====
+            // ===== PHASE 5: Undo status (auto-resolve khi hết deadline) =====
             const undoStatus = active.undo_status || null;
-            const isPendingRespond = (undoStatus === 'pending_respond');
-            const isManagerWon = (undoStatus === 'manager_won');
-            const isLocked = (undoStatus === 'manager_won_locked');
+            const undoDeadlineMs = active.undo_deadline_ms || 0;
+            const deadlinePassed = undoDeadlineMs > 0 && Date.now() >= undoDeadlineMs;
+            const currentUndoCount = active.undo_count || 0;
+            const wouldBeLocked = currentUndoCount >= 2;
+
+            // 🚨 Auto-resolve: hết 5p → Manager thắng (đợi cron hay không cũng vậy)
+            //    - undo_count < 2 → manager_won (Sales check-out lại được)
+            //    - undo_count >= 2 → manager_won_locked (khóa)
+            let effectiveUndoStatus = undoStatus;
+            if (undoStatus === 'pending_respond' && deadlinePassed) {
+                effectiveUndoStatus = wouldBeLocked ? 'manager_won_locked' : 'manager_won';
+            }
+
+            const isPendingRespond = (effectiveUndoStatus === 'pending_respond');
+            const isManagerWon = (effectiveUndoStatus === 'manager_won');
+            const isLocked = (effectiveUndoStatus === 'manager_won_locked');
 
             // ✅ Early check-in notice
             const earlyNotice = active.is_early_checkin 
@@ -8756,15 +8769,7 @@ const ccEmail1 = (sendToClient && clientEmailValue) ? clientEmailValue : '';
                         </div>
                     </div>
                 `;
-            } else if (isWaitingCron) {
-                // Đã hết 5p, cron chưa resolve → banner vàng "Đang chờ xử lý"
-                undoBanner = `
-                    <div style="margin-bottom:12px; padding:12px 14px; background:#FFFBEB; border:1px solid #FDE68A; border-radius:12px; font-size:13px; color:#92400E; line-height:1.5;">
-                        <i class="fa-solid fa-hourglass-half"></i>
-                        <span>Đã hết thời gian phản hồi. Đang chờ hệ thống xử lý...</span>
-                    </div>
-                `;
-            } else if (isManagerWon) {
+                } else if (isManagerWon) {
                 undoBanner = `
                     <div style="margin-bottom:12px; padding:12px 14px; background:#FFFBEB; border:1px solid #FDE68A; border-radius:12px; font-size:13px; color:#92400E; line-height:1.5;">
                         <i class="fa-solid fa-rotate-left"></i>
@@ -8790,15 +8795,7 @@ const ccEmail1 = (sendToClient && clientEmailValue) ? clientEmailValue : '';
                         <span>${t('cafe_undo_pending_gps_btn')}</span>
                     </button>
                 `;
-            } else if (isWaitingCron) {
-                // Đã hết hạn, cron chưa resolve → disable, không cho bấm
-                actionBtnHtml = `
-                    <button class="cafe-btn-sm outline" disabled style="flex:1; opacity:0.6; cursor:not-allowed;">
-                        <i class="fa-solid fa-spinner fa-spin"></i>
-                        <span>Đang chờ xử lý...</span>
-                    </button>
-                `;
-            } else if (isLocked) {
+                } else if (isLocked) {
                 actionBtnHtml = `
                     <button class="cafe-btn-sm danger" disabled style="flex:1; opacity:0.6; cursor:not-allowed;">
                         <i class="fa-solid fa-lock"></i>
@@ -8860,20 +8857,14 @@ const ccEmail1 = (sendToClient && clientEmailValue) ? clientEmailValue : '';
                 </div>
             `;
 
-                setTimeout(() => {
+                            setTimeout(() => {
                 drawActiveQR(active.checkin_id);
                 startCheckoutWatcher(active);
 
                 // CHỈ start countdown khi còn trong 5p
-                // Nếu đã hết hạn + đang chờ cron → poll 15s, không countdown
+                // Hết deadline rồi → UI đã tự coi là manager_won/manager_won_locked
                 if (isPendingRespond && !deadlinePassed) {
                     startUndoCountdown(active.undo_deadline_ms);
-                } else if (isWaitingCron) {
-                    // Poll 15s để bắt kịp khi cron resolve
-                    if (window._waitingCronInterval) clearTimeout(window._waitingCronInterval);
-                    window._waitingCronInterval = setTimeout(() => {
-                        loadCafeCheckin();
-                    }, 15000);
                 }
             }, 100);
         }
