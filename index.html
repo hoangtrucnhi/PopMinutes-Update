@@ -9395,7 +9395,7 @@ const remaining = Math.max(0, Math.ceil((undoDeadlineMs - Date.now()) / 60000));
 
         function startUndoCountdown(undoDeadlineMs) {
             if (_undoCountdownInterval) clearInterval(_undoCountdownInterval);
-            if (!deadlineMs) return;
+            if (!undoDeadlineMs) return;
 
             let hasReloaded = false;
 
