@@ -8754,7 +8754,7 @@ const ccEmail1 = (sendToClient && clientEmailValue) ? clientEmailValue : '';
             let undoBanner = '';
             if (isPendingRespond && !deadlinePassed) {
                 // Còn trong 5p → banner đỏ + countdown + nút GPS
-                const remaining = Math.max(0, Math.ceil((deadlineMs - Date.now()) / 60000));
+const remaining = Math.max(0, Math.ceil((undoDeadlineMs - Date.now()) / 60000));
                 undoBanner = `
                     <div style="margin-bottom:12px; padding:12px 14px; background:#FEF2F2; border:1px solid #FECACA; border-radius:12px; font-size:13px; color:#991B1B; line-height:1.5;">
                         <div style="display:flex; gap:8px; align-items:flex-start; margin-bottom:8px;">
@@ -9406,7 +9406,7 @@ const ccEmail1 = (sendToClient && clientEmailValue) ? clientEmailValue : '';
                     _undoCountdownInterval = null;
                     return;
                 }
-                const remaining = Math.max(0, Math.ceil((deadlineMs - Date.now()) / 60000));
+const remaining = Math.max(0, Math.ceil((undoDeadlineMs - Date.now()) / 60000));
                 if (remaining <= 0) {
                     el.textContent = t('cafe_undo_deadline_expired');
                     clearInterval(_undoCountdownInterval);
