@@ -6087,6 +6087,19 @@ if ('serviceWorker' in navigator) {
                     loadNotificationsPage();
                 }
             }
+
+            // 🚨 FIX: nếu đang mở cafe page + push category liên quan undo/task → reload ngay
+            const cafePage = document.getElementById('cafe-page');
+            const cat = event.data.category || '';
+            if (cafePage && !cafePage.classList.contains('hidden')) {
+                if (cat === 'undo_request' || cat === 'undo_timeout' ||
+                    cat === 'cafe_undo' || cat === 'cafe_undo_won' || cat === 'cafe_undo_locked') {
+                    if (typeof loadCafeCheckin === 'function' && cafeCurrentTab === 'checkin') {
+                        console.log('🔔 Push undo → reload cafe check-in');
+                        loadCafeCheckin();
+                    }
+                }
+            }
         }
 
         // ========== CLICK NOTIFICATION (HYBRID) ==========
@@ -9530,9 +9543,25 @@ const remaining = Math.max(0, Math.ceil((undoDeadlineMs - Date.now()) / 60000));
                             }).toString()
                         });
                         const data = await res.json();
+                                                const data = await res.json();
                         if (data.status === 200) {
                             showToast(t('cafe_checkout_success_full'), true);
                             setTimeout(loadCafeCheckin, 500);
+                        } else if (data.code === 'CHECKIN_LOCKED') {
+                            // 🚨 BE đã khóa → cập nhật local state + re-render ngay
+                            showToast(t('cafe_undo_locked_alert') || 'Check-in đã bị khóa. Vui lòng chờ giờ đóng cửa.', false);
+                            const active = window.__currentActiveCheckin;
+                            if (active) {
+                                active.undo_status = 'manager_won_locked';
+                                active.undo_count = Math.max(active.undo_count || 0, 2);
+                                renderActiveCheckin(active);
+                            } else {
+                                setTimeout(loadCafeCheckin, 300);
+                            }
+                        } else if (data.code === 'CHECKIN_NOT_CONFIRMED' || data.code === 'CAFE_NOT_YET_DUE') {
+                            // Time/GPS/confirm chưa đủ điều kiện → reload state mới nhất
+                            showToast(data.code ? t(data.code, data.params) : (data.message || ''), false);
+                            setTimeout(loadCafeCheckin, 300);
                         } else {
                             showToast(data.code ? t(data.code, data.params) : (data.message || t('cafe_unknown_error')), false);
                         }
