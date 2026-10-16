@@ -3712,11 +3712,7 @@
                     </button>
                 </div>
 
-                <div class="profile-danger-zone" style="margin-bottom:16px;">
-                    <button class="profile-danger-btn" id="connectTelegramBtn" style="margin-bottom:10px;">
-                        <i class="fa-brands fa-telegram" style="color:#229ED9;"></i>
-                        <span id="connectTelegramText" data-i18n="connect_telegram">Kết nối Telegram</span>
-                    </button>
+                <div class="profile-danger-zone">
                     <button class="profile-danger-btn" id="changePasswordBtn">
                         <span data-i18n="change_pw_menu">Đổi mật khẩu</span>
                     </button>
@@ -4647,6 +4643,21 @@
                     <p style="font-size: 12.5px; color: var(--muted); margin: 0 0 8px 34px; line-height: 1.5;" data-i18n="notif_master_hint">
                         Bật để nhận thông báo đẩy trên thiết bị này
                     </p>
+
+                    <!-- Telegram toggle -->
+                    <div class="settings-item" style="border-bottom: none; padding-top: 4px; padding-bottom: 4px;">
+                        <div class="info">
+                            <i class="fa-brands fa-telegram" style="color:#229ED9;"></i>
+                            <span class="name" data-i18n="notif_telegram_label">Thông báo qua Telegram</span>
+                        </div>
+                        <label class="notif-switch">
+                            <input type="checkbox" id="notifTelegramToggle">
+                            <span class="notif-slider"></span>
+                        </label>
+                    </div>
+                    <p style="font-size: 12.5px; color: var(--muted); margin: 0 0 8px 34px; line-height: 1.5;" data-i18n="notif_telegram_hint">
+                        Nhận thông báo hoàn tác check-in qua Telegram (đáng tin cậy hơn push)
+                    </p>
                 </div>
 
                 <!-- Divider -->
@@ -5045,6 +5056,10 @@
                 notif_sub_settings: 'Biên bản, task đến hạn...',
                 notif_push_master: 'Thông báo đẩy',
                 notif_master_hint: 'Bật để nhận thông báo đẩy trên thiết bị này',
+                notif_telegram_label: 'Thông báo qua Telegram',
+                notif_telegram_hint: 'Nhận thông báo hoàn tác check-in qua Telegram (đáng tin cậy hơn push)',
+                telegram_connected: 'Đã kết nối Telegram',
+                telegram_disconnected: 'Đã ngắt kết nối Telegram',
                 notif_types_title: 'Loại thông báo',
                 notif_type_all: 'Toàn bộ',
                 notif_type_record_done: 'Biên bản thành công',
@@ -5550,6 +5565,10 @@
                 notif_sub_settings: 'Minutes, due tasks...',
                 notif_push_master: 'Push notifications',
                 notif_master_hint: 'Enable to receive push notifications on this device',
+                notif_telegram_label: 'Telegram notifications',
+                notif_telegram_hint: 'Receive undo notifications via Telegram (more reliable than push)',
+                telegram_connected: 'Telegram connected',
+                telegram_disconnected: 'Telegram disconnected',
                 notif_types_title: 'Notification types',
                 notif_type_all: 'All',
                 notif_type_record_done: 'Minutes completed',
@@ -6846,8 +6865,6 @@ for (let attempt = 1; attempt <= 3; attempt++) {
             }
                     // Load bank info
             loadBankInfoFromServer();
-            // Load Telegram status
-            loadSalesTelegramStatus();
         }
 
         // ===== TELEGRAM: Load status cho Sales =====
@@ -6878,22 +6895,38 @@ for (let attempt = 1; attempt <= 3; attempt++) {
             }
         }
 
-        // ===== TELEGRAM: Connect cho Sales =====
-        async function connectSalesTelegram() {
-            if (!currentEmail) return;
+        // ===== TELEGRAM: Load status cho Sales (đồng bộ toggle) =====
+        async function loadSalesTelegramStatus() {
+            if (!currentEmail) return { linked: false };
             try {
-                // Nếu đã có deep link cache → mở luôn
-                let deepLink = window.__telegramDeepLink;
+                const url = `${CLOUD_FUNCTION_URL}?action=telegramGenSetupLink&email=${encodeURIComponent(currentEmail)}`;
+                const res = await fetch(url);
+                const data = await res.json();
+                if (data.status === 200) {
+                    const tgToggle = document.getElementById('notifTelegramToggle');
+                    if (tgToggle) tgToggle.checked = !!data.already_linked;
+                    window.__telegramDeepLink = data.deep_link;
+                    return { linked: !!data.already_linked };
+                }
+            } catch (e) {
+                console.warn('loadSalesTelegramStatus error:', e);
+            }
+            return { linked: false };
+        }
 
-                // Refresh để lấy token mới nhất (tránh expired)
+        // ===== TELEGRAM: Connect cho Sales (trả về true nếu thành công) =====
+        async function connectSalesTelegram() {
+            if (!currentEmail) return false;
+            try {
+                // Refresh để lấy token mới nhất
                 const url = `${CLOUD_FUNCTION_URL}?action=telegramGenSetupLink&email=${encodeURIComponent(currentEmail)}`;
                 const res = await fetch(url);
                 const data = await res.json();
                 if (data.status !== 200 || !data.deep_link) {
                     showToast('Không tạo được link: ' + (data.message || 'unknown'), false);
-                    return;
+                    return false;
                 }
-                deepLink = data.deep_link;
+                const deepLink = data.deep_link;
 
                 // Mở popup Telegram
                 const w = 500, h = 700;
@@ -6901,32 +6934,59 @@ for (let attempt = 1; attempt <= 3; attempt++) {
                 const top = (screen.height - h) / 2;
                 const popup = window.open(deepLink, 'TelegramConnect', `width=${w},height=${h},left=${left},top=${top}`);
 
-                // Polling check status 3s/lần, tối đa 5 phút
-                let attempts = 0;
-                const maxAttempts = 100;
-                const pollInterval = setInterval(async () => {
-                    attempts++;
-                    try {
-                        const checkRes = await fetch(`${CLOUD_FUNCTION_URL}?action=telegramGenSetupLink&email=${encodeURIComponent(currentEmail)}`);
-                        const checkData = await checkRes.json();
-                        if (checkData.status === 200 && checkData.already_linked) {
+                // Trả về Promise resolve khi user hoàn tất (hoặc timeout)
+                return new Promise((resolve) => {
+                    let attempts = 0;
+                    const maxAttempts = 100;   // ~5 phút
+                    const pollInterval = setInterval(async () => {
+                        attempts++;
+                        try {
+                            const checkRes = await fetch(`${CLOUD_FUNCTION_URL}?action=telegramGenSetupLink&email=${encodeURIComponent(currentEmail)}`);
+                            const checkData = await checkRes.json();
+                            if (checkData.status === 200 && checkData.already_linked) {
+                                clearInterval(pollInterval);
+                                showToast('Đã kết nối Telegram', true);
+                                if (popup && !popup.closed) popup.close();
+                                resolve(true);
+                                return;
+                            }
+                        } catch (e) {}
+                        if (attempts >= maxAttempts) {
                             clearInterval(pollInterval);
-                            showToast('Đã kết nối Telegram', true);
-                            loadSalesTelegramStatus();
-                            if (popup && !popup.closed) popup.close();
-                            return;
+                            resolve(false);
                         }
-                    } catch (e) {}
-                    if (attempts >= maxAttempts) {
-                        clearInterval(pollInterval);
-                    }
-                }, 3000);
-
+                    }, 3000);
+                });
             } catch (e) {
                 showToast('Lỗi kết nối Telegram: ' + e.message, false);
+                return false;
             }
         }
 
+        // ===== TELEGRAM: Disconnect cho Sales =====
+        async function disconnectSalesTelegram() {
+            if (!currentEmail) return false;
+            try {
+                const res = await fetch(CLOUD_FUNCTION_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: new URLSearchParams({
+                        action: 'telegramDisconnectSales',
+                        email: currentEmail
+                    }).toString()
+                });
+                const data = await res.json();
+                if (data.status === 200) {
+                    showToast('Đã ngắt kết nối Telegram', true);
+                    return true;
+                }
+                showToast('Lỗi ngắt kết nối: ' + (data.message || 'unknown'), false);
+                return false;
+            } catch (e) {
+                showToast('Lỗi: ' + e.message, false);
+                return false;
+            }
+        }
         async function loadBankInfoFromServer() {
             if (!currentSalesId) {
                 return;
@@ -7912,9 +7972,6 @@ const ccEmail1 = (sendToClient && clientEmailValue) ? clientEmailValue : '';
         if (saveProfileBtnEl) saveProfileBtnEl.addEventListener('click', saveUserProfile);
         const saveBankInfoBtnEl = document.getElementById('saveBankInfoBtn');
         if (saveBankInfoBtnEl) saveBankInfoBtnEl.addEventListener('click', saveBankInfo);
-        // Bind Telegram connect button
-        const connectTgBtn = document.getElementById('connectTelegramBtn');
-        if (connectTgBtn) connectTgBtn.addEventListener('click', connectSalesTelegram);
 
         const changePasswordBtnEl = document.getElementById('changePasswordBtn');
         if (changePasswordBtnEl) {
@@ -12046,6 +12103,26 @@ if (taskSearchBtn && taskSearchInput && searchInlineWrap) {
                         if (!ok) this.checked = false;
                     } else {
                         await unregisterPushNotifications();
+                    }
+                };
+            }
+            // Telegram toggle state
+            await loadSalesTelegramStatus();
+            const tgToggle = document.getElementById('notifTelegramToggle');
+            if (tgToggle) {
+                tgToggle.onchange = async function() {
+                    if (this.checked) {
+                        // Kết nối: mở Telegram flow
+                        const ok = await connectSalesTelegram();
+                        if (!ok) this.checked = false;
+                    } else {
+                        // Ngắt kết nối
+                        const confirmed = confirm('Ngắt kết nối Telegram? Bạn sẽ không nhận được thông báo hoàn tác qua Telegram nữa.');
+                        if (!confirmed) {
+                            this.checked = true;
+                            return;
+                        }
+                        await disconnectSalesTelegram();
                     }
                 };
             }
