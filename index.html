@@ -9393,7 +9393,7 @@ const remaining = Math.max(0, Math.ceil((undoDeadlineMs - Date.now()) / 60000));
         // ================================================================
         let _undoCountdownInterval = null;
 
-        function startUndoCountdown(deadlineMs) {
+        function startUndoCountdown(undoDeadlineMs) {
             if (_undoCountdownInterval) clearInterval(_undoCountdownInterval);
             if (!deadlineMs) return;
 
