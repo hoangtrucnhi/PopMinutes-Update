@@ -6880,34 +6880,6 @@ for (let attempt = 1; attempt <= 3; attempt++) {
             loadBankInfoFromServer();
         }
 
-        // ===== TELEGRAM: Load status cho Sales =====
-        async function loadSalesTelegramStatus() {
-            if (!currentEmail) return;
-            const btn = document.getElementById('connectTelegramBtn');
-            const txt = document.getElementById('connectTelegramText');
-            if (!btn || !txt) return;
-            try {
-                const url = `${CLOUD_FUNCTION_URL}?action=telegramGenSetupLink&email=${encodeURIComponent(currentEmail)}`;
-                const res = await fetch(url);
-                const data = await res.json();
-                if (data.status === 200) {
-                    if (data.already_linked) {
-                        txt.textContent = 'Đã kết nối Telegram';
-                        txt.setAttribute('data-i18n', 'telegram_linked');
-                        btn.style.opacity = '0.7';
-                    } else {
-                        txt.textContent = 'Kết nối Telegram';
-                        txt.setAttribute('data-i18n', 'connect_telegram');
-                        btn.style.opacity = '1';
-                    }
-                    // Cache deep link để dùng khi click
-                    window.__telegramDeepLink = data.deep_link;
-                }
-            } catch (e) {
-                console.warn('loadSalesTelegramStatus error:', e);
-            }
-        }
-
         // ===== TELEGRAM: Load status cho Sales (đồng bộ toggle) =====
         async function loadSalesTelegramStatus() {
             if (!currentEmail) return { linked: false };
@@ -8630,8 +8602,6 @@ const ccEmail1 = (sendToClient && clientEmailValue) ? clientEmailValue : '';
             }, 15000);
 
             container.innerHTML = `<p class="cafe-loading">${t('loading')}</p>`;
-
-            try {
 
             try {
                 const url = `${CLOUD_FUNCTION_URL}?action=cafeCheckInGetActive&salesEmail=${encodeURIComponent(currentEmail)}`;
