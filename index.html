@@ -9543,7 +9543,6 @@ const remaining = Math.max(0, Math.ceil((undoDeadlineMs - Date.now()) / 60000));
                             }).toString()
                         });
                         const data = await res.json();
-                                                const data = await res.json();
                         if (data.status === 200) {
                             showToast(t('cafe_checkout_success_full'), true);
                             setTimeout(loadCafeCheckin, 500);
