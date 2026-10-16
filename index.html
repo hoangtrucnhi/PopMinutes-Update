@@ -8614,15 +8614,24 @@ const ccEmail1 = (sendToClient && clientEmailValue) ? clientEmailValue : '';
                 async function loadCafeCheckin() {
             const container = document.getElementById('cafeCheckinContent');
             if (!container) return;
-            container.innerHTML = `<p class="cafe-loading">${t('loading')}</p>`;
 
-            // Guard: nếu đang có request load trước đó chưa xong → bỏ qua
+            // Guard ĐẶT TRƯỚC khi set loading HTML (tránh UI treo khi bị skip)
             if (window._loadCafeCheckinBusy) {
                 console.log('[loadCafeCheckin] Skip — đang load');
                 return;
             }
             window._loadCafeCheckinBusy = true;
-            setTimeout(() => { window._loadCafeCheckinBusy = false; }, 5000);
+
+            // Safety: tự reset sau 15s phòng trường hợp request treo
+            if (window._loadCafeCheckinSafetyTimer) clearTimeout(window._loadCafeCheckinSafetyTimer);
+            window._loadCafeCheckinSafetyTimer = setTimeout(() => {
+                window._loadCafeCheckinBusy = false;
+                console.warn('[loadCafeCheckin] Safety timer reset guard sau 15s');
+            }, 15000);
+
+            container.innerHTML = `<p class="cafe-loading">${t('loading')}</p>`;
+
+            try {
 
             try {
                 const url = `${CLOUD_FUNCTION_URL}?action=cafeCheckInGetActive&salesEmail=${encodeURIComponent(currentEmail)}`;
@@ -8652,6 +8661,13 @@ const ccEmail1 = (sendToClient && clientEmailValue) ? clientEmailValue : '';
             } catch (e) {
                 console.error('Load checkin error:', e);
                 container.innerHTML = `<div class="cafe-empty"><i class="fa-solid fa-circle-exclamation"></i>${t('cafe_loading_error')}</div>`;
+            } finally {
+                // LUÔN reset guard + clear safety timer
+                window._loadCafeCheckinBusy = false;
+                if (window._loadCafeCheckinSafetyTimer) {
+                    clearTimeout(window._loadCafeCheckinSafetyTimer);
+                    window._loadCafeCheckinSafetyTimer = null;
+                }
             }
         }
 
