@@ -8750,10 +8750,7 @@ const ccEmail1 = (sendToClient && clientEmailValue) ? clientEmailValue : '';
                 : '';
 
             // ===== PHASE 5: Banner theo undo status =====
-            const deadlineMs = active.undo_deadline_ms || 0;
-            const deadlinePassed = deadlineMs > 0 && Date.now() >= deadlineMs;
-            const isWaitingCron = isPendingRespond && deadlinePassed;
-
+            // (deadlinePassed + isPendingRespond đã khai báo ở block undo status phía trên)
             let undoBanner = '';
             if (isPendingRespond && !deadlinePassed) {
                 // Còn trong 5p → banner đỏ + countdown + nút GPS
