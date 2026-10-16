@@ -8737,6 +8737,11 @@ const ccEmail1 = (sendToClient && clientEmailValue) ? clientEmailValue : '';
                 effectiveUndoStatus = wouldBeLocked ? 'manager_won_locked' : 'manager_won';
             }
 
+            // 🚨 FIX: nếu undo_count >= 2 mà status chưa locked → coi như locked luôn
+            if (currentUndoCount >= 2 && effectiveUndoStatus !== 'manager_won_locked') {
+                effectiveUndoStatus = 'manager_won_locked';
+            }
+
             const isPendingRespond = (effectiveUndoStatus === 'pending_respond');
             const isManagerWon = (effectiveUndoStatus === 'manager_won');
             const isLocked = (effectiveUndoStatus === 'manager_won_locked');
@@ -9497,10 +9502,14 @@ const remaining = Math.max(0, Math.ceil((undoDeadlineMs - Date.now()) / 60000));
         }
 
         async function submitCheckOut(checkinId) {
-            // 🚨 Guard: nếu bị lock → chặn
+            // 🚨 Guard: nếu bị lock hoặc đã undo 2 lần → chặn
             const active = window.__currentActiveCheckin;
             if (active && active.undo_status === 'manager_won_locked') {
                 showToast(t('cafe_undo_locked_alert'), false);
+                return;
+            }
+            if (active && (active.undo_count || 0) >= 2) {
+                showToast('Check-in đã bị khóa sau 2 lần hoàn tác. Vui lòng chờ giờ đóng cửa.', false);
                 return;
             }
 
