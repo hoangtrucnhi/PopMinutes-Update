@@ -4835,6 +4835,14 @@
         // ========================================================================
         const translations = {
             vi: {
+                // ===== CAFE NOTIFICATIONS (VI) =====
+                notif_cafe_undo_title: 'Quán báo bạn còn ngồi',
+                notif_cafe_undo_desc_pending: '{cafe}{table} · Còn {min} phút để xác thực GPS',
+                notif_cafe_undo_won_title: 'Quán đã hoàn tác check-out',
+                notif_cafe_undo_desc_won: '{cafe}{table} · Vui lòng check-out lại khi rời quán',
+                notif_cafe_undo_locked_title: 'Check-in đã bị khóa',
+                notif_cafe_undo_desc_locked: '{cafe}{table} · Sẽ tự đóng lúc giờ đóng cửa',
+                notif_type_booking_end_reminder: 'Nhắc nhở sắp hết giờ check-out',
                 login_title: 'Smart Meeting Minutes AI',
                 login_sub: 'Hệ thống xử lý biên bản cuộc họp tối giản dành cho chuyên viên Sales',
                 login_heading: 'Đăng nhập',
@@ -5343,6 +5351,14 @@
                 cafe_table_label: 'Bàn',
                 },
             en: {
+                // ===== CAFE NOTIFICATIONS (EN) =====
+                notif_cafe_undo_title: 'Cafe reports you are still there',
+                notif_cafe_undo_desc_pending: '{cafe}{table} · {min} min left to verify GPS',
+                notif_cafe_undo_won_title: 'Cafe has undone check-out',
+                notif_cafe_undo_desc_won: '{cafe}{table} · Please check-out again when you leave',
+                notif_cafe_undo_locked_title: 'Check-in is locked',
+                notif_cafe_undo_desc_locked: '{cafe}{table} · Will auto-close at closing time',
+                notif_type_booking_end_reminder: 'Check-out reminder (10 min left)',
                 login_title: 'Smart Meeting Minutes AI',
                 login_sub: 'Minimal meeting minutes processing system for Sales professionals',
                 login_heading: 'Login',
@@ -6445,6 +6461,7 @@ let currentEmail = "",
                     const undoData = await undoRes.json();
                     if (undoData.status === 200 && undoData.active) {
                         const a = undoData.active;
+                        const tableInfo = a.table_number ? (currentLang === 'vi' ? ` · Bàn ${a.table_number}` : ` · Table ${a.table_number}`) : '';
                         if (a.undo_status === 'pending_respond') {
                             const deadline = a.undo_deadline_ms || 0;
                             const remainingMin = Math.max(0, Math.ceil((deadline - Date.now()) / 60000));
@@ -6452,10 +6469,32 @@ let currentEmail = "",
                                 id: `cafe_undo_${a.checkin_id}_${deadline}`,
                                 type: 'danger',
                                 icon: 'fa-triangle-exclamation',
-                                title: `Quán báo bạn còn ngồi`,
-                                desc: `${a.cafe_name}${a.table_number ? ' · Bàn ' + a.table_number : ''} · Còn ${remainingMin} phút để xác thực GPS`,
+                                title: t('notif_cafe_undo_title'),
+                                desc: t('notif_cafe_undo_desc_pending', { cafe: a.cafe_name, table: tableInfo, min: remainingMin }),
                                 timestamp: deadline,
                                 category: 'cafe_undo',
+                                recordId: a.checkin_id
+                            });
+                        } else if (a.undo_status === 'manager_won') {
+                            notifs.push({
+                                id: `cafe_undo_won_${a.checkin_id}`,
+                                type: 'warning',
+                                icon: 'fa-rotate-left',
+                                title: t('notif_cafe_undo_won_title'),
+                                desc: t('notif_cafe_undo_desc_won', { cafe: a.cafe_name, table: tableInfo }),
+                                timestamp: Date.now(),
+                                category: 'cafe_undo_won',
+                                recordId: a.checkin_id
+                            });
+                        } else if (a.undo_status === 'manager_won_locked') {
+                            notifs.push({
+                                id: `cafe_undo_locked_${a.checkin_id}`,
+                                type: 'info',
+                                icon: 'fa-lock',
+                                title: t('notif_cafe_undo_locked_title'),
+                                desc: t('notif_cafe_undo_desc_locked', { cafe: a.cafe_name, table: tableInfo }),
+                                timestamp: Date.now(),
+                                category: 'cafe_undo_locked',
                                 recordId: a.checkin_id
                             });
                         } else if (a.undo_status === 'manager_won') {
@@ -12032,7 +12071,8 @@ if (taskSearchBtn && taskSearchInput && searchInlineWrap) {
         const NOTIF_TYPES = [
             { key: 'record_done',  i18n: 'notif_type_record_done'  },
             { key: 'task_overdue', i18n: 'notif_type_task_overdue' },
-            { key: 'task_due_24h', i18n: 'notif_type_task_due_24h' }
+            { key: 'task_due_24h', i18n: 'notif_type_task_due_24h' },
+            { key: 'booking_end_reminder', i18n: 'notif_type_booking_end_reminder' }
         ];
 
         let notifPrefsState = {
