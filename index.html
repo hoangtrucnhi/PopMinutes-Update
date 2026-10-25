@@ -8927,6 +8927,7 @@ const remaining = Math.max(0, Math.ceil((undoDeadlineMs - Date.now()) / 60000));
             // Polling mỗi 20s: refresh active check-in để bắt manager_confirmed_at
             if (window._syncActiveInterval) clearInterval(window._syncActiveInterval);
             window._syncActiveInterval = setInterval(async () => {
+                if (document.hidden) return; // 😴 Tab ẩn → bỏ qua không gọi API
                 try {
                     const r = await fetch(CLOUD_FUNCTION_URL + '?action=cafeCheckInGetActive&salesEmail=' + encodeURIComponent(currentEmail));
                     const j = await r.json();
@@ -11857,6 +11858,7 @@ function deleteConfirmedTask(id, btn) {
             let attempts = 0;
             const maxAttempts = 60;
             taskPollingInterval = setInterval(async () => {
+                if (document.hidden) return; // 😴 Tab ẩn → đóng băng attempts
                 attempts++;
                 await fetchTasksFromGAS();
                 if (tasks.suggested.length > 0 || tasks.confirmed.length > 0 || attempts >= maxAttempts) {
@@ -12504,6 +12506,21 @@ if (taskSearchBtn && taskSearchInput && searchInlineWrap) {
         // ========================================================================
         //  KHỞI CHẠY
         // ========================================================================
+        // ============================================================
+        //  VISIBILITY CHANGE — Sales App
+        // ============================================================
+        document.addEventListener('visibilitychange', function() {
+            if (!document.hidden) {
+                console.log('👀 Sales Tab visible → refresh dữ liệu');
+                // Nếu đang mở màn hình check-in quán → load lại trạng thái
+                if (typeof cafeCurrentTab !== 'undefined' && cafeCurrentTab === 'checkin' && typeof loadCafeCheckin === 'function') {
+                    loadCafeCheckin();
+                }
+            } else {
+                console.log('😴 Sales Tab hidden → tạm dừng polling');
+            }
+        });
+
         document.addEventListener('DOMContentLoaded', async function() {
             // ================================================================
             //  RESET PASSWORD từ URL ?reset=xxx
