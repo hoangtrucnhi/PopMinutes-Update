@@ -8926,8 +8926,10 @@ const remaining = Math.max(0, Math.ceil((undoDeadlineMs - Date.now()) / 60000));
 
             // Polling mỗi 20s: refresh active check-in để bắt manager_confirmed_at
             if (window._syncActiveInterval) clearInterval(window._syncActiveInterval);
+                        // Polling mỗi 20s: refresh active check-in để bắt manager_confirmed_at
+            if (window._syncActiveInterval) clearInterval(window._syncActiveInterval);
             window._syncActiveInterval = setInterval(async () => {
-                if (document.hidden) return; // 😴 Tab ẩn → bỏ qua không gọi API
+                if (document.hidden) return; 
                 try {
                     const r = await fetch(CLOUD_FUNCTION_URL + '?action=cafeCheckInGetActive&salesEmail=' + encodeURIComponent(currentEmail));
                     const j = await r.json();
@@ -8936,14 +8938,17 @@ const remaining = Math.max(0, Math.ceil((undoDeadlineMs - Date.now()) / 60000));
                     const oldConfirmed = _activeCheckinCache?.manager_confirmed_at;
                     const newConfirmed = j.active.manager_confirmed_at;
 
-                    // Nếu manager vừa confirm → re-render
+                    // Cập nhật cache mới nhất
+                    _activeCheckinCache = { ..._activeCheckinCache, ...j.active };
+
+                    // Nếu manager vừa confirm -> re-render toàn bộ giao diện
                     if (!oldConfirmed && newConfirmed) {
                         console.log('[Sync] Manager vừa confirm → re-render');
-                        _activeCheckinCache = { ..._activeCheckinCache, ...j.active };
                         renderActiveCheckin(_activeCheckinCache);
                     } else {
-                        // Vẫn update cache (elapsed_hours mới, etc.)
-                        _activeCheckinCache = { ..._activeCheckinCache, ...j.active };
+                        // 🚨 QUAN TRỌNG: Nếu đã confirm rồi, chỉ cần check lại điều kiện hiện nút Check-out
+                        // (Dành cho trường hợp cậu sửa giờ trên Firestore, nó sẽ tự cập nhật)
+                        updateCheckoutEligibility();
                     }
                 } catch (e) {
                     console.warn('[Sync] Poll error:', e.message);
