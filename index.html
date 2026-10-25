@@ -9354,6 +9354,7 @@ const remaining = Math.max(0, Math.ceil((undoDeadlineMs - Date.now()) / 60000));
                 const params = {
                     action: 'cafeCheckIn',
                     salesEmail: currentEmail,
+                    salesName: currentSalesName, // 🚨 Gửi kèm tên Sales
                     enterpriseId: enterpriseId,
                     cafeId: cafeId,
                     lat: String(lat),
@@ -9679,7 +9680,7 @@ const remaining = Math.max(0, Math.ceil((undoDeadlineMs - Date.now()) / 60000));
             const guestInput = document.getElementById('cafeBmGuest');
             const noteInput = document.getElementById('cafeBmNote');
 
-            guestInput.value = '';
+            guestInput.value = currentSalesName || 'Khách của Sales';
             noteInput.value = '';
             document.getElementById('cafeBmCafePreview').classList.remove('active');
 
