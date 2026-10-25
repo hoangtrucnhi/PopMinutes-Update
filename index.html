@@ -9124,8 +9124,27 @@ const remaining = Math.max(0, Math.ceil((undoDeadlineMs - Date.now()) / 60000));
                     container.innerHTML = `<div class="cafe-empty"><i class="fa-solid fa-clock-rotate-left"></i>${t('cafe_empty_history')}</div>`;
                     return;
                 }
-                let html = '';
+                                let html = '';
+                checkins.forEach(c => {
+                    const badgeClass = c.status === 'active' ? 'active' : 'completed';
+                    html += `
+                        <div class="cafe-card">
+                            <div class="cafe-card-header">
+                                <div class="cafe-card-title">
+                                    <i class="fa-solid fa-store"></i>
+                                    ${escapeHtml(c.cafe_name)}
+                                </div>
+                                <span class="cafe-badge ${badgeClass}">${c.status === 'active' ? t('cafe_status_checked_in') : t('cafe_status_completed')}</span>
+                            </div>
+                            <div class="cafe-card-meta">
+                                <div><i class="fa-regular fa-clock"></i> <span>In: <b>${fmtCafeDateTime(c.check_in_at)}</b></span></div>
                                 ${c.check_out_ms ? `<div><i class="fa-regular fa-clock"></i> <span>Out: <b>${fmtCafeDateTime(c.check_out_ms)}</b></span></div>` : ''}
+                                ${c.billable_hours !== null ? `<div><i class="fa-solid fa-hourglass-half"></i> <span><b>${c.billable_hours}h</b> • ${fmtCafeMoney(c.revenue_amount)}</span></div>` : ''}
+                                ${c.auto_checkout ? `<div style="color:#B45309;"><i class="fa-solid fa-triangle-exclamation"></i> <span>Auto check-out</span></div>` : ''}
+                            </div>
+                        </div>
+                    `;
+                });
                 container.innerHTML = html;
             } catch (e) {
                 console.error('Load history error:', e);
