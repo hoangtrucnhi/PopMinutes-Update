@@ -8893,6 +8893,7 @@ const remaining = Math.max(0, Math.ceil((undoDeadlineMs - Date.now()) / 60000));
                     <div class="cafe-active-meta">
                         <div><i class="fa-regular fa-clock"></i> In: <b>${fmtCafeDateTime(active.check_in_at)}</b></div>
                         ${active.table_number ? `<div><i class="fa-solid fa-chair"></i> ${t('cafe_table_label')}: <b>${active.table_number}</b></div>` : ''}
+                        ${active.guest_count > 1 ? `<div><i class="fa-solid fa-users"></i> Tổng số ghế giữ chỗ: <b>${active.guest_count} ghế</b></div>` : ''}
                         <div><i class="fa-solid fa-money-bill"></i> <b>${fmtCafeMoney(active.price_per_hour_snapshot)}</b>/h</div>
                         <div><i class="fa-solid fa-lock"></i> ${t('cafe_deposit_label')}: <b>${active.deposit_hold || 1}h</b></div>
                     </div>
