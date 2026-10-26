@@ -9704,11 +9704,6 @@ const remaining = Math.max(0, Math.ceil((undoDeadlineMs - Date.now()) / 60000));
         function toggleGuestCount() {
             const isChecked = document.getElementById('hasGuestCheckbox').checked;
             document.getElementById('guestCountWrap').style.display = isChecked ? 'block' : 'none';
-            if (!isChecked) {
-                document.getElementById('peakHourWarning').style.display = 'none';
-            } else {
-                checkPeakHourWarning();
-            }
         }
 
         function checkPeakHourWarning() {
