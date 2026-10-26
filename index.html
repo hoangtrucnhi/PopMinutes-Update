@@ -9797,6 +9797,7 @@ const remaining = Math.max(0, Math.ceil((undoDeadlineMs - Date.now()) / 60000));
             const endVal = document.getElementById('cafeBmEnd').value;
             const guestName = document.getElementById('cafeBmGuest').value.trim();
             const note = document.getElementById('cafeBmNote').value.trim();
+            const guestCount = document.getElementById('cafeBmGuestCount').value;
 
             // Validate
             if (!cafeId) {
@@ -9857,7 +9858,8 @@ const remaining = Math.max(0, Math.ceil((undoDeadlineMs - Date.now()) / 60000));
                         startTime: String(startMs),
                         endTime: String(endMs),
                         guestName: guestName,
-                        note: note
+                        note: note,
+                        guestCount: guestCount // 🚨 THÊM DÒNG NÀY
                     }).toString()
                 });
                 const data = await res.json();
