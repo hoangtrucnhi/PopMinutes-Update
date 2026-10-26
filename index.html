@@ -8885,7 +8885,20 @@ const remaining = Math.max(0, Math.ceil((undoDeadlineMs - Date.now()) / 60000));
                             <canvas id="cafeActiveQR" width="400" height="400"></canvas>
                         </div>
                     </div>
-
+                    <!-- Nút báo khách đến (chỉ hiện nếu đi >1 người và chưa xác nhận) -->
+                    ${(active.guest_count > 1 && active.guest_arrival_status === 'WAITING') ? `
+                        <div style="margin-bottom: 12px;">
+                            <button class="cafe-btn-sm primary" style="width: 100%; background: #D97706; border-color: #D97706;" onclick="submitConfirmGuestArrival('${escapeHtml(active.checkin_id)}')">
+                                <i class="fa-solid fa-user-check"></i> Khách đi cùng đã đến
+                            </button>
+                        </div>
+                    ` : ''}
+                    
+                    ${(active.guest_arrival_status === 'PENDING_MANAGER_CONFIRM') ? `
+                        <div style="margin-bottom: 12px; text-align: center; font-size: 13px; color: #B45309; font-weight: 600;">
+                            <i class="fa-solid fa-spinner fa-spin"></i> Đang chờ quán xác nhận khách...
+                        </div>
+                    ` : ''}
                     <div class="cafe-active-actions">
                         <button class="cafe-btn-sm outline" onclick="openExtendModal('${escapeHtml(active.checkin_id)}', '${escapeHtml(bookingIdSafe)}')">
                             <span>${t('cafe_checkin_btn_extend')}</span>
@@ -13250,6 +13263,30 @@ window.addEventListener('message', async function(event) {
             document.getElementById('login-screen').classList.add('hidden');
             // Delegate sang openPasswordModal('reset') — tận dụng i18n refresh + logic chung
             openPasswordModal('reset', { resetToken: token });
+        }
+                async function submitConfirmGuestArrival(checkinId) {
+            if (!currentEmail) return;
+            showToast('Đang gửi thông báo...', true);
+            try {
+                const res = await fetch(CLOUD_FUNCTION_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: 'cafeSalesConfirmGuestArrival',
+                        checkinId: checkinId,
+                        salesEmail: currentEmail
+                    })
+                });
+                const data = await res.json();
+                if (data.status === 200) {
+                    showToast('Đã báo quán. Vui lòng đợi xác nhận!', true);
+                    loadCafeCheckin(); // Load lại để cập nhật UI
+                } else {
+                    showToast(data.message || 'Lỗi', false);
+                }
+            } catch (e) {
+                showToast('Lỗi kết nối', false);
+            }
         }
     </script>
 </body>
