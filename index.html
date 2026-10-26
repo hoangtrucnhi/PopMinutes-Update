@@ -9830,7 +9830,6 @@ const remaining = Math.max(0, Math.ceil((undoDeadlineMs - Date.now()) / 60000));
             const endVal = document.getElementById('cafeBmEnd').value;
             const guestName = document.getElementById('cafeBmGuest').value.trim();
             const note = document.getElementById('cafeBmNote').value.trim();
-            const guestCount = document.getElementById('cafeBmGuestCount').value;
             const hasGuest = document.getElementById('hasGuestCheckbox').checked;
             const guestCount = hasGuest ? parseInt(document.getElementById('cafeBmGuestCount').value) : 1;
 
