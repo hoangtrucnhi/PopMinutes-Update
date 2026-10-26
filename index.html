@@ -3840,20 +3840,25 @@
                         <input type="time" id="cafeBmEnd" class="cafe-bm-input">
                     </div>
                 </div>
-                <!-- 🚨 THÊM KHỐI CHỌN SỐ NGƯỜI VÀO ĐÂY -->
-                <div class="cafe-bm-field">
-                    <label><span>Số người đi cùng (Tính cả bạn)</span> <span class="req">*</span></label>
-                    <select id="cafeBmGuestCount" class="cafe-bm-input" onchange="checkPeakHourWarning()">
-                        <option value="1">1 người (Đi 1 mình)</option>
-                        <option value="2">2 người (1 Sales + 1 Khách)</option>
-                        <option value="3">3 người</option>
-                        <option value="4">4 người trở lên</option>
-                    </select>
-                    <div id="peakHourWarning" style="display: none; font-size: 12px; color: #DC2626; margin-top: 4px; font-weight: 600; line-height: 1.5;">
-                        ⚠️ Bạn đi 1 mình vào giờ cao điểm. Hệ thống sẽ phụ thu 1.5x quỹ giờ để bù đắp chi phí bàn trống. Hãy rủ thêm khách để được tính giá chuẩn!
+                                <!-- KHỐI CHỌN NGƯỜI ĐI CÙNG MỚI -->
+                <div class="cafe-bm-field" style="background: #F8FAFC; padding: 12px; border-radius: 12px; border: 1px solid #E2E8F0;">
+                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                        <input type="checkbox" id="hasGuestCheckbox" onchange="toggleGuestCount()" style="width: 18px; height: 18px; accent-color: var(--navy); cursor: pointer;">
+                        <label for="hasGuestCheckbox" style="font-size: 14px; font-weight: 700; color: var(--text); cursor: pointer; margin: 0;">Bạn có đi cùng ai không?</label>
+                    </div>
+                    
+                    <div id="guestCountWrap" style="display: none; margin-top: 10px;">
+                        <label style="font-size: 12px; font-weight: 700; color: var(--muted); text-transform: uppercase;">Tổng số ghế cần giữ (Tính cả bạn) <span class="req">*</span></label>
+                        <select id="cafeBmGuestCount" class="cafe-bm-input" style="margin-top: 4px;">
+                            <option value="2">2 người (Bạn + 1 khách)</option>
+                            <option value="3">3 người (Bạn + 2 khách)</option>
+                            <option value="4">4 người (Bạn + 3 khách)</option>
+                        </select>
+                        <div style="font-size: 12px; color: #0284C7; margin-top: 8px; line-height: 1.5; font-style: italic;">
+                            <i class="fa-solid fa-circle-info"></i> Số người đi cùng không bị trừ vào quỹ giờ của bạn. Tuy nhiên, người đi cùng sẽ được hưởng ưu đãi giảm giá nước tại quán (nếu có).
+                        </div>
                     </div>
                 </div>
-                <!-- KẾT THÚC KHỐI CHỌN SỐ NGƯỜI -->
                 <div class="cafe-bm-field">
                     <label><span data-i18n="cafe_bm_guest">Tên khách hàng</span></label>
                     <input type="text" id="cafeBmGuest" class="cafe-bm-input" data-i18n-placeholder="cafe_bm_guest_ph" placeholder="VD: Anh Hoàng - Cty ABC" maxlength="100">
@@ -9695,7 +9700,35 @@ const remaining = Math.max(0, Math.ceil((undoDeadlineMs - Date.now()) / 60000));
                 if (e.target === extModal) closeExtendModal();
             });
         });
+        function toggleGuestCount() {
+            const isChecked = document.getElementById('hasGuestCheckbox').checked;
+            document.getElementById('guestCountWrap').style.display = isChecked ? 'block' : 'none';
+            if (!isChecked) {
+                document.getElementById('peakHourWarning').style.display = 'none';
+            } else {
+                checkPeakHourWarning();
+            }
+        }
 
+        function checkPeakHourWarning() {
+            const isChecked = document.getElementById('hasGuestCheckbox').checked;
+            if (!isChecked) return; // Đi 1 mình thì không cần check
+            const guestCount = parseInt(document.getElementById('cafeBmGuestCount').value) || 2;
+            const startVal = document.getElementById('cafeBmStart').value;
+            const warning = document.getElementById('peakHourWarning');
+            if (!startVal) return;
+
+            // Giả lập cấu hình giờ cao điểm (09:00-11:00 và 14:00-16:00)
+            const isPeak = (startVal >= "09:00" && startVal <= "11:00") || (startVal >= "14:00" && startVal <= "16:00");
+            
+            // Giả sử nếu đi 1 mình và đặt 1 ghế (không tick) thì mới bị phụ thu
+            // Nếu đã tick "Có đi cùng", không bị phụ thu
+            if (isPeak && !isChecked) {
+                warning.style.display = 'block';
+            } else {
+                warning.style.display = 'none';
+            }
+        }
         // ============ CAFE BOOKING MODAL ============
         async function openCafeBookingModal() {
             if (!currentEmail) {
@@ -9798,6 +9831,8 @@ const remaining = Math.max(0, Math.ceil((undoDeadlineMs - Date.now()) / 60000));
             const guestName = document.getElementById('cafeBmGuest').value.trim();
             const note = document.getElementById('cafeBmNote').value.trim();
             const guestCount = document.getElementById('cafeBmGuestCount').value;
+            const hasGuest = document.getElementById('hasGuestCheckbox').checked;
+            const guestCount = hasGuest ? parseInt(document.getElementById('cafeBmGuestCount').value) : 1;
 
             // Validate
             if (!cafeId) {
