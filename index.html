@@ -3840,7 +3840,20 @@
                         <input type="time" id="cafeBmEnd" class="cafe-bm-input">
                     </div>
                 </div>
-
+                <!-- 🚨 THÊM KHỐI CHỌN SỐ NGƯỜI VÀO ĐÂY -->
+                <div class="cafe-bm-field">
+                    <label><span>Số người đi cùng (Tính cả bạn)</span> <span class="req">*</span></label>
+                    <select id="cafeBmGuestCount" class="cafe-bm-input" onchange="checkPeakHourWarning()">
+                        <option value="1">1 người (Đi 1 mình)</option>
+                        <option value="2">2 người (1 Sales + 1 Khách)</option>
+                        <option value="3">3 người</option>
+                        <option value="4">4 người trở lên</option>
+                    </select>
+                    <div id="peakHourWarning" style="display: none; font-size: 12px; color: #DC2626; margin-top: 4px; font-weight: 600; line-height: 1.5;">
+                        ⚠️ Bạn đi 1 mình vào giờ cao điểm. Hệ thống sẽ phụ thu 1.5x quỹ giờ để bù đắp chi phí bàn trống. Hãy rủ thêm khách để được tính giá chuẩn!
+                    </div>
+                </div>
+                <!-- KẾT THÚC KHỐI CHỌN SỐ NGƯỜI -->
                 <div class="cafe-bm-field">
                     <label><span data-i18n="cafe_bm_guest">Tên khách hàng</span></label>
                     <input type="text" id="cafeBmGuest" class="cafe-bm-input" data-i18n-placeholder="cafe_bm_guest_ph" placeholder="VD: Anh Hoàng - Cty ABC" maxlength="100">
