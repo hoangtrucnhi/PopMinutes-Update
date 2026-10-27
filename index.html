@@ -8918,6 +8918,32 @@ const remaining = Math.max(0, Math.ceil((undoDeadlineMs - Date.now()) / 60000));
                             <i class="fa-solid fa-spinner fa-spin"></i> Đang chờ quán xác nhận khách...
                         </div>
                     ` : ''}
+                                        <!-- KHỐI XÁC NHẬN SỐ NGƯỜI ĐI CÙNG -->
+                    ${(!active.guest_confirmation_status || active.guest_confirmation_status === 'NONE') && active.guest_count > 1 ? (() => {
+                        const now = Date.now();
+                        const endMs = active.booking_end_time_ms || (active.check_in_ms + 3600000); 
+                        const isTimeToConfirm = now >= (endMs - 10 * 60 * 1000);
+                        
+                        if (!isTimeToConfirm) {
+                            const remaining = Math.ceil(((endMs - 10 * 60 * 1000) - now) / 60000);
+                            return `<div style="margin-bottom: 12px; padding: 10px; background: #F8FAFC; border: 1px dashed #CBD5E1; border-radius: 8px; font-size: 12px; color: var(--muted); text-align: center;"><i class="fa-regular fa-clock"></i> Có thể xác nhận số người sau <b>${remaining} phút</b> nữa (10 phút cuối).</div>`;
+                        }
+                        return `
+                            <div style="margin-bottom: 12px; background: #FFFBEB; padding: 12px; border-radius: 12px; border: 1px solid #FDE68A;">
+                                <div style="font-size: 12px; font-weight: 700; color: #B45309; margin-bottom: 8px; text-transform: uppercase;">Xác nhận thực tế (Chỉ 1 lần)</div>
+                                <div style="display: flex; gap: 8px;">
+                                    <button class="cafe-btn-sm outline" style="flex:1; background: white;" onclick="submitConfirmGuestCount('${active.checkin_id}', ${active.guest_count})">Đủ ${active.guest_count} người</button>
+                                    <button class="cafe-btn-sm danger" style="flex:1;" onclick="submitConfirmGuestCountMissing('${active.checkin_id}', ${active.guest_count})">Báo vắng</button>
+                                </div>
+                            </div>
+                        `;
+                    })() : ''}
+
+                    ${(active.guest_confirmation_status === 'PENDING_CONFIRMATION') ? `
+                        <div style="margin-bottom: 12px; text-align: center; font-size: 13px; color: #B45309; font-weight: 600;">
+                            <i class="fa-solid fa-spinner fa-spin"></i> Đang chờ quán xác nhận (${active.actual_guest_count} người)...
+                        </div>
+                    ` : ''}
                     <div class="cafe-active-actions">
                         <button class="cafe-btn-sm outline" onclick="openExtendModal('${escapeHtml(active.checkin_id)}', '${escapeHtml(bookingIdSafe)}')">
                             <span>${t('cafe_checkin_btn_extend')}</span>
@@ -9578,6 +9604,12 @@ const remaining = Math.max(0, Math.ceil((undoDeadlineMs - Date.now()) / 60000));
         }
 
         async function submitCheckOut(checkinId) {
+            const active = window.__currentActiveCheckin;
+            
+            if (active && active.guest_count > 1 && (!active.guest_confirmation_status || active.guest_confirmation_status === 'NONE')) {
+                showToast('Vui lòng bấm Xác nhận số người thực tế trước khi Check-out!', false);
+                return;
+            }
             // 🚨 Guard: nếu bị lock hoặc đã undo 2 lần → chặn
             const active = window.__currentActiveCheckin;
             if (active && active.undo_status === 'manager_won_locked') {
@@ -13332,6 +13364,31 @@ window.addEventListener('message', async function(event) {
             } catch (e) {
                 showToast('Lỗi kết nối', false);
             }
+        }
+                async function submitConfirmGuestCount(checkinId, maxCount) {
+            if (!confirm(`Bạn chắc chắn có đủ ${maxCount} người? Sau khi bấm sẽ không thể sửa!`)) return;
+            await _sendGuestCount(checkinId, maxCount);
+        }
+
+        async function submitConfirmGuestCountMissing(checkinId, maxCount) {
+            const input = prompt(`Nhập số người thực tế đang có mặt (1 đến ${maxCount}):`, "1");
+            if (!input) return;
+            const actual = parseInt(input);
+            if (isNaN(actual) || actual < 1 || actual > maxCount) return showToast('Số người không hợp lệ', false);
+            await _sendGuestCount(checkinId, actual);
+        }
+
+        async function _sendGuestCount(checkinId, actualCount) {
+            showToast('Đang gửi...', true);
+            try {
+                const res = await fetch(CLOUD_FUNCTION_URL, {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'cafeSalesConfirmGuestArrival', checkinId, salesEmail: currentEmail, actualGuestCount: actualCount })
+                });
+                const data = await res.json();
+                if (data.status === 200) { showToast('Đã gửi quán xác nhận!', true); loadCafeCheckin(); } 
+                else { showToast(data.message || 'Lỗi', false); }
+            } catch (e) { showToast('Lỗi kết nối', false); }
         }
     </script>
 </body>
