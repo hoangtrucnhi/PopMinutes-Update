@@ -8762,7 +8762,7 @@ const ccEmail1 = (sendToClient && clientEmailValue) ? clientEmailValue : '';
             setTimeout(showNearbyCafes, 200);
         }
 
-                function renderActiveCheckin(active) {
+                        function renderActiveCheckin(active) {
             window.__currentActiveCheckin = active;
             const container = document.getElementById('cafeCheckinContent');
             let timeText;
@@ -8794,56 +8794,65 @@ const ccEmail1 = (sendToClient && clientEmailValue) ? clientEmailValue : '';
             const isManagerWon = (effectiveUndoStatus === 'manager_won');
             const isLocked = (effectiveUndoStatus === 'manager_won_locked');
 
-            const earlyNotice = active.is_early_checkin ? `<div style="margin-bottom:12px; padding:10px 12px; background:#FEF3C7; border:1px solid #FDE68A; border-radius:10px; font-size:12px; color:#92400E; line-height:1.5;"><i class="fa-solid fa-clock"></i> ${t('cafe_early_checkin_notice', { minutes: active.early_check_in_minutes || 0 })}</div>` : '';
-
-            let undoBanner = '';
-            if (isPendingRespond && !deadlinePassed) {
-                const remaining = Math.max(0, Math.ceil((undoDeadlineMs - Date.now()) / 60000));
-                undoBanner = `<div style="margin-bottom:12px; padding:12px 14px; background:#FEF2F2; border:1px solid #FECACA; border-radius:12px; font-size:13px; color:#991B1B; line-height:1.5;"><div style="display:flex; gap:8px; align-items:flex-start; margin-bottom:8px;"><i class="fa-solid fa-triangle-exclamation" style="margin-top:2px; flex-shrink:0;"></i><div>${t('cafe_undo_pending_banner', { minutes: remaining })}</div></div><div id="cafeUndoCountdown" style="font-size:11.5px; font-weight:700; color:#DC2626;">${t('cafe_undo_deadline_label', { minutes: remaining })}</div></div>`;
-            } else if (isManagerWon) {
-                undoBanner = `<div style="margin-bottom:12px; padding:12px 14px; background:#FFFBEB; border:1px solid #FDE68A; border-radius:12px; font-size:13px; color:#92400E; line-height:1.5;"><i class="fa-solid fa-rotate-left"></i> ${t('cafe_undo_won_banner')}</div>`;
-            } else if (isLocked) {
-                undoBanner = `<div style="margin-bottom:12px; padding:12px 14px; background:#F1F5F9; border:1px solid #CBD5E1; border-radius:12px; font-size:13px; color:#475569; line-height:1.5;"><i class="fa-solid fa-lock"></i> ${t('cafe_undo_locked_banner')}</div>`;
-            }
-
-            let actionBtnHtml = '';
-            if (isPendingRespond && !deadlinePassed) {
-                actionBtnHtml = `<button id="cafeUndoGpsBtn" class="cafe-btn-sm primary" style="flex:1; background:#DC2626; border-color:#DC2626;" onclick="submitSalesRespondUndo('${escapeHtml(active.checkin_id)}')"><i class="fa-solid fa-location-crosshairs"></i><span>${t('cafe_undo_pending_gps_btn')}</span></button>`;
-            } else if (isLocked) {
-                actionBtnHtml = `<button class="cafe-btn-sm danger" disabled style="flex:1; opacity:0.6; cursor:not-allowed;"><i class="fa-solid fa-lock"></i><span>${t('cafe_checkin_btn_checkout')}</span></button>`;
-            } else {
-                actionBtnHtml = `<button id="cafeCheckoutBtn" class="cafe-btn-sm danger" style="display:none" onclick="submitCheckOut('${escapeHtml(active.checkin_id)}')"><span>${t('cafe_checkin_btn_checkout')}</span></button>`;
-            }
-
-            // Khối xác nhận số người
-            let guestConfirmHtml = '';
-            if ((!active.guest_confirmation_status || active.guest_confirmation_status === 'NONE') && active.guest_count > 1) {
+            // Khối UI Khai báo số người (Thiết kế mới gọn gàng)
+            let guestDeclareHtml = '';
+            if (active.guest_count > 1) {
                 const now = Date.now();
                 const endMs = active.booking_end_time_ms || (active.check_in_ms + 3600000); 
-                const isTimeToConfirm = now >= (endMs - 10 * 60 * 1000);
-                
-                if (!isTimeToConfirm) {
-                    const remaining = Math.ceil(((endMs - 10 * 60 * 1000) - now) / 60000);
-                    guestConfirmHtml = `<div style="margin-bottom: 12px; padding: 10px; background: #F8FAFC; border: 1px dashed #CBD5E1; border-radius: 8px; font-size: 12px; color: var(--muted); text-align: center;"><i class="fa-regular fa-clock"></i> Có thể xác nhận số người sau <b>${remaining} phút</b> nữa (10 phút cuối).</div>`;
-                } else {
-                    guestConfirmHtml = `
-                        <div style="margin-bottom: 12px; background: #FFFBEB; padding: 12px; border-radius: 12px; border: 1px solid #FDE68A;">
-                            <div style="font-size: 12px; font-weight: 700; color: #B45309; margin-bottom: 8px; text-transform: uppercase;">Xác nhận thực tế (Chỉ 1 lần)</div>
-                            <div style="display: flex; gap: 8px;">
-                                <button class="cafe-btn-sm outline" style="flex:1; background: white;" onclick="submitConfirmGuestCount('${active.checkin_id}', ${active.guest_count})">Đủ ${active.guest_count} người</button>
-                                <button class="cafe-btn-sm danger" style="flex:1;" onclick="submitConfirmGuestCountMissing('${active.checkin_id}', ${active.guest_count})">Báo vắng</button>
+                // Chỉ chặn trong 10 phút cuối. Còn lại đều được khai báo.
+                const isTimeAllowed = now < (endMs - 10 * 60 * 1000);
+
+                if (!active.guest_confirmation_status || active.guest_confirmation_status === 'NONE') {
+                    if (isTimeAllowed) {
+                        // Giao diện gọn: 1 dòng text + Select + Nút
+                        guestDeclareHtml = `
+                            <div style="margin-top: 12px; padding: 12px; background: #F8FAFC; border: 1px solid var(--border); border-radius: 12px;">
+                                <div style="font-size: 12px; font-weight: 700; color: var(--muted); text-transform: uppercase; margin-bottom: 8px;">
+                                    Khai báo số người thực tế
+                                </div>
+                                <div style="display: flex; gap: 8px;">
+                                    <select id="guestActualSelect" class="cafe-bm-input" style="flex: 1; padding: 8px 12px; height: auto; font-size: 14px;">
+                                        ${Array.from({length: active.guest_count}, (_, i) => i + 1).map(n => 
+                                            `<option value="${n}">${n} người</option>`
+                                        ).join('')}
+                                    </select>
+                                    <button onclick="submitConfirmGuestCount('${active.checkin_id}')" class="cafe-btn-sm primary" style="width: auto; padding: 0 16px; white-space: nowrap;">
+                                        Xác nhận
+                                    </button>
+                                </div>
                             </div>
+                        `;
+                    } else {
+                        // Quá 10 phút cuối, chưa khai báo -> Tự động hiểu là 1 người
+                        guestDeclareHtml = `
+                            <div style="margin-top: 12px; padding: 10px; background: #FEF2F2; border: 1px solid #FECACA; border-radius: 8px; font-size: 12px; color: #991B1B; text-align: center;">
+                                <i class="fa-solid fa-triangle-exclamation"></i> Đã quá giờ khai báo. Hệ thống tự động tính là 1 người.
+                            </div>
+                        `;
+                    }
+                } else if (active.guest_confirmation_status === 'PENDING_CONFIRMATION') {
+                    guestDeclareHtml = `
+                        <div style="margin-top: 12px; padding: 12px; background: #FFFBEB; border: 1px solid #FDE68A; border-radius: 8px; font-size: 13px; color: #B45309; text-align: center; font-weight: 600;">
+                            <i class="fa-solid fa-spinner fa-spin"></i> Đang chờ quán xác nhận (${active.actual_guest_count} người)...
+                        </div>
+                    `;
+                } else if (active.guest_confirmation_status === 'CONFIRMED' || active.guest_confirmation_status === 'AUTO_CONFIRMED') {
+                    guestDeclareHtml = `
+                        <div style="margin-top: 12px; padding: 12px; background: #ECFDF5; border: 1px solid #A7F3D0; border-radius: 8px; font-size: 13px; color: #065F46; text-align: center; font-weight: 600;">
+                            <i class="fa-solid fa-circle-check"></i> Quán đã xác nhận: ${active.actual_guest_count} người
+                        </div>
+                    `;
+                } else if (active.guest_confirmation_status === 'REJECTED') {
+                    guestDeclareHtml = `
+                        <div style="margin-top: 12px; padding: 12px; background: #FEF2F2; border: 1px solid #FECACA; border-radius: 8px; font-size: 13px; color: #991B1B; text-align: center; font-weight: 600;">
+                            <i class="fa-solid fa-circle-xmark"></i> Quán đã sửa lại: ${active.actual_guest_count} người
                         </div>
                     `;
                 }
-            } else if (active.guest_confirmation_status === 'PENDING_CONFIRMATION') {
-                guestConfirmHtml = `<div style="margin-bottom: 12px; text-align: center; font-size: 13px; color: #B45309; font-weight: 600;"><i class="fa-solid fa-spinner fa-spin"></i> Đang chờ quán xác nhận (${active.actual_guest_count} người)...</div>`;
             }
 
             container.innerHTML = `
                 <div class="cafe-active-card">
-                    ${earlyNotice}
-                    ${undoBanner}
                     <div class="cafe-active-header">
                         ${active.manager_confirmed_at 
                           ? `<div class="cafe-active-badge"><span class="cafe-pulse"></span><span>${t('cafe_status_seated') || 'Đang ngồi'}</span></div>`
@@ -8860,7 +8869,7 @@ const ccEmail1 = (sendToClient && clientEmailValue) ? clientEmailValue : '';
                     <div class="cafe-active-meta">
                         <div><i class="fa-regular fa-clock"></i> In: <b>${fmtCafeDateTime(active.check_in_at)}</b></div>
                         ${active.table_number ? `<div><i class="fa-solid fa-chair"></i> ${t('cafe_table_label')}: <b>${active.table_number}</b></div>` : ''}
-                        ${active.guest_count > 1 ? `<div><i class="fa-solid fa-users"></i> Tổng số ghế giữ chỗ: <b>${active.guest_count} ghế</b></div>` : ''}
+                        ${active.guest_count > 1 ? `<div><i class="fa-solid fa-users"></i> Đặt trước: <b>${active.guest_count} ghế</b></div>` : ''}
                         <div><i class="fa-solid fa-money-bill"></i> <b>${fmtCafeMoney(active.price_per_hour_snapshot)}</b>/h</div>
                         <div><i class="fa-solid fa-lock"></i> ${t('cafe_deposit_label')}: <b>${active.deposit_hold || 1}h</b></div>
                     </div>
@@ -8872,24 +8881,20 @@ const ccEmail1 = (sendToClient && clientEmailValue) ? clientEmailValue : '';
                         </div>
                     </div>
 
-                    ${guestConfirmHtml}
+                    ${guestDeclareHtml}
 
-                    <div class="cafe-active-actions">
+                    <div class="cafe-active-actions" style="margin-top: 14px;">
                         <button class="cafe-btn-sm outline" onclick="openExtendModal('${escapeHtml(active.checkin_id)}', '${escapeHtml(bookingIdSafe)}')">
                             <span>${t('cafe_checkin_btn_extend')}</span>
                         </button>
                         ${actionBtnHtml}
                     </div>
-                    <div id="cafeCheckoutNotice" style="margin-top:10px; font-size:12px; color:var(--muted); text-align:center; line-height:1.5;"></div>
                 </div>
             `;
 
             setTimeout(() => {
                 drawActiveQR(active.checkin_id);
                 startCheckoutWatcher(active);
-                if (isPendingRespond && !deadlinePassed) {
-                    startUndoCountdown(active.undo_deadline_ms);
-                }
             }, 100);
         }
         // ================================================================
@@ -13289,30 +13294,34 @@ window.addEventListener('message', async function(event) {
                 showToast('Lỗi kết nối', false);
             }
         }
-                async function submitConfirmGuestCount(checkinId, maxCount) {
-            if (!confirm(`Bạn chắc chắn có đủ ${maxCount} người? Sau khi bấm sẽ không thể sửa!`)) return;
-            await _sendGuestCount(checkinId, maxCount);
-        }
-
-        async function submitConfirmGuestCountMissing(checkinId, maxCount) {
-            const input = prompt(`Nhập số người thực tế đang có mặt (1 đến ${maxCount}):`, "1");
-            if (!input) return;
-            const actual = parseInt(input);
-            if (isNaN(actual) || actual < 1 || actual > maxCount) return showToast('Số người không hợp lệ', false);
-            await _sendGuestCount(checkinId, actual);
-        }
-
-        async function _sendGuestCount(checkinId, actualCount) {
+                        async function submitConfirmGuestCount(checkinId) {
+            const selectEl = document.getElementById('guestActualSelect');
+            if (!selectEl) return;
+            const actualCount = parseInt(selectEl.value);
+            
+            if (!confirm(`Bạn chắc chắn thực tế có ${actualCount} người? Sau khi bấm sẽ không thể sửa!`)) return;
+            
             showToast('Đang gửi...', true);
             try {
                 const res = await fetch(CLOUD_FUNCTION_URL, {
                     method: 'POST', headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ action: 'cafeSalesConfirmGuestArrival', checkinId, salesEmail: currentEmail, actualGuestCount: actualCount })
+                    body: JSON.stringify({ 
+                        action: 'cafeSalesConfirmGuestArrival', 
+                        checkinId: checkinId, 
+                        salesEmail: currentEmail, 
+                        actualGuestCount: actualCount 
+                    })
                 });
                 const data = await res.json();
-                if (data.status === 200) { showToast('Đã gửi quán xác nhận!', true); loadCafeCheckin(); } 
-                else { showToast(data.message || 'Lỗi', false); }
-            } catch (e) { showToast('Lỗi kết nối', false); }
+                if (data.status === 200) { 
+                    showToast('Đã gửi quán xác nhận!', true); 
+                    loadCafeCheckin(); 
+                } else { 
+                    showToast(data.message || 'Lỗi', false); 
+                }
+            } catch (e) { 
+                showToast('Lỗi kết nối', false); 
+            }
         }
     </script>
 </body>
