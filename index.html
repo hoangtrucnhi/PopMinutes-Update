@@ -5367,6 +5367,18 @@
                 cafe_undo_deadline_label: 'Còn {minutes} phút',
                 cafe_undo_deadline_expired: 'Đã hết thời gian phản hồi',
                 cafe_table_label: 'Bàn',
+                // Tính năng mới - Khai báo số người & Phụ thu
+                guest_declare_title: 'Khai báo số người thực tế',
+                guest_declare_btn: 'Xác nhận',
+                guest_confirm_msg: 'Bạn chắc chắn thực tế có {n} người? Sau khi bấm sẽ không thể sửa!',
+                guest_waiting: 'Đang chờ quán xác nhận ({n} người)...',
+                guest_confirmed: 'Quán đã xác nhận: {n} người',
+                guest_rejected: 'Quán đã sửa lại: {n} người',
+                guest_timeout: 'Đã quá giờ khai báo. Hệ thống tự động tính là 1 người.',
+                bill_actual_time: 'Thời gian thực tế: {h}h',
+                bill_penalty: 'Phụ thu ({n} người vắng): +{h}h',
+                bill_total_time: 'Tổng thời gian: {h}h',
+                booking_seats: 'Đã đặt: {n} ghế',
                 },
             en: {
                 // ===== CAFE NOTIFICATIONS (EN) =====
@@ -5889,6 +5901,17 @@
                 cafe_undo_deadline_label: '{minutes} min left',
                 cafe_undo_deadline_expired: 'Response time expired',
                 cafe_table_label: 'Table',
+                guest_declare_title: 'Declare actual guests',
+                guest_declare_btn: 'Confirm',
+                guest_confirm_msg: 'Are you sure there are {n} people? Cannot be changed after!',
+                guest_waiting: 'Waiting for cafe to confirm ({n} people)...',
+                guest_confirmed: 'Cafe confirmed: {n} people',
+                guest_rejected: 'Cafe corrected: {n} people',
+                guest_timeout: 'Declaration time expired. System defaults to 1 person.',
+                bill_actual_time: 'Actual time: {h}h',
+                bill_penalty: 'Surcharge ({n} absent): +{h}h',
+                bill_total_time: 'Total time: {h}h',
+                booking_seats: 'Booked: {n} seats',
             }
         };
 
@@ -8496,6 +8519,7 @@ const ccEmail1 = (sendToClient && clientEmailValue) ? clientEmailValue : '';
                                 ${b.held_hours ? `<div><i class="fa-solid fa-lock"></i> <span>${t('cafe_deposit_label')}: <b>${b.held_hours}h</b></span></div>` : ''}
                                 ${b.guest_name ? `<div><i class="fa-regular fa-user"></i> <span>${escapeHtml(b.guest_name)}</span></div>` : ''}
                                 ${b.note ? `<div><i class="fa-regular fa-note-sticky"></i> <span>${escapeHtml(b.note)}</span></div>` : ''}
+                                <div><i class="fa-solid fa-users"></i> <span>${t('booking_seats', {n: b.guest_count || 1})}</span></div>
                             </div>
                             <div class="cafe-card-actions">
                                 ${(b.status === 'pending' || b.status === 'confirmed') ? `<button class="cafe-btn-sm outline" onclick="cancelCafeBooking('${escapeHtml(b.booking_id)}', this)"><span>${t('cancel_btn')}</span></button>` : ''}
@@ -8796,71 +8820,71 @@ const ccEmail1 = (sendToClient && clientEmailValue) ? clientEmailValue : '';
 
             // --- 1. KHỐI THÔNG BÁO CHECK-IN SỚM ---
             const earlyNotice = active.is_early_checkin 
-                ? `<div style="margin-bottom:12px; padding:10px 12px; background:#FEF3C7; border:1px solid #FDE68A; border-radius:10px; font-size:12px; color:#92400E; line-height:1.5;"><i class="fa-solid fa-clock"></i> Bạn đã check-in sớm <b>${active.early_check_in_minutes || 0} phút</b>. Giờ kết thúc đã được điều chỉnh.</div>`
+                ? `<div style="margin-bottom:12px; padding:10px 12px; background:#FEF3C7; border:1px solid #FDE68A; border-radius:10px; font-size:12px; color:#92400E; line-height:1.5;"><i class="fa-solid fa-clock"></i> ${t('cafe_early_checkin_notice', { minutes: active.early_check_in_minutes || 0 })}</div>`
                 : '';
 
             // --- 2. KHỐI BANNER HOÀN TÁC ---
             let undoBanner = '';
             if (isPendingRespond && !deadlinePassed) {
                 const remaining = Math.max(0, Math.ceil((undoDeadlineMs - Date.now()) / 60000));
-                undoBanner = `<div style="margin-bottom:12px; padding:12px 14px; background:#FEF2F2; border:1px solid #FECACA; border-radius:12px; font-size:13px; color:#991B1B; line-height:1.5;"><div style="display:flex; gap:8px; align-items:flex-start; margin-bottom:8px;"><i class="fa-solid fa-triangle-exclamation" style="margin-top:2px; flex-shrink:0;"></i><div>Quán báo bạn vẫn còn ngồi. Vui lòng xác thực GPS trong ${remaining} phút để chứng minh bạn đã rời quán.</div></div><div id="cafeUndoCountdown" style="font-size:11.5px; font-weight:700; color:#DC2626;">Còn ${remaining} phút</div></div>`;
+                undoBanner = `<div style="margin-bottom:12px; padding:12px 14px; background:#FEF2F2; border:1px solid #FECACA; border-radius:12px; font-size:13px; color:#991B1B; line-height:1.5;"><div style="display:flex; gap:8px; align-items:flex-start; margin-bottom:8px;"><i class="fa-solid fa-triangle-exclamation" style="margin-top:2px; flex-shrink:0;"></i><div>${t('cafe_undo_pending_banner', { minutes: remaining })}</div></div><div id="cafeUndoCountdown" style="font-size:11.5px; font-weight:700; color:#DC2626;">${t('cafe_undo_deadline_label', { minutes: remaining })}</div></div>`;
             } else if (isManagerWon) {
-                undoBanner = `<div style="margin-bottom:12px; padding:12px 14px; background:#FFFBEB; border:1px solid #FDE68A; border-radius:12px; font-size:13px; color:#92400E; line-height:1.5;"><i class="fa-solid fa-rotate-left"></i> Quán đã hoàn tác check-out. Vui lòng check-out lại khi rời quán.</div>`;
+                undoBanner = `<div style="margin-bottom:12px; padding:12px 14px; background:#FFFBEB; border:1px solid #FDE68A; border-radius:12px; font-size:13px; color:#92400E; line-height:1.5;"><i class="fa-solid fa-rotate-left"></i> ${t('cafe_undo_won_banner')}</div>`;
             } else if (isLocked) {
-                undoBanner = `<div style="margin-bottom:12px; padding:12px 14px; background:#F1F5F9; border:1px solid #CBD5E1; border-radius:12px; font-size:13px; color:#475569; line-height:1.5;"><i class="fa-solid fa-lock"></i> Check-in đã bị khóa sau 2 lần hoàn tác. Sẽ tự đóng lúc giờ đóng cửa.</div>`;
+                undoBanner = `<div style="margin-bottom:12px; padding:12px 14px; background:#F1F5F9; border:1px solid #CBD5E1; border-radius:12px; font-size:13px; color:#475569; line-height:1.5;"><i class="fa-solid fa-lock"></i> ${t('cafe_undo_locked_banner')}</div>`;
             }
 
             // --- 3. KHỐI NÚT CHECK-OUT / GPS ---
             let actionBtnHtml = '';
             if (isPendingRespond && !deadlinePassed) {
-                actionBtnHtml = `<button id="cafeUndoGpsBtn" class="cafe-btn-sm primary" style="flex:1; background:#DC2626; border-color:#DC2626;" onclick="submitSalesRespondUndo('${escapeHtml(active.checkin_id)}')"><i class="fa-solid fa-location-crosshairs"></i><span>Xác thực GPS</span></button>`;
+                actionBtnHtml = `<button id="cafeUndoGpsBtn" class="cafe-btn-sm primary" style="flex:1; background:#DC2626; border-color:#DC2626;" onclick="submitSalesRespondUndo('${escapeHtml(active.checkin_id)}')"><i class="fa-solid fa-location-crosshairs"></i><span>${t('cafe_undo_pending_gps_btn')}</span></button>`;
             } else if (isLocked) {
-                actionBtnHtml = `<button class="cafe-btn-sm danger" disabled style="flex:1; opacity:0.6; cursor:not-allowed;"><i class="fa-solid fa-lock"></i><span>Check-out</span></button>`;
+                actionBtnHtml = `<button class="cafe-btn-sm danger" disabled style="flex:1; opacity:0.6; cursor:not-allowed;"><i class="fa-solid fa-lock"></i><span>${t('cafe_checkin_btn_checkout')}</span></button>`;
             } else {
-                actionBtnHtml = `<button id="cafeCheckoutBtn" class="cafe-btn-sm danger" style="display:none" onclick="submitCheckOut('${escapeHtml(active.checkin_id)}')"><span>Check-out</span></button>`;
+                actionBtnHtml = `<button id="cafeCheckoutBtn" class="cafe-btn-sm danger" style="display:none" onclick="submitCheckOut('${escapeHtml(active.checkin_id)}')"><span>${t('cafe_checkin_btn_checkout')}</span></button>`;
             }
 
-            // --- 4. KHỐI KHAI BÁO SỐ NGƯỜI (Gọn gàng) ---
+            // --- 4. KHỐI KHAI BÁO SỐ NGƯỜI ---
             let guestDeclareHtml = '';
             if (active.guest_count > 1) {
                 const now = Date.now();
                 const endMs = active.booking_end_time_ms || (active.check_in_ms + 3600000); 
-                const isTimeAllowed = now < (endMs - 10 * 60 * 1000); // Được phép khai báo trước 10 phút cuối
+                const isTimeAllowed = now < (endMs - 10 * 60 * 1000);
 
                 if (!active.guest_confirmation_status || active.guest_confirmation_status === 'NONE') {
                     if (isTimeAllowed) {
                         guestDeclareHtml = `
                             <div style="margin-top: 12px; padding: 12px; background: #F8FAFC; border: 1px solid var(--border); border-radius: 12px;">
-                                <div style="font-size: 12px; font-weight: 700; color: var(--muted); text-transform: uppercase; margin-bottom: 8px;">Khai báo số người thực tế</div>
+                                <div style="font-size: 12px; font-weight: 700; color: var(--muted); text-transform: uppercase; margin-bottom: 8px;">${t('guest_declare_title')}</div>
                                 <div style="display: flex; gap: 8px;">
                                     <select id="guestActualSelect" class="cafe-bm-input" style="flex: 1; padding: 8px 12px; height: auto; font-size: 14px;">
-                                        ${Array.from({length: active.guest_count}, (_, i) => i + 1).map(n => `<option value="${n}">${n} người</option>`).join('')}
+                                        ${Array.from({length: active.guest_count}, (_, i) => i + 1).map(n => `<option value="${n}">${n}</option>`).join('')}
                                     </select>
-                                    <button onclick="submitConfirmGuestCount('${active.checkin_id}')" class="cafe-btn-sm primary" style="width: auto; padding: 0 16px; white-space: nowrap;">Xác nhận</button>
+                                    <button onclick="submitConfirmGuestCount('${active.checkin_id}')" class="cafe-btn-sm primary" style="width: auto; padding: 0 16px; white-space: nowrap;">${t('guest_declare_btn')}</button>
                                 </div>
                             </div>
                         `;
                     } else {
-                        guestDeclareHtml = `<div style="margin-top: 12px; padding: 10px; background: #FEF2F2; border: 1px solid #FECACA; border-radius: 8px; font-size: 12px; color: #991B1B; text-align: center;"><i class="fa-solid fa-triangle-exclamation"></i> Đã quá giờ khai báo. Hệ thống tự động tính là 1 người.</div>`;
+                        guestDeclareHtml = `<div style="margin-top: 12px; padding: 10px; background: #FEF2F2; border: 1px solid #FECACA; border-radius: 8px; font-size: 12px; color: #991B1B; text-align: center;"><i class="fa-solid fa-triangle-exclamation"></i> ${t('guest_timeout')}</div>`;
                     }
                 } else if (active.guest_confirmation_status === 'PENDING_CONFIRMATION') {
-                    guestDeclareHtml = `<div style="margin-top: 12px; padding: 12px; background: #FFFBEB; border: 1px solid #FDE68A; border-radius: 8px; font-size: 13px; color: #B45309; text-align: center; font-weight: 600;"><i class="fa-solid fa-spinner fa-spin"></i> Đang chờ quán xác nhận (${active.actual_guest_count} người)...</div>`;
+                    guestDeclareHtml = `<div style="margin-top: 12px; padding: 12px; background: #FFFBEB; border: 1px solid #FDE68A; border-radius: 8px; font-size: 13px; color: #B45309; text-align: center; font-weight: 600;"><i class="fa-solid fa-spinner fa-spin"></i> ${t('guest_waiting', {n: active.actual_guest_count})}</div>`;
                 } else if (active.guest_confirmation_status === 'CONFIRMED' || active.guest_confirmation_status === 'AUTO_CONFIRMED') {
-                    guestDeclareHtml = `<div style="margin-top: 12px; padding: 12px; background: #ECFDF5; border: 1px solid #A7F3D0; border-radius: 8px; font-size: 13px; color: #065F46; text-align: center; font-weight: 600;"><i class="fa-solid fa-circle-check"></i> Quán đã xác nhận: ${active.actual_guest_count} người</div>`;
+                    guestDeclareHtml = `<div style="margin-top: 12px; padding: 12px; background: #ECFDF5; border: 1px solid #A7F3D0; border-radius: 8px; font-size: 13px; color: #065F46; text-align: center; font-weight: 600;"><i class="fa-solid fa-circle-check"></i> ${t('guest_confirmed', {n: active.actual_guest_count})}</div>`;
                 } else if (active.guest_confirmation_status === 'REJECTED') {
-                    guestDeclareHtml = `<div style="margin-top: 12px; padding: 12px; background: #FEF2F2; border: 1px solid #FECACA; border-radius: 8px; font-size: 13px; color: #991B1B; text-align: center; font-weight: 600;"><i class="fa-solid fa-circle-xmark"></i> Quán đã sửa lại: ${active.actual_guest_count} người</div>`;
+                    guestDeclareHtml = `<div style="margin-top: 12px; padding: 12px; background: #FEF2F2; border: 1px solid #FECACA; border-radius: 8px; font-size: 13px; color: #991B1B; text-align: center; font-weight: 600;"><i class="fa-solid fa-circle-xmark"></i> ${t('guest_rejected', {n: active.actual_guest_count})}</div>`;
                 }
             }
 
-            // --- 5. RENDER HTML ---
+            // --- 5. RENDER HTML (Đã ẩn giá tiền) ---
             container.innerHTML = `
                 <div class="cafe-active-card">
                     ${earlyNotice}
                     ${undoBanner}
                     <div class="cafe-active-header">
                         ${active.manager_confirmed_at 
-                          ? `<div class="cafe-active-badge"><span class="cafe-pulse"></span><span>Đang ngồi</span></div>`
-                          : `<div class="cafe-active-badge" style="background:#FEF3C7; color:#92400E;"><i class="fa-solid fa-clock"></i><span>Chờ quán xác nhận</span></div>`
+                          ? `<div class="cafe-active-badge"><span class="cafe-pulse"></span><span>${t('cafe_status_seated') || 'Đang ngồi'}</span></div>`
+                          : `<div class="cafe-active-badge" style="background:#FEF3C7; color:#92400E;"><i class="fa-solid fa-clock"></i><span>${t('cafe_status_waiting_confirm') || 'Chờ quán xác nhận'}</span></div>`
                         }
                         <div class="cafe-active-elapsed">${timeText}</div>
                     </div>
@@ -8870,16 +8894,16 @@ const ccEmail1 = (sendToClient && clientEmailValue) ? clientEmailValue : '';
                     </div>
                     <div class="cafe-active-address">${escapeHtml(active.cafe_address)}</div>
 
+                    <!-- 🚨 ĐÃ XÓA DÒNG HIỂN THỊ GIÁ TIỀN -->
                     <div class="cafe-active-meta">
                         <div><i class="fa-regular fa-clock"></i> In: <b>${fmtCafeDateTime(active.check_in_at)}</b></div>
-                        ${active.table_number ? `<div><i class="fa-solid fa-chair"></i> Bàn: <b>${active.table_number}</b></div>` : ''}
-                        ${active.guest_count > 1 ? `<div><i class="fa-solid fa-users"></i> Tổng số ghế giữ chỗ: <b>${active.guest_count} ghế</b></div>` : ''}
-                        <div><i class="fa-solid fa-money-bill"></i> <b>${fmtCafeMoney(active.price_per_hour_snapshot)}</b>/h</div>
-                        <div><i class="fa-solid fa-lock"></i> Cọc giữ chỗ: <b>${active.deposit_hold || 1}h</b></div>
+                        ${active.table_number ? `<div><i class="fa-solid fa-chair"></i> ${t('cafe_table_label')}: <b>${active.table_number}</b></div>` : ''}
+                        ${active.guest_count > 1 ? `<div><i class="fa-solid fa-users"></i> ${t('booking_seats', {n: active.guest_count})}</div>` : ''}
+                        <div><i class="fa-solid fa-lock"></i> ${t('cafe_deposit_label')}: <b>${active.deposit_hold || 1}h</b></div>
                     </div>
 
                     <div class="cafe-qr-section">
-                        <div class="cafe-qr-title">Đưa QR này cho nhân viên quán</div>
+                        <div class="cafe-qr-title">${t('cafe_checkin_qr_hint')}</div>
                         <div class="cafe-qr-wrap">
                             <canvas id="cafeActiveQR" width="400" height="400"></canvas>
                         </div>
@@ -8889,7 +8913,7 @@ const ccEmail1 = (sendToClient && clientEmailValue) ? clientEmailValue : '';
 
                     <div class="cafe-active-actions" style="margin-top: 14px;">
                         <button class="cafe-btn-sm outline" onclick="openExtendModal('${escapeHtml(active.checkin_id)}', '${escapeHtml(bookingIdSafe)}')">
-                            <span>Gia hạn</span>
+                            <span>${t('cafe_checkin_btn_extend')}</span>
                         </button>
                         ${actionBtnHtml}
                     </div>
@@ -9127,9 +9151,22 @@ const ccEmail1 = (sendToClient && clientEmailValue) ? clientEmailValue : '';
                     container.innerHTML = `<div class="cafe-empty"><i class="fa-solid fa-clock-rotate-left"></i>${t('cafe_empty_history')}</div>`;
                     return;
                 }
-                                let html = '';
+                                                let html = '';
                 checkins.forEach(c => {
                     const badgeClass = c.status === 'active' ? 'active' : 'completed';
+                    
+                    // Render chi tiết bill
+                    let billDetailHtml = '';
+                    if (c.actual_hours > 0) {
+                        let lines = [t('bill_actual_time', {h: c.actual_hours})];
+                        if (c.penalty_hours > 0) {
+                            const absent = (c.guest_count || 1) - (c.actual_guest_count || 1);
+                            lines.push(`<span style="color: #DC2626;">${t('bill_penalty', {n: absent, h: c.penalty_hours})}</span>`);
+                        }
+                        lines.push(`<b>${t('bill_total_time', {h: c.billable_hours})}</b>`);
+                        billDetailHtml = `<div style="font-size:12px; margin-top:6px; padding-top:6px; border-top:1px dashed #E2E8F0;">${lines.join('<br>')}</div>`;
+                    }
+
                     html += `
                         <div class="cafe-card">
                             <div class="cafe-card-header">
@@ -9142,8 +9179,8 @@ const ccEmail1 = (sendToClient && clientEmailValue) ? clientEmailValue : '';
                             <div class="cafe-card-meta">
                                 <div><i class="fa-regular fa-clock"></i> <span>In: <b>${fmtCafeDateTime(c.check_in_at)}</b></span></div>
                                 ${c.check_out_ms ? `<div><i class="fa-regular fa-clock"></i> <span>Out: <b>${fmtCafeDateTime(c.check_out_ms)}</b></span></div>` : ''}
-                                ${c.billable_hours !== null ? `<div><i class="fa-solid fa-hourglass-half"></i> <span><b>${c.billable_hours}h</b> • ${fmtCafeMoney(c.revenue_amount)}</span></div>` : ''}
                                 ${c.auto_checkout ? `<div style="color:#B45309;"><i class="fa-solid fa-triangle-exclamation"></i> <span>Auto check-out</span></div>` : ''}
+                                ${billDetailHtml}
                             </div>
                         </div>
                     `;
