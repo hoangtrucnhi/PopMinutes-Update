@@ -8722,7 +8722,7 @@ const ccEmail1 = (sendToClient && clientEmailValue) ? clientEmailValue : '';
         }
 
         // ===== Helper: Auto check-out khi mở app (chỉ khi đã confirm + qua giờ + GPS xa > 100m) =====
-                async function tryAutoCheckoutOnLoad(active) {
+                        async function tryAutoCheckoutOnLoad(active) {
             const key = 'autoCheckoutTry_' + active.checkin_id;
             const lastTry = Number(sessionStorage.getItem(key) || 0);
             if (Date.now() - lastTry < 60000) {
@@ -9037,7 +9037,7 @@ const ccEmail1 = (sendToClient && clientEmailValue) ? clientEmailValue : '';
             updateCheckoutEligibility(distKm);
         }
 
-                function updateCheckoutEligibility(distKm) {
+                        function updateCheckoutEligibility(distKm) {
             const btn = document.getElementById('cafeCheckoutBtn');
             const notice = document.getElementById('cafeCheckoutNotice');
             if (!btn || !_activeCheckinCache) return;
@@ -9071,7 +9071,6 @@ const ccEmail1 = (sendToClient && clientEmailValue) ? clientEmailValue : '';
                 }
             }
         }
-
         async function autoSubmitCheckOut(checkinId, lat, lng) {
             try {
                 const res = await fetch(CLOUD_FUNCTION_URL, {
@@ -9130,7 +9129,7 @@ const ccEmail1 = (sendToClient && clientEmailValue) ? clientEmailValue : '';
         }
 
 
-                async function loadCafeHistory() {
+                        async function loadCafeHistory() {
             const container = document.getElementById('cafeHistoryList');
             if (!container) return;
             container.innerHTML = `<p class="cafe-loading">${t('loading')}</p>`;
@@ -9732,7 +9731,7 @@ const remaining = Math.max(0, Math.ceil((undoDeadlineMs - Date.now()) / 60000));
             }
         }
         // ============ CAFE BOOKING MODAL ============
-                        async function openCafeBookingModal() {
+                                async function openCafeBookingModal() {
             if (!currentEmail) {
                 alert(t('toast_login_required'));
                 return;
@@ -9797,7 +9796,7 @@ const remaining = Math.max(0, Math.ceil((undoDeadlineMs - Date.now()) / 60000));
             document.getElementById('cafeBookingModal').classList.remove('active');
         }
 
-                function onCafeBmSelect() {
+                        function onCafeBmSelect() {
             const cafeId = document.getElementById('cafeBmCafe').value;
             const preview = document.getElementById('cafeBmCafePreview');
             if (!cafeId) {
@@ -9815,7 +9814,6 @@ const remaining = Math.max(0, Math.ceil((undoDeadlineMs - Date.now()) / 60000));
             `;
             preview.classList.add('active');
         }
-
         async function submitCafeBooking() {
             const cafeId = document.getElementById('cafeBmCafe').value;
             const dateVal = document.getElementById('cafeBmDate').value;
