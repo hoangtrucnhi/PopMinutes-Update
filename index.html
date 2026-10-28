@@ -9581,9 +9581,10 @@ const remaining = Math.max(0, Math.ceil((undoDeadlineMs - Date.now()) / 60000));
             }
         }
 
-        async function submitCheckOut(checkinId) {
+                async function submitCheckOut(checkinId) {
             const active = window.__currentActiveCheckin;
             
+            // 1. Kiểm tra khóa hoàn tác
             if (active && active.undo_status === 'manager_won_locked') {
                 showToast(t('cafe_undo_locked_alert'), false);
                 return;
@@ -9593,23 +9594,10 @@ const remaining = Math.max(0, Math.ceil((undoDeadlineMs - Date.now()) / 60000));
                 return;
             }
 
+            // 2. Confirm với người dùng
             if (!confirm(t('cafe_checkout_confirm') || 'Bạn có chắc muốn check-out?')) return;
 
-            showToast('Đang check-out...', true);
-                return;
-            }
-            
-            if (active && active.undo_status === 'manager_won_locked') {
-                showToast(t('cafe_undo_locked_alert'), false);
-                return;
-            }
-            if (active && (active.undo_count || 0) >= 2) {
-                showToast('Check-in đã bị khóa sau 2 lần hoàn tác. Vui lòng chờ giờ đóng cửa.', false);
-                return;
-            }
-
-            if (!confirm(t('cafe_checkout_confirm') || 'Bạn có chắc muốn check-out?')) return;
-
+            // 3. Gọi API Check-out
             showToast('Đang check-out...', true);
             navigator.geolocation.getCurrentPosition(
                 async (pos) => {
@@ -9625,16 +9613,17 @@ const remaining = Math.max(0, Math.ceil((undoDeadlineMs - Date.now()) / 60000));
                             }).toString()
                         });
                         const data = await res.json();
+                        
                         if (data.status === 200) {
                             showToast(t('cafe_checkout_success_full'), true);
                             setTimeout(loadCafeCheckin, 500);
                         } else if (data.code === 'CHECKIN_LOCKED') {
                             showToast(t('cafe_undo_locked_alert') || 'Check-in đã bị khóa. Vui lòng chờ giờ đóng cửa.', false);
-                            const active = window.__currentActiveCheckin;
-                            if (active) {
-                                active.undo_status = 'manager_won_locked';
-                                active.undo_count = Math.max(active.undo_count || 0, 2);
-                                renderActiveCheckin(active);
+                            const currentActive = window.__currentActiveCheckin;
+                            if (currentActive) {
+                                currentActive.undo_status = 'manager_won_locked';
+                                currentActive.undo_count = Math.max(currentActive.undo_count || 0, 2);
+                                renderActiveCheckin(currentActive);
                             } else {
                                 setTimeout(loadCafeCheckin, 300);
                             }
