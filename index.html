@@ -9037,13 +9037,15 @@ const ccEmail1 = (sendToClient && clientEmailValue) ? clientEmailValue : '';
             updateCheckoutEligibility(distKm);
         }
 
-                        function updateCheckoutEligibility(distKm) {
+                                function updateCheckoutEligibility(distKm) {
             const btn = document.getElementById('cafeCheckoutBtn');
             const notice = document.getElementById('cafeCheckoutNotice');
             if (!btn || !_activeCheckinCache) return;
 
             const active = _activeCheckinCache;
             const now = Date.now();
+            
+            // Ưu tiên lấy booking_end_time_ms, nếu không có thì lấy expected_end_ms
             const endMs = active.booking_end_time_ms || active.expected_end_ms || 0;
 
             if (!endMs) {
@@ -9129,7 +9131,7 @@ const ccEmail1 = (sendToClient && clientEmailValue) ? clientEmailValue : '';
         }
 
 
-                        async function loadCafeHistory() {
+                                async function loadCafeHistory() {
             const container = document.getElementById('cafeHistoryList');
             if (!container) return;
             container.innerHTML = `<p class="cafe-loading">${t('loading')}</p>`;
@@ -9157,13 +9159,22 @@ const ccEmail1 = (sendToClient && clientEmailValue) ? clientEmailValue : '';
                     
                     let billDetailHtml = '';
                     if (c.actual_hours > 0) {
-                        let lines = [t('bill_actual_time', {h: c.actual_hours})];
-                        if (c.penalty_hours > 0) {
-                            const absent = (c.guest_count || 1) - (c.actual_guest_count || 1);
-                            lines.push(`<span style="color: #DC2626;">${t('bill_penalty', {n: absent, h: c.penalty_hours})}</span>`);
-                        }
-                        lines.push(`<b>${t('bill_total_time', {h: c.billable_hours})}</b>`);
-                        billDetailHtml = `<div style="font-size:12px; margin-top:6px; padding-top:6px; border-top:1px dashed #E2E8F0;">${lines.join('<br>')}</div>`;
+                        const absent = (c.guest_count || 1) - (c.actual_guest_count || 1);
+                        billDetailHtml = `
+                            <div style="margin-top: 8px; padding-top: 8px; border-top: 1px dashed #E2E8F0; font-size: 12px; line-height: 1.6;">
+                                <div style="display: flex; justify-content: space-between;">
+                                    <span>${t('bill_actual_time')}:</span> <b>${c.actual_hours}h</b>
+                                </div>
+                                ${absent > 0 ? `
+                                <div style="display: flex; justify-content: space-between; color: #DC2626;">
+                                    <span>${t('bill_penalty', {n: absent})}:</span> <b>+${c.penalty_hours}h</b>
+                                </div>
+                                ` : ''}
+                                <div style="display: flex; justify-content: space-between; margin-top: 4px; padding-top: 4px; border-top: 1px dotted #E2E8F0;">
+                                    <span>${t('bill_total_time')}:</span> <b>${c.billable_hours}h</b>
+                                </div>
+                            </div>
+                        `;
                     }
 
                     html += `
@@ -9178,7 +9189,7 @@ const ccEmail1 = (sendToClient && clientEmailValue) ? clientEmailValue : '';
                             <div class="cafe-card-meta">
                                 <div><i class="fa-regular fa-clock"></i> <span>In: <b>${fmtCafeDateTime(c.check_in_at)}</b></span></div>
                                 ${c.check_out_ms ? `<div><i class="fa-regular fa-clock"></i> <span>Out: <b>${fmtCafeDateTime(c.check_out_ms)}</b></span></div>` : ''}
-                                <div><i class="fa-solid fa-users"></i> <span>Đặt: <b>${c.guest_count} ghế</b> | Thực tế: <b>${c.actual_guest_count || 1} ghế</b></span></div>
+                                <div><i class="fa-solid fa-users"></i> <span>${t('booking_seats', {n: c.guest_count || 1})} | Thực tế: <b>${c.actual_guest_count || 1} ghế</b></span></div>
                                 ${c.auto_checkout ? `<div style="color:#B45309;"><i class="fa-solid fa-triangle-exclamation"></i> <span>Auto check-out</span></div>` : ''}
                                 ${billDetailHtml}
                             </div>
@@ -9731,7 +9742,7 @@ const remaining = Math.max(0, Math.ceil((undoDeadlineMs - Date.now()) / 60000));
             }
         }
         // ============ CAFE BOOKING MODAL ============
-                                async function openCafeBookingModal() {
+                                        async function openCafeBookingModal() {
             if (!currentEmail) {
                 alert(t('toast_login_required'));
                 return;
@@ -9744,7 +9755,7 @@ const remaining = Math.max(0, Math.ceil((undoDeadlineMs - Date.now()) / 60000));
             const guestInput = document.getElementById('cafeBmGuest');
             const noteInput = document.getElementById('cafeBmNote');
 
-            guestInput.value = '';
+            guestInput.value = currentSalesName || 'Khách của Sales';
             noteInput.value = '';
             document.getElementById('cafeBmCafePreview').classList.remove('active');
 
