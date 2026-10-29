@@ -9381,19 +9381,15 @@ const ccEmail1 = (sendToClient && clientEmailValue) ? clientEmailValue : '';
                     bookings.forEach(b => {
                         const startStr = fmtCafeDateTime(b.start_time_iso);
                         const endStr = fmtCafeDateTime(b.end_time_iso);
-                        html += `
+                                                html += `
                             <div class="cafe-card" style="cursor:pointer; margin-bottom:10px;" onclick="pickCheckinBooking('${escapeHtml(b.booking_id)}')">
-                                <div class="cafe-card-header">
-                                    <div class="cafe-card-title" style="display:flex; flex-direction:column; gap:4px;">
-                                        <div><i class="fa-regular fa-clock" style="width:16px;"></i> <span>${t('cafe_picker_in')}: <b>${startStr}</b></span></div>
-                                        <div><i class="fa-solid fa-arrow-right-from-bracket" style="width:16px;"></i> <span>${t('cafe_picker_out')}: <b>${endStr}</b></span></div>
-                                    </div>
+                                <div class="cafe-card-meta" style="margin-top: 0;">
+                                    <div><i class="fa-regular fa-clock"></i> <span>${t('cafe_picker_in')}: <b>${startStr}</b></span></div>
+                                    <div><i class="fa-regular fa-clock"></i> <span>${t('cafe_picker_out')}: <b>${endStr}</b></span></div>
+                                    ${b.guest_name ? `<div><i class="fa-regular fa-user"></i> <span>${escapeHtml(b.guest_name)}</span></div>` : ''}
+                                    ${b.note ? `<div><i class="fa-regular fa-note-sticky"></i> <span>${escapeHtml(b.note)}</span></div>` : ''}
                                 </div>
-                                <div class="cafe-card-meta" style="margin-top:8px;">
-                                    ${b.guest_name ? `<div><i class="fa-regular fa-user"></i> ${escapeHtml(b.guest_name)}</div>` : ''}
-                                    ${b.note ? `<div><i class="fa-regular fa-note-sticky"></i> ${escapeHtml(b.note)}</div>` : ''}
-                                </div>
-                                <div class="cafe-card-actions">
+                                <div class="cafe-card-actions" style="margin-top: 10px; padding-top: 10px;">
                                     <button class="cafe-btn-sm primary" style="width:100%;">
                                         <i class="fa-solid fa-check"></i>
                                         <span>${t('cafe_picker_pick_btn')}</span>
