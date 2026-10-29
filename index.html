@@ -8486,7 +8486,7 @@ const ccEmail1 = (sendToClient && clientEmailValue) ? clientEmailValue : '';
             return (Date.now() - b.start_time_ms) > GRACE_MS;
         }
 
-                        async function loadCafeBookings() {
+                                async function loadCafeBookings() {
             const container = document.getElementById('cafeBookingsList');
             if (!container) return;
             container.innerHTML = `<p class="cafe-loading">${t('loading')}</p>`;
@@ -8502,11 +8502,6 @@ const ccEmail1 = (sendToClient && clientEmailValue) ? clientEmailValue : '';
                     return;
                 }
                 
-                // 🚨 LOGIC LỌC MỚI:
-                // 1. Hiện pending, confirmed
-                // 2. Hiện expired NẾU có phạt (no_show)
-                // 3. Hiện cancelled NẾU có phạt (late_cancel)
-                // 4. Ẩn các trường hợp không phạt (hủy sớm, pending quá hạn)
                 const bookings = (data.bookings || []).filter(b => {
                     if (b.status === 'pending' || b.status === 'confirmed') return true;
                     if (b.status === 'expired' && b.penalty_hours > 0) return true;
@@ -8526,10 +8521,10 @@ const ccEmail1 = (sendToClient && clientEmailValue) ? clientEmailValue : '';
                     
                     if (b.status === 'pending') { badgeClass = 'pending'; statusLabel = t('cafe_status_pending'); }
                     else if (b.status === 'confirmed') { badgeClass = 'confirmed'; statusLabel = t('cafe_status_confirmed'); }
-                    else if (b.status === 'expired') { badgeClass = 'cancelled'; statusLabel = t('cafe_status_expired'); } // Đã đổi thành "Quá hạn"
-                    else if (b.status === 'cancelled') { badgeClass = 'cancelled'; statusLabel = t('cafe_status_late_cancel'); } // Đã đổi thành "Đã hủy (Muộn)"
+                    else if (b.status === 'expired') { badgeClass = 'cancelled'; statusLabel = t('cafe_status_expired'); } 
+                    else if (b.status === 'cancelled') { badgeClass = 'cancelled'; statusLabel = t('cafe_status_late_cancel'); } 
 
-                    // Hiển thị text phạt kèm lý do
+                    // Hiển thị text phụ thu kèm lý do
                     let penaltyHtml = '';
                     if (b.penalty_hours > 0) {
                         let reasonText = '';
