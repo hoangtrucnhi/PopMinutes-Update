@@ -5289,6 +5289,8 @@
                 cafe_early_checkin_badge: 'Check-in sớm',
                 // ===== CAFE CHECKIN PICKER (VI) =====
                 cafe_picker_title: 'Chọn booking để check-in',
+                cafe_picker_in: 'Vào',
+                cafe_picker_out: 'Ra',
                 cafe_picker_your_bookings: 'Booking của bạn:',
                 cafe_picker_pick_btn: 'Chọn booking này',
                 cafe_picker_no_booking: 'Check-in không có booking',
@@ -5827,6 +5829,8 @@
                 cafe_early_checkin_badge: 'Early check-in',
                 // ===== CAFE CHECKIN PICKER (EN) =====
                 cafe_picker_title: 'Pick a booking to check-in',
+                cafe_picker_in: 'In',
+                cafe_picker_out: 'Out',
                 cafe_picker_your_bookings: 'Your bookings:',
                 cafe_picker_pick_btn: 'Pick this booking',
                 cafe_picker_no_booking: 'Check-in without booking',
@@ -9373,19 +9377,19 @@ const ccEmail1 = (sendToClient && clientEmailValue) ? clientEmailValue : '';
                         </div>
                     `;
                 } else {
-                    let html = `<div style="font-size:12px; font-weight:700; color:var(--muted); text-transform:uppercase; margin-bottom:8px;">${t('cafe_picker_your_bookings')}</div>`;
+                                        let html = `<div style="font-size:12px; font-weight:700; color:var(--muted); text-transform:uppercase; margin-bottom:8px;">${t('cafe_picker_your_bookings')}</div>`;
                     bookings.forEach(b => {
                         const startStr = fmtCafeDateTime(b.start_time_iso);
                         const endStr = fmtCafeDateTime(b.end_time_iso);
                         html += `
                             <div class="cafe-card" style="cursor:pointer; margin-bottom:10px;" onclick="pickCheckinBooking('${escapeHtml(b.booking_id)}')">
                                 <div class="cafe-card-header">
-                                    <div class="cafe-card-title">
-                                        <i class="fa-regular fa-clock"></i>
-                                        ${startStr} → ${endStr}
+                                    <div class="cafe-card-title" style="display:flex; flex-direction:column; gap:4px;">
+                                        <div><i class="fa-regular fa-clock" style="width:16px;"></i> <span>${t('cafe_picker_in')}: <b>${startStr}</b></span></div>
+                                        <div><i class="fa-solid fa-arrow-right-from-bracket" style="width:16px;"></i> <span>${t('cafe_picker_out')}: <b>${endStr}</b></span></div>
                                     </div>
                                 </div>
-                                <div class="cafe-card-meta">
+                                <div class="cafe-card-meta" style="margin-top:8px;">
                                     ${b.guest_name ? `<div><i class="fa-regular fa-user"></i> ${escapeHtml(b.guest_name)}</div>` : ''}
                                     ${b.note ? `<div><i class="fa-regular fa-note-sticky"></i> ${escapeHtml(b.note)}</div>` : ''}
                                 </div>
