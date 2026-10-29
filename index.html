@@ -8478,7 +8478,7 @@ const ccEmail1 = (sendToClient && clientEmailValue) ? clientEmailValue : '';
             return (Date.now() - b.start_time_ms) > GRACE_MS;
         }
 
-        async function loadCafeBookings() {
+                async function loadCafeBookings() {
             const container = document.getElementById('cafeBookingsList');
             if (!container) return;
             container.innerHTML = `<p class="cafe-loading">${t('loading')}</p>`;
@@ -8494,8 +8494,14 @@ const ccEmail1 = (sendToClient && clientEmailValue) ? clientEmailValue : '';
                     container.innerHTML = `<div class="cafe-empty"><i class="fa-solid fa-circle-exclamation"></i>${t('cafe_loading_error')}</div>`;
                     return;
                 }
-                                // 🚨 Chỉ hiển thị các booking đang chờ hoặc đã xác nhận, ẩn các booking expired/cancelled
-                const bookings = (data.bookings || []).filter(b => b.status === 'pending' || b.status === 'confirmed');
+                
+                // 🚨 HIỂN THỊ CẢ CÁC BOOKING HẾT HẠN / ĐÃ HỦY ĐỂ ĐỐI SOÁT
+                const bookings = (data.bookings || []).filter(b => 
+                    b.status === 'pending' || 
+                    b.status === 'confirmed' || 
+                    b.status === 'expired' || 
+                    b.status === 'cancelled'
+                );
 
                 if (bookings.length === 0) {
                     container.innerHTML = `<div class="cafe-empty"><i class="fa-regular fa-calendar-xmark"></i>${t('cafe_empty_bookings')}</div>`;
@@ -8503,9 +8509,21 @@ const ccEmail1 = (sendToClient && clientEmailValue) ? clientEmailValue : '';
                 }
 
                 let html = '';
-                    bookings.forEach(b => {
-                    const badgeClass = b.status === 'pending' ? 'pending' : (b.status === 'expired' ? 'cancelled' : 'confirmed');
-                    const statusLabel = b.status === 'expired' ? t('cafe_status_expired') : getCafeStatusLabel(b.status);
+                bookings.forEach(b => {
+                    let badgeClass = '';
+                    let statusLabel = '';
+                    
+                    if (b.status === 'pending') { badgeClass = 'pending'; statusLabel = t('cafe_status_pending'); }
+                    else if (b.status === 'confirmed') { badgeClass = 'confirmed'; statusLabel = t('cafe_status_confirmed'); }
+                    else if (b.status === 'expired') { badgeClass = 'cancelled'; statusLabel = 'Đã hủy (Quá hạn)'; }
+                    else if (b.status === 'cancelled') { badgeClass = 'cancelled'; statusLabel = t('cafe_status_cancelled'); }
+
+                    // Kiểm tra xem có bị phạt không (dựa vào data trả về, nếu không có thì mặc định 0)
+                    const penaltyHours = b.penalty_hours || 0;
+                    const penaltyHtml = (b.status === 'expired' && penaltyHours > 0) 
+                        ? `<div style="margin-top:6px; font-size:12px; color:#DC2626; font-weight:700;"><i class="fa-solid fa-circle-exclamation"></i> Phạt no-show: ${penaltyHours}h (Đã trừ quỹ)</div>` 
+                        : '';
+
                     html += `
                         <div class="cafe-card">
                             <div class="cafe-card-header">
@@ -8520,14 +8538,17 @@ const ccEmail1 = (sendToClient && clientEmailValue) ? clientEmailValue : '';
                                 <div><i class="fa-solid fa-location-dot"></i> <span>${escapeHtml(b.cafe_address)}</span></div>
                                 ${b.held_hours ? `<div><i class="fa-solid fa-lock"></i> <span>${t('cafe_deposit_label')}: <b>${b.held_hours}h</b></span></div>` : ''}
                                 ${b.guest_name ? `<div><i class="fa-regular fa-user"></i> <span>${escapeHtml(b.guest_name)}</span></div>` : ''}
-                                ${b.note ? `<div><i class="fa-regular fa-note-sticky"></i> <span>${escapeHtml(b.note)}</span></div>` : ''}
                                 <div><i class="fa-solid fa-users"></i> <span>${t('booking_seats', {n: b.guest_count || 1})}</span></div>
+                                ${penaltyHtml}
                             </div>
+                            
+                            <!-- Chỉ hiện nút thao tác cho pending / confirmed -->
+                            ${(b.status === 'pending' || b.status === 'confirmed') ? `
                             <div class="cafe-card-actions">
-                                ${(b.status === 'pending' || b.status === 'confirmed') ? `<button class="cafe-btn-sm outline" onclick="cancelCafeBooking('${escapeHtml(b.booking_id)}', this)"><span>${t('cancel_btn')}</span></button>` : ''}
+                                <button class="cafe-btn-sm outline" onclick="cancelCafeBooking('${escapeHtml(b.booking_id)}', this)"><span>${t('cancel_btn')}</span></button>
                                 ${b.status === 'confirmed' && !isBookingExpired(b) ? `<button class="cafe-btn-sm primary" onclick="quickCheckInFromBooking('${escapeHtml(b.booking_id)}', '${escapeHtml(b.cafe_id)}', '${escapeHtml(b.cafe_name).replace(/'/g, "\\'")}')"><span>Check-in</span></button>` : ''}
-                                ${b.status === 'confirmed' && isBookingExpired(b) ? `<div style="width:100%; text-align:center; font-size:12px; color:var(--muted); padding:8px; background:#F8FAFC; border-radius:8px;">${t('cafe_booking_expired_hint') || 'Đã quá hạn check-in (15 phút)'}</div>` : ''}
                             </div>
+                            ` : ''}
                         </div>
                     `;
                 });
