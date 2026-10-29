@@ -8494,7 +8494,8 @@ const ccEmail1 = (sendToClient && clientEmailValue) ? clientEmailValue : '';
                     container.innerHTML = `<div class="cafe-empty"><i class="fa-solid fa-circle-exclamation"></i>${t('cafe_loading_error')}</div>`;
                     return;
                 }
-                const bookings = (data.bookings || []).filter(b => b.status === 'pending' || b.status === 'confirmed' || b.status === 'expired');
+                                // 🚨 Chỉ hiển thị các booking đang chờ hoặc đã xác nhận, ẩn các booking expired/cancelled
+                const bookings = (data.bookings || []).filter(b => b.status === 'pending' || b.status === 'confirmed');
 
                 if (bookings.length === 0) {
                     container.innerHTML = `<div class="cafe-empty"><i class="fa-regular fa-calendar-xmark"></i>${t('cafe_empty_bookings')}</div>`;
