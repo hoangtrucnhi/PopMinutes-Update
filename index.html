@@ -6940,7 +6940,7 @@ for (let attempt = 1; attempt <= 3; attempt++) {
         // ========================================================================
         //  PROFILE PAGE
         // ========================================================================
-                async function loadProfilePage() {
+                        async function loadProfilePage() {
             if (!currentEmail) return;
 
             // Set display
@@ -6951,6 +6951,9 @@ for (let attempt = 1; attempt <= 3; attempt++) {
             try {
                 const url = `${CLOUD_FUNCTION_URL}?action=getUserProfile&email=${encodeURIComponent(currentEmail)}`;
                 const res = await fetch(url);
+                // 🚨 THÊM DÒNG NÀY ĐỂ CHẶN LỖI TIMEOUT
+                if (!res.ok) return; 
+
                 const data = await res.json();
                 if (data.status === 200 && data.profile) {
                     const p = data.profile;
@@ -6969,7 +6972,7 @@ for (let attempt = 1; attempt <= 3; attempt++) {
                 document.getElementById('pfFullname').value = currentSalesName || '';
                 document.getElementById('pfCompany').value  = currentCompanyName || '';
             }
-                    // Load bank info
+            // Load bank info
             loadBankInfoFromServer();
         }
 
@@ -8989,11 +8992,25 @@ const ccEmail1 = (sendToClient && clientEmailValue) ? clientEmailValue : '';
             if (window._syncActiveInterval) clearInterval(window._syncActiveInterval);
                         // Polling mỗi 20s: refresh active check-in để bắt manager_confirmed_at
             if (window._syncActiveInterval) clearInterval(window._syncActiveInterval);
-            window._syncActiveInterval = setInterval(async () => {
+                        window._syncActiveInterval = setInterval(async () => {
                 if (document.hidden) return; 
                 try {
                     const r = await fetch(CLOUD_FUNCTION_URL + '?action=cafeCheckInGetActive&salesEmail=' + encodeURIComponent(currentEmail));
-                    const j = await r.json();
+                    
+                    // 🚨 BỎ QUA NẾU CLOUD RUN TIMEOUT (408) HOẶC LỖI MẠNG
+                    if (!r.ok) {
+                        console.warn('[Sync] Bỏ qua do mạng chậm (HTTP ' + r.status + ')');
+                        return;
+                    }
+                    
+                    let j;
+                    try {
+                        j = await r.json();
+                    } catch (e) {
+                        console.warn('[Sync] Bỏ qua do JSON rỗng');
+                        return;
+                    }
+
                     if (j.status !== 200 || !j.active) return;
 
                     const oldConfirmed = _activeCheckinCache?.manager_confirmed_at;
@@ -9007,12 +9024,11 @@ const ccEmail1 = (sendToClient && clientEmailValue) ? clientEmailValue : '';
                         console.log('[Sync] Manager vừa confirm → re-render');
                         renderActiveCheckin(_activeCheckinCache);
                     } else {
-                        // 🚨 QUAN TRỌNG: Nếu đã confirm rồi, chỉ cần check lại điều kiện hiện nút Check-out
-                        // (Dành cho trường hợp cậu sửa giờ trên Firestore, nó sẽ tự cập nhật)
                         updateCheckoutEligibility();
                     }
                 } catch (e) {
-                    console.warn('[Sync] Poll error:', e.message);
+                    // Bắt các lỗi fetch (nếu mất mạng hoàn toàn)
+                    console.warn('[Sync] Lỗi kết nối ngầm, đang thử lại...');
                 }
             }, 20000);
 
