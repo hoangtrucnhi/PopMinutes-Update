@@ -9065,7 +9065,7 @@ const ccEmail1 = (sendToClient && clientEmailValue) ? clientEmailValue : '';
                 }
             }, 100);
         }
-        // ================================================================
+                // ================================================================
         // ========== CHECK-OUT WATCHER (GPS + TIME) ======================
         // ================================================================
         let _activeCheckinCache = null;
@@ -9084,9 +9084,8 @@ const ccEmail1 = (sendToClient && clientEmailValue) ? clientEmailValue : '';
 
             // Polling mỗi 20s: refresh active check-in để bắt manager_confirmed_at
             if (window._syncActiveInterval) clearInterval(window._syncActiveInterval);
-                        // Polling mỗi 20s: refresh active check-in để bắt manager_confirmed_at
-            if (window._syncActiveInterval) clearInterval(window._syncActiveInterval);
-                                    window._syncActiveInterval = setInterval(async () => {
+            
+            window._syncActiveInterval = setInterval(async () => {
                 if (document.hidden) return; 
                 try {
                     const r = await fetch(CLOUD_FUNCTION_URL + '?action=cafeCheckInGetActive&salesEmail=' + encodeURIComponent(currentEmail));
@@ -9097,16 +9096,9 @@ const ccEmail1 = (sendToClient && clientEmailValue) ? clientEmailValue : '';
                     if (j.status === 200 && !j.active) {
                         stopCheckoutWatcher();
                         
-                        // 🚨 CẬP NHẬT LẠI SỐ CREDIT
+                        // 🚨 CẬP NHẬT LẠI SỐ CREDIT TỪ SERVER LÊN UI
                         refreshDashboardData();
 
-                        const pendingId = localStorage.getItem('pending_review_checkin_id');
-                        if (pendingId) {
-                            localStorage.removeItem('pending_review_checkin_id');
-                            if (typeof openReviewModal === 'function') {
-                                openReviewModal(pendingId);
-                            }
-                        }                        
                         const pendingId = localStorage.getItem('pending_review_checkin_id');
                         if (pendingId) {
                             localStorage.removeItem('pending_review_checkin_id');
@@ -9138,6 +9130,24 @@ const ccEmail1 = (sendToClient && clientEmailValue) ? clientEmailValue : '';
                     console.warn('[Sync] Poll error:', e.message);
                 }
             }, 20000);
+
+            // GPS watcher for auto check-out
+            if (active.cafe_location && active.cafe_location.lat && active.cafe_location.lng) {
+                try {
+                    _gpsWatchId = navigator.geolocation.watchPosition(
+                        (pos) => {
+                            handleGpsUpdate(pos.coords.latitude, pos.coords.longitude);
+                        },
+                        (err) => {
+                            console.warn('[GPS watcher] error:', err.message);
+                        },
+                        { enableHighAccuracy: false, timeout: 60000, maximumAge: 120000 }
+                    );
+                } catch (e) {
+                    console.warn('[GPS watcher] cannot start:', e.message);
+                }
+            }
+        }
 
             // GPS watcher for auto check-out
             if (active.cafe_location && active.cafe_location.lat && active.cafe_location.lng) {
