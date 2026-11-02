@@ -9086,22 +9086,28 @@ const ccEmail1 = (sendToClient && clientEmailValue) ? clientEmailValue : '';
             if (window._syncActiveInterval) clearInterval(window._syncActiveInterval);
                         // Polling mỗi 20s: refresh active check-in để bắt manager_confirmed_at
             if (window._syncActiveInterval) clearInterval(window._syncActiveInterval);
-                        window._syncActiveInterval = setInterval(async () => {
+                                    window._syncActiveInterval = setInterval(async () => {
                 if (document.hidden) return; 
                 try {
                     const r = await fetch(CLOUD_FUNCTION_URL + '?action=cafeCheckInGetActive&salesEmail=' + encodeURIComponent(currentEmail));
-                    
-                    // 🚨 BỎ QUA NẾU CLOUD RUN TIMEOUT (408) HOẶC LỖI MẠNG
-                    if (!r.ok) {
-                        console.warn('[Sync] Bỏ qua do mạng chậm (HTTP ' + r.status + ')');
-                        return;
-                    }
-                    
-                    let j;
-                    try {
-                        j = await r.json();
-                    } catch (e) {
-                        console.warn('[Sync] Bỏ qua do JSON rỗng');
+                    if (!r.ok) return;
+                    const j = await r.json();
+
+                    // 🚨 QUÁN ĐÃ QUÉT XONG (Không còn active)
+                    if (j.status === 200 && !j.active) {
+                        stopCheckoutWatcher();
+                        
+                        const pendingId = localStorage.getItem('pending_review_checkin_id');
+                        if (pendingId) {
+                            localStorage.removeItem('pending_review_checkin_id');
+                            if (typeof openReviewModal === 'function') {
+                                openReviewModal(pendingId);
+                            }
+                        }
+                        
+                        if (typeof loadCafeCheckin === 'function') {
+                            loadCafeCheckin();
+                        }
                         return;
                     }
 
@@ -9110,10 +9116,8 @@ const ccEmail1 = (sendToClient && clientEmailValue) ? clientEmailValue : '';
                     const oldConfirmed = _activeCheckinCache?.manager_confirmed_at;
                     const newConfirmed = j.active.manager_confirmed_at;
 
-                    // Cập nhật cache mới nhất
                     _activeCheckinCache = { ..._activeCheckinCache, ...j.active };
 
-                    // Nếu manager vừa confirm -> re-render toàn bộ giao diện
                     if (!oldConfirmed && newConfirmed) {
                         console.log('[Sync] Manager vừa confirm → re-render');
                         renderActiveCheckin(_activeCheckinCache);
@@ -9121,8 +9125,7 @@ const ccEmail1 = (sendToClient && clientEmailValue) ? clientEmailValue : '';
                         updateCheckoutEligibility();
                     }
                 } catch (e) {
-                    // Bắt các lỗi fetch (nếu mất mạng hoàn toàn)
-                    console.warn('[Sync] Lỗi kết nối ngầm, đang thử lại...');
+                    console.warn('[Sync] Poll error:', e.message);
                 }
             }, 20000);
 
@@ -9300,9 +9303,18 @@ const ccEmail1 = (sendToClient && clientEmailValue) ? clientEmailValue : '';
                     return;
                 }
                 let html = '';
-                checkins.forEach(c => {
+                                checkins.forEach(c => {
                     const badgeClass = c.status === 'active' ? 'active' : 'completed';
                     
+                    let reviewBtnHtml = '';
+                    if (c.status === 'completed') {
+                        if (c.is_reviewed) {
+                            reviewBtnHtml = `<div style="margin-top: 8px; font-size: 12px; color: var(--success); font-weight: 600;"><i class="fa-solid fa-circle-check"></i> ${t('review_thanks')}</div>`;
+                        } else {
+                            reviewBtnHtml = `<div style="margin-top: 8px;"><button class="cafe-btn-sm primary" onclick="openReviewModal('${c.checkin_id}')"><i class="fa-solid fa-star"></i> ${t('review_title')}</button></div>`;
+                        }
+                    }
+
                     let billDetailHtml = '';
                     if (c.actual_hours > 0) {
                         const absent = (c.guest_count || 1) - (c.actual_guest_count || 1);
@@ -9339,6 +9351,7 @@ const ccEmail1 = (sendToClient && clientEmailValue) ? clientEmailValue : '';
                                 ${c.auto_checkout ? `<div style="color:#B45309;"><i class="fa-solid fa-triangle-exclamation"></i> <span>Auto check-out</span></div>` : ''}
                             </div>
                             ${billDetailHtml}
+                            ${reviewBtnHtml}
                         </div>
                     `;
                 });
@@ -9536,6 +9549,7 @@ const ccEmail1 = (sendToClient && clientEmailValue) ? clientEmailValue : '';
         }
 
         // ===== SUBMIT CHECK-IN (cập nhật để nhận bookingId) =====
+                // ===== SUBMIT CHECK-IN (cập nhật để nhận bookingId) =====
         async function submitCheckIn(cafeId, lat, lng, bookingId) {
             const enterpriseId = window.__currentEnterpriseId || currentEnterpriseId;
             if (!enterpriseId) {
@@ -9547,13 +9561,12 @@ const ccEmail1 = (sendToClient && clientEmailValue) ? clientEmailValue : '';
                 const params = {
                     action: 'cafeCheckIn',
                     salesEmail: currentEmail,
-                    salesName: currentSalesName, // 🚨 Gửi kèm tên Sales
+                    salesName: currentSalesName,
                     enterpriseId: enterpriseId,
                     cafeId: cafeId,
                     lat: String(lat),
                     lng: String(lng)
                 };
-                // Chỉ gửi bookingId khi có
                 if (bookingId) params.bookingId = bookingId;
 
                 const res = await fetch(CLOUD_FUNCTION_URL, {
@@ -9563,26 +9576,18 @@ const ccEmail1 = (sendToClient && clientEmailValue) ? clientEmailValue : '';
                 });
                 const data = await res.json();
                 
-                if (data.status === 200) {
+                                if (data.status === 200) {
                     if (data.is_tier1) {
-                        showToast(t('tier1_checkin_success'), true);
-                        currentAiCredits++;
-                        
-                        // 🚨 CẬP NHẬT UI NẾU LÀ GÓI FREE
-                        if (document.getElementById('package-display').textContent === 'FREE-10Y') {
-                            const col2Value = document.getElementById('card-col2-value');
-                            if (col2Value) col2Value.textContent = currentAiCredits;
-                        }
-                        
-                        setTimeout(() => {
-                            openReviewModal(data.checkin_id);
-                        }, 1500);
-                    } else {
-                        showToast(t('cafe_checkin_success'), true);
+                        // Lưu ID để khi Quán quét xong sẽ bật Form Review
+                        localStorage.setItem('pending_review_checkin_id', data.checkin_id);
                     }
-                    setTimeout(loadCafeCheckin, 500);
+                    showToast(data.message || t('cafe_checkin_success'), true);
+                    setTimeout(() => {
+                        if (typeof loadCafeCheckin === 'function') {
+                            loadCafeCheckin();
+                        }
+                    }, 500);
                 } else {
-                    // 🚨 THÊM ĐOẠN XỬ LÝ LỖI NẾU API TRẢ VỀ KHÔNG PHẢI 200 (VD: Lỗi quán hết tiền, sai GPS...)
                     showToast(data.message || t('cafe_unknown_error'), false);
                 }
             } catch (e) {
@@ -13554,13 +13559,11 @@ window.addEventListener('message', async function(event) {
             document.getElementById('noiseResult').style.display = 'none';
             document.getElementById('btnSubmitReview').disabled = true;
             
-            // Reset stars
             document.querySelectorAll('#starRating i').forEach(star => star.style.color = '#CBD5E1');
             
-            // Reset nút đo
             const btn = document.getElementById('btnMeasureNoise');
             btn.disabled = false;
-            btn.innerHTML = `<span data-i18n="review_measure_btn">${t('review_measure_btn')}</span>`;
+            btn.innerHTML = `<span>${t('review_measure_btn')}</span>`;
         }
 
         function closeReviewModal() {
@@ -13575,7 +13578,6 @@ window.addEventListener('message', async function(event) {
             }
         }
 
-        // Bắt sự kiện click sao
         document.querySelectorAll('#starRating i').forEach(star => {
             star.addEventListener('click', function() {
                 _selectedRating = Number(this.getAttribute('data-val'));
@@ -13587,11 +13589,10 @@ window.addEventListener('message', async function(event) {
             });
         });
 
-        // Đo độ ồn
         document.getElementById('btnMeasureNoise').addEventListener('click', async function() {
             const btn = this;
             btn.disabled = true;
-            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang đo...';
             
             try {
                 if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
@@ -13604,47 +13605,40 @@ window.addEventListener('message', async function(event) {
                 const source = _audioContext.createMediaStreamSource(_noiseStream);
                 source.connect(analyser);
                 analyser.fftSize = 256;
-                
                 const dataArray = new Uint8Array(analyser.frequencyBinCount);
                 
-                // Đo trong 3 giây
                 let maxDb = 0;
+                let count = 0;
                 const interval = setInterval(() => {
                     analyser.getByteFrequencyData(dataArray);
                     let sum = 0;
-                    for (let i = 0; i < dataArray.length; i++) {
-                        sum += dataArray[i];
-                    }
+                    for (let i = 0; i < dataArray.length; i++) sum += dataArray[i];
                     const avg = sum / dataArray.length;
-                    // Chuyển đổi tương đối ra dB (Công thức ước lượng)
                     const db = Math.round(20 * Math.log10(avg + 1)); 
                     if (db > maxDb) maxDb = db;
+                    count++;
+                    if (count >= 30) {
+                        clearInterval(interval);
+                        _noiseStream.getTracks().forEach(t => t.stop());
+                        _audioContext.close();
+                        
+                        _measuredDb = maxDb;
+                        const resultDiv = document.getElementById('noiseResult');
+                        resultDiv.innerHTML = t('noise_db_result', { db: _measuredDb });
+                        resultDiv.style.display = 'block';
+                        
+                        btn.innerHTML = '<i class="fa-solid fa-check"></i> Đã đo xong';
+                        checkReviewReady();
+                    }
                 }, 100);
-
-                setTimeout(() => {
-                    clearInterval(interval);
-                    _measuredDb = maxDb;
-                    
-                    const resultDiv = document.getElementById('noiseResult');
-                    resultDiv.innerHTML = t('noise_db_result', { db: _measuredDb });
-                    resultDiv.style.display = 'block';
-                    
-                    btn.innerHTML = '<i class="fa-solid fa-check"></i>';
-                    checkReviewReady();
-                    
-                    if (_noiseStream) _noiseStream.getTracks().forEach(track => track.stop());
-                    if (_audioContext) _audioContext.close();
-                }, 3000);
-                
             } catch (e) {
-                showToast('Không thể truy cập Mic: ' + e.message, false);
+                showToast('Lỗi Mic: ' + e.message, false);
                 btn.disabled = false;
-                btn.innerHTML = `<span>${t('review_measure_btn')}</span>`;
+                btn.innerHTML = t('review_measure_btn');
             }
         });
 
         function checkReviewReady() {
-            // Chỉ cho bấm gửi khi đã chọn sao VÀ đã đo Db
             if (_selectedRating > 0 && _measuredDb !== null) {
                 document.getElementById('btnSubmitReview').disabled = false;
             }
@@ -13674,6 +13668,7 @@ window.addEventListener('message', async function(event) {
                 if (data.status === 200) {
                     showToast(t('review_thanks'), true);
                     closeReviewModal();
+                    if (typeof loadCafeHistory === 'function') loadCafeHistory();
                 } else {
                     showToast(data.message || 'Lỗi', false);
                     btn.disabled = false;
