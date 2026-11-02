@@ -5386,8 +5386,8 @@
                 bill_penalty: 'Phụ thu ({n} người vắng): +{h}h',
                 bill_total_time: 'Tổng thời gian: {h}h',
                 booking_seats: 'Đã đặt: {n} ghế',
-                expired_package_msg: 'Gói dịch vụ của công ty bạn đã hết hạn. Vui lòng liên hệ Admin để gia hạn.',
-                expired_package_title: 'Gói đã hết hạn',
+                expired_package_msg: 'Gói đã hết hạn. Vui lòng gia hạn.',
+                expired_package_title: 'Gói đã hết hạn.',
                 },
             en: {
                 // ===== CAFE NOTIFICATIONS (EN) =====
@@ -5927,7 +5927,7 @@
                 bill_penalty: 'Surcharge ({n} absent): +{h}h',
                 bill_total_time: 'Total time: {h}h',
                 booking_seats: 'Booked: {n} seats',
-                expired_package_msg: 'Your company\'s subscription has expired. Please contact Admin to renew.',
+                expired_package_msg: 'Subscription expired. Please renew.',
                 expired_package_title: 'Subscription Expired',
             }
         };
@@ -7859,7 +7859,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         openBtn.addEventListener('click', () => {
             if (isPackageExpired) {
-                showToast('Gói dịch vụ đã hết hạn. Vui lòng gia hạn để sử dụng AI!', false);
+                showToast(t('expired_package_msg'), false);
                 return;
             }
             if (!currentEmail) {
@@ -8073,7 +8073,7 @@ const ccEmail1 = (sendToClient && clientEmailValue) ? clientEmailValue : '';
 
         document.getElementById('checkinBtn').addEventListener('click', () => {
             if (isPackageExpired) {
-                showToast('Gói dịch vụ đã hết hạn. Vui lòng gia hạn để sử dụng tính năng này!', false);
+                showToast(t('expired_package_msg'), false);
                 return;
             }
             openCafePage('bookings');
@@ -12155,7 +12155,7 @@ if (taskSearchBtn && taskSearchInput && searchInlineWrap) {
 
         document.getElementById('tasksBtn').addEventListener('click', function() {
             if (isPackageExpired) {
-                showToast('Gói dịch vụ đã hết hạn. Vui lòng gia hạn để sử dụng tính năng này!', false);
+                showToast(t('expired_package_msg'), false);
                 return;
             }
             if (!currentEmail) {
