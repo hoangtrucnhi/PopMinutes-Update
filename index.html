@@ -9045,7 +9045,7 @@ const ccEmail1 = (sendToClient && clientEmailValue) ? clientEmailValue : '';
                         <div><i class="fa-regular fa-clock"></i> In: <b>${fmtCafeDateTime(active.check_in_at)}</b></div>
                         ${active.table_number ? `<div><i class="fa-solid fa-chair"></i> ${t('cafe_table_label')}: <b>${active.table_number}</b></div>` : ''}
                         ${active.guest_count > 1 ? `<div><i class="fa-solid fa-users"></i> ${t('booking_seats', {n: active.guest_count})}</div>` : ''}
-                        ${(active.deposit_hold || 0) > 0 ? `<div><i class="fa-solid fa-lock"></i> ${t('cafe_deposit_label')}: <b>${active.deposit_hold}h</b></div>` : ''}
+                        ${(!active.is_tier1 && (active.deposit_hold === undefined || active.deposit_hold > 0)) ? `<div><i class="fa-solid fa-lock"></i> ${t('cafe_deposit_label')}: <b>${active.deposit_hold || 1}h</b></div>` : ''}
                     </div>
 
                     <div class="cafe-qr-section">
@@ -9605,14 +9605,13 @@ const ccEmail1 = (sendToClient && clientEmailValue) ? clientEmailValue : '';
                 });
                 const data = await res.json();
                 
-                    if (data.status === 200) {
+                                    if (data.status === 200) {
                     if (data.is_tier1) {
-                        // Lưu ID để khi Quán quét xong sẽ bật Form Review
+                        // Gói Free: Lưu ID để bật Form Review, hiện Toast ngắn
                         localStorage.setItem('pending_review_checkin_id', data.checkin_id);
-                        // 🚨 DÙNG CÂU NGẮN GỌN THAY VÌ CỦA BACKEND
                         showToast(t('tier1_checkin_success'), true);
                     } else {
-                        // Các gói khác vẫn hiện thông báo cũ
+                        // Gói Trả phí: Hiện Toast cũ
                         showToast(data.message || t('cafe_checkin_success'), true);
                     }
                     
