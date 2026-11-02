@@ -5391,7 +5391,13 @@
                 expired_package_title: 'Gói đã hết hạn.',
                 ai_credits_label: 'Lượt dùng AI',
                 out_of_ai_credits: 'Bạn đã hết lượt sử dụng AI. Vui lòng đến quán cafe đối tác check-in để nhận thêm lượt.',
-                tier1_checkin_success: 'Check-in quán thành công! Bạn nhận được +1 lượt dùng AI.',
+                tier1_checkin_success: 'Đưa quán quét QR để +1 AI credit.',
+                review_thanks: '+1 AI credit',
+                gps_required_review: 'Vui lòng bật GPS để đánh giá quán!',
+                gps_too_far_review: 'Bạn đang cách quán {dist}m. Chỉ có thể đánh giá khi ở trong bán kính 50m.',
+                mic_error: 'Lỗi Mic: {msg}',
+                measuring: 'Đang đo...',
+                measured_done: 'Đã đo xong',
                 review_title: 'Đánh giá quán Cafe',
                 review_rating_label: 'Chất lượng quán',
                 review_noise_label: 'Đo độ ồn tại quán',
@@ -5942,7 +5948,13 @@
                 expired_package_title: 'Subscription Expired',
                 ai_credits_label: 'AI Credits',
                 out_of_ai_credits: 'You have run out of AI credits. Please check in at a partner cafe to earn more.',
-                tier1_checkin_success: 'Check-in successful! You earned +1 AI credit.',
+                tier1_checkin_success: 'Show QR to the cafe to get +1 AI credit.',
+                review_thanks: '+1 AI credit',
+                gps_required_review: 'Please turn on GPS to review the cafe!',
+                gps_too_far_review: 'You are {dist}m away. You can only review within 50m.',
+                mic_error: 'Mic error: {msg}',
+                measuring: 'Measuring...',
+                measured_done: 'Measured',
                 review_title: 'Cafe Review',
                 review_rating_label: 'Cafe Quality',
                 review_noise_label: 'Measure Noise Level',
@@ -13614,7 +13626,7 @@ window.addEventListener('message', async function(event) {
         document.getElementById('btnMeasureNoise').addEventListener('click', async function() {
             const btn = this;
             btn.disabled = true;
-            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang đo...';
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> ' + t('measuring');
             
             try {
                 if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
@@ -13649,12 +13661,12 @@ window.addEventListener('message', async function(event) {
                         resultDiv.innerHTML = t('noise_db_result', { db: _measuredDb });
                         resultDiv.style.display = 'block';
                         
-                        btn.innerHTML = '<i class="fa-solid fa-check"></i> Đã đo xong';
+                        btn.innerHTML = '<i class="fa-solid fa-check"></i> ' + t('measured_done');
                         checkReviewReady();
                     }
                 }, 100);
             } catch (e) {
-                showToast('Lỗi Mic: ' + e.message, false);
+                showToast(t('mic_error', { msg: e.message }), false);
                 btn.disabled = false;
                 btn.innerHTML = t('review_measure_btn');
             }
@@ -13687,7 +13699,7 @@ window.addEventListener('message', async function(event) {
                         });
                     });
                 } catch (gpsErr) {
-                    showToast('Vui lòng bật GPS để đánh giá quán!', false);
+                    showToast(t('gps_required_review'), false);
                     btn.disabled = false;
                     btn.innerHTML = orig;
                     return;
@@ -13719,7 +13731,7 @@ window.addEventListener('message', async function(event) {
                 } else {
                     // Hiển thị lỗi nếu ở quá xa (CAFE_TOO_FAR)
                     if (data.code === 'CAFE_TOO_FAR') {
-                        showToast(`Bạn đang cách quán ${data.params.distance}m. Chỉ có thể đánh giá khi ở trong bán kính 50m.`, false);
+                        showToast(t('gps_too_far_review', { dist: data.params.distance }), false);
                     } else {
                         showToast(data.message || 'Lỗi', false);
                     }
