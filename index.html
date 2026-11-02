@@ -9097,6 +9097,16 @@ const ccEmail1 = (sendToClient && clientEmailValue) ? clientEmailValue : '';
                     if (j.status === 200 && !j.active) {
                         stopCheckoutWatcher();
                         
+                        // 🚨 CẬP NHẬT LẠI SỐ CREDIT
+                        refreshDashboardData();
+
+                        const pendingId = localStorage.getItem('pending_review_checkin_id');
+                        if (pendingId) {
+                            localStorage.removeItem('pending_review_checkin_id');
+                            if (typeof openReviewModal === 'function') {
+                                openReviewModal(pendingId);
+                            }
+                        }                        
                         const pendingId = localStorage.getItem('pending_review_checkin_id');
                         if (pendingId) {
                             localStorage.removeItem('pending_review_checkin_id');
@@ -13695,6 +13705,8 @@ window.addEventListener('message', async function(event) {
                     showToast(t('review_thanks'), true);
                     closeReviewModal();
                     if (typeof loadCafeHistory === 'function') loadCafeHistory();
+                    // 🚨 CẬP NHẬT LẠI SỐ CREDIT PHÒNG TRƯỜNG HỢP CÓ THAY ĐỔI
+                    refreshDashboardData(); 
                 } else {
                     // Hiển thị lỗi nếu ở quá xa (CAFE_TOO_FAR)
                     if (data.code === 'CAFE_TOO_FAR') {
@@ -13709,6 +13721,29 @@ window.addEventListener('message', async function(event) {
                 showToast('Lỗi kết nối', false);
                 btn.disabled = false;
                 btn.innerHTML = orig;
+            }
+        }
+                // ========== HÀM LẤY LẠI DATA MỚI NHẤT TỪ SERVER ==========
+        async function refreshDashboardData() {
+            if (!currentEmail || !window.__sessionToken) return;
+            try {
+                const res = await fetch(`${CLOUD_FUNCTION_URL}?action=validateSalesSession&sessionToken=${encodeURIComponent(window.__sessionToken)}`);
+                const data = await res.json();
+                if (data.status === 200 && data.authenticated) {
+                    const pkgId = data.enterprise.packageId || '';
+                    currentAiCredits = data.enterprise.ai_credits || 0;
+                    
+                    // Cập nhật số Credit lên UI nếu là gói Free
+                    if (pkgId === 'FREE-10Y') {
+                        const col2Value = document.getElementById('card-col2-value');
+                        if (col2Value) {
+                            col2Value.textContent = currentAiCredits;
+                        }
+                    }
+                    console.log('✅ Đã cập nhật lại Credit:', currentAiCredits);
+                }
+            } catch (e) {
+                console.warn('Refresh data error:', e.message);
             }
         }
     </script>
