@@ -9562,8 +9562,8 @@ const ccEmail1 = (sendToClient && clientEmailValue) ? clientEmailValue : '';
                     body: new URLSearchParams(params).toString()
                 });
                 const data = await res.json();
-                                if (data.status === 200) {
-                                    if (data.status === 200) {
+                
+                if (data.status === 200) {
                     if (data.is_tier1) {
                         showToast(t('tier1_checkin_success'), true);
                         currentAiCredits++;
@@ -9581,6 +9581,9 @@ const ccEmail1 = (sendToClient && clientEmailValue) ? clientEmailValue : '';
                         showToast(t('cafe_checkin_success'), true);
                     }
                     setTimeout(loadCafeCheckin, 500);
+                } else {
+                    // 🚨 THÊM ĐOẠN XỬ LÝ LỖI NẾU API TRẢ VỀ KHÔNG PHẢI 200 (VD: Lỗi quán hết tiền, sai GPS...)
+                    showToast(data.message || t('cafe_unknown_error'), false);
                 }
             } catch (e) {
                 showToast(e.message, false);
