@@ -13648,15 +13648,34 @@ window.addEventListener('message', async function(event) {
             }
         }
 
-        async function submitReview() {
+                async function submitReview() {
             if (!_currentReviewCheckinId || _selectedRating === 0) return;
             
             const btn = document.getElementById('btnSubmitReview');
             const orig = btn.innerHTML;
             btn.disabled = true;
-            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang lấy GPS...';
             
             try {
+                // 🚨 LẤY GPS HIỆN TẠI
+                let pos;
+                try {
+                    pos = await new Promise((resolve, reject) => {
+                        navigator.geolocation.getCurrentPosition(resolve, reject, {
+                            enableHighAccuracy: true,
+                            timeout: 10000,
+                            maximumAge: 0
+                        });
+                    });
+                } catch (gpsErr) {
+                    showToast('Vui lòng bật GPS để đánh giá quán!', false);
+                    btn.disabled = false;
+                    btn.innerHTML = orig;
+                    return;
+                }
+
+                btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+                
                 const res = await fetch(CLOUD_FUNCTION_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -13665,16 +13684,24 @@ window.addEventListener('message', async function(event) {
                         checkinId: _currentReviewCheckinId,
                         salesEmail: currentEmail,
                         rating: _selectedRating,
-                        noiseDb: _measuredDb
+                        noiseDb: _measuredDb,
+                        lat: pos.coords.latitude,   // 🚨 GỬI KÈM GPS
+                        lng: pos.coords.longitude   // 🚨 GỬI KÈM GPS
                     })
                 });
+                
                 const data = await res.json();
                 if (data.status === 200) {
                     showToast(t('review_thanks'), true);
                     closeReviewModal();
                     if (typeof loadCafeHistory === 'function') loadCafeHistory();
                 } else {
-                    showToast(data.message || 'Lỗi', false);
+                    // Hiển thị lỗi nếu ở quá xa (CAFE_TOO_FAR)
+                    if (data.code === 'CAFE_TOO_FAR') {
+                        showToast(`Bạn đang cách quán ${data.params.distance}m. Chỉ có thể đánh giá khi ở trong bán kính 50m.`, false);
+                    } else {
+                        showToast(data.message || 'Lỗi', false);
+                    }
                     btn.disabled = false;
                     btn.innerHTML = orig;
                 }
