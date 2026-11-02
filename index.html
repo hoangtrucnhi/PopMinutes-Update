@@ -6423,7 +6423,7 @@ let currentEmail = "",
                 // Gói FREE: Hiện AI Credits
                 col2Label.setAttribute('data-i18n', 'ai_credits_label');
                 col2Label.textContent = t('ai_credits_label') || 'Lượt dùng AI';
-                col2Value.textContent = currentAiCredits;
+                col2Value.textContent = Math.round(currentAiCredits * 10) / 10;
                 col2Value.style.color = 'var(--navy)';
             } else {
                 // Gói khác: Hiện Expiry
@@ -13733,20 +13733,20 @@ window.addEventListener('message', async function(event) {
             }
         }
                 // ========== HÀM LẤY LẠI DATA MỚI NHẤT TỪ SERVER ==========
-        async function refreshDashboardData() {
+                async function refreshDashboardData() {
             if (!currentEmail || !window.__sessionToken) return;
             try {
                 const res = await fetch(`${CLOUD_FUNCTION_URL}?action=validateSalesSession&sessionToken=${encodeURIComponent(window.__sessionToken)}`);
                 const data = await res.json();
                 if (data.status === 200 && data.authenticated) {
                     const pkgId = data.enterprise.packageId || '';
-                    currentAiCredits = data.enterprise.ai_credits || 0;
+                    currentAiCredits = Number(data.enterprise.ai_credits) || 0;
                     
-                    // Cập nhật số Credit lên UI nếu là gói Free
                     if (pkgId === 'FREE-10Y') {
                         const col2Value = document.getElementById('card-col2-value');
                         if (col2Value) {
-                            col2Value.textContent = currentAiCredits;
+                            // Làm tròn 1 chữ số thập phân để hiện số 0.5 cho đẹp
+                            col2Value.textContent = Math.round(currentAiCredits * 10) / 10;
                         }
                     }
                     console.log('✅ Đã cập nhật lại Credit:', currentAiCredits);
