@@ -9607,12 +9607,17 @@ const ccEmail1 = (sendToClient && clientEmailValue) ? clientEmailValue : '';
                 });
                 const data = await res.json();
                 
-                                if (data.status === 200) {
+                    if (data.status === 200) {
                     if (data.is_tier1) {
                         // Lưu ID để khi Quán quét xong sẽ bật Form Review
                         localStorage.setItem('pending_review_checkin_id', data.checkin_id);
+                        // 🚨 DÙNG CÂU NGẮN GỌN THAY VÌ CỦA BACKEND
+                        showToast(t('tier1_checkin_success'), true);
+                    } else {
+                        // Các gói khác vẫn hiện thông báo cũ
+                        showToast(data.message || t('cafe_checkin_success'), true);
                     }
-                    showToast(data.message || t('cafe_checkin_success'), true);
+                    
                     setTimeout(() => {
                         if (typeof loadCafeCheckin === 'function') {
                             loadCafeCheckin();
