@@ -3478,6 +3478,12 @@
                     <span data-i18n="hours_unit">Giờ sử dụng tại quán cafe</span>
                 </div>
                 <div class="grid grid-cols-2 gap-2 mt-3 text-sm">
+                                    <!-- Lượt AI Credit -->
+                <div id="ai-credit-wrap" style="display: none; align-items: center; gap: 6px; margin-top: 10px; padding: 6px 10px; background: var(--navy-pale); border-radius: 8px; width: fit-content; border: 1px solid rgba(27, 43, 122, 0.2);">
+                    <i class="fa-solid fa-ticket" style="color: var(--navy);"></i>
+                    <span style="font-size: 13px; font-weight: 700; color: var(--navy);" data-i18n="ai_credits_label">Lượt dùng AI</span>:
+                    <span id="ai-credit-display" style="font-size: 15px; font-weight: 800; color: var(--navy);">0</span>
+                </div>
                     <div>
                         <div class="text-xs text-muted uppercase tracking-wide" data-i18n="package_label">Gói dịch vụ</div>
                         <div class="font-semibold" id="package-display">--</div>
@@ -5388,6 +5394,16 @@
                 booking_seats: 'Đã đặt: {n} ghế',
                 expired_package_msg: 'Gói đã hết hạn. Vui lòng gia hạn.',
                 expired_package_title: 'Gói đã hết hạn.',
+                ai_credits_label: 'Lượt dùng AI',
+                out_of_ai_credits: 'Bạn đã hết lượt sử dụng AI. Vui lòng đến quán cafe đối tác check-in để nhận thêm lượt.',
+                tier1_checkin_success: 'Check-in quán thành công! Bạn nhận được +1 lượt dùng AI.',
+                review_title: 'Đánh giá quán Cafe',
+                review_rating_label: 'Chất lượng quán',
+                review_noise_label: 'Đo độ ồn tại quán',
+                review_measure_btn: 'Bắt đầu đo (Cần cấp quyền Mic)',
+                review_submit_btn: 'Gửi đánh giá',
+                noise_db_result: 'Độ ồn hiện tại: {db} dB',
+                review_thanks: 'Cảm ơn bạn đã đánh giá quán!',
                 },
             en: {
                 // ===== CAFE NOTIFICATIONS (EN) =====
@@ -5929,6 +5945,16 @@
                 booking_seats: 'Booked: {n} seats',
                 expired_package_msg: 'Subscription expired. Please renew.',
                 expired_package_title: 'Subscription Expired',
+                ai_credits_label: 'AI Credits',
+                out_of_ai_credits: 'You have run out of AI credits. Please check in at a partner cafe to earn more.',
+                tier1_checkin_success: 'Check-in successful! You earned +1 AI credit.',
+                review_title: 'Cafe Review',
+                review_rating_label: 'Cafe Quality',
+                review_noise_label: 'Measure Noise Level',
+                review_measure_btn: 'Start Measuring (Mic required)',
+                review_submit_btn: 'Submit Review',
+                noise_db_result: 'Current Noise: {db} dB',
+                review_thanks: 'Thank you for your review!',
             }
         };
 
@@ -6238,7 +6264,8 @@ let currentEmail = "",
     currentCompanyName = "",
     currentSalesId = "",
     currentEnterpriseId = "",
-    isPackageExpired = false; // 🚨 THÊM BIẾN NÀY
+    isPackageExpired = false,
+    currentAiCredits = 0; // 🚨 THÊM BIẾN NÀY
 
         // ========================================================================
         //  ĐĂNG NHẬP
@@ -6389,6 +6416,13 @@ let currentEmail = "",
             document.getElementById('remaining-hours-display').textContent = result.enterprise.remainingHours;
             document.getElementById('package-display').textContent = result.enterprise.packageId || t('undefined_package');
             document.getElementById('expiry-display').textContent = result.enterprise.expiryDate || t('undefined_expiry');
+                                // 🚨 CẬP NHẬT LƯỢT AI CREDIT
+            currentAiCredits = result.enterprise.ai_credits || 0;
+            const creditWrap = document.getElementById('ai-credit-wrap');
+            if (creditWrap) {
+                creditWrap.style.display = 'flex';
+                document.getElementById('ai-credit-display').textContent = currentAiCredits;
+            }
 
             // 🚨 KIỂM TRA HẾT HẠN VÀ HIỂN THỊ BANNER
             isPackageExpired = false;
@@ -7862,6 +7896,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 showToast(t('expired_package_msg'), false);
                 return;
             }
+            if (currentAiCredits <= 0) {
+                showToast(t('out_of_ai_credits'), false);
+                return;
+            }
             if (!currentEmail) {
                 alert(t('toast_login_required'));
                 return;
@@ -8022,6 +8060,12 @@ const ccEmail1 = (sendToClient && clientEmailValue) ? clientEmailValue : '';
 
                 // Hiện toast chuẩn giống các action khác
                 showToast(t('toast_upload_success'), true);
+                // 🚨 TRỪ 1 CREDIT TRÊN UI
+                if (currentAiCredits > 0) {
+                    currentAiCredits--;
+                    const creditDisplay = document.getElementById('ai-credit-display');
+                    if (creditDisplay) creditDisplay.textContent = currentAiCredits;
+                }
 
                 // Bắt đầu polling để lấy task mới sau khi AI xử lý xong
                     setTimeout(() => {
@@ -9498,15 +9542,23 @@ const ccEmail1 = (sendToClient && clientEmailValue) ? clientEmailValue : '';
                     body: new URLSearchParams(params).toString()
                 });
                 const data = await res.json();
-                if (data.status === 200) {
-                    showToast(t('cafe_checkin_success'), true);
-                    setTimeout(loadCafeCheckin, 500);
+                                if (data.status === 200) {
+                    if (data.is_tier1) {
+                        // 🚨 QUÁN CẤP 1: BÁO THÀNH CÔNG, CỘNG CREDIT VÀ MỞ FORM ĐÁNH GIÁ
+                        showToast(t('tier1_checkin_success'), true);
+                        currentAiCredits++;
+                        const creditDisplay = document.getElementById('ai-credit-display');
+                        if (creditDisplay) creditDisplay.textContent = currentAiCredits;
+                        
+                        // Mở form đánh giá sau 1.5s
+                        setTimeout(() => {
+                            openReviewModal(data.checkin_id);
+                        }, 1500);
                     } else {
-                    if (data.code === 'EXPIRED_PACKAGE') {
-                        showToast(t('expired_package_msg'), false);
-                    } else {
-                        showToast(data.code ? t(data.code, data.params) : (data.message || t('cafe_unknown_error')), false);
+                        // Quán Cấp 2: Báo như cũ
+                        showToast(t('cafe_checkin_success'), true);
                     }
+                    setTimeout(loadCafeCheckin, 500);
                 }
             } catch (e) {
                 showToast(e.message, false);
@@ -13461,6 +13513,183 @@ window.addEventListener('message', async function(event) {
                 showToast('Lỗi kết nối', false); 
             }
         }
+                // ========== XỬ LÝ ĐÁNH GIÁ QUÁN CAFE & ĐO ĐỘ ỒN ==========
+        let _currentReviewCheckinId = null;
+        let _selectedRating = 0;
+        let _measuredDb = null;
+        let _audioContext = null;
+        let _noiseStream = null;
+
+        function openReviewModal(checkinId) {
+            _currentReviewCheckinId = checkinId;
+            _selectedRating = 0;
+            _measuredDb = null;
+            
+            document.getElementById('reviewModal').classList.add('active');
+            document.getElementById('noiseResult').style.display = 'none';
+            document.getElementById('btnSubmitReview').disabled = true;
+            
+            // Reset stars
+            document.querySelectorAll('#starRating i').forEach(star => star.style.color = '#CBD5E1');
+            
+            // Reset nút đo
+            const btn = document.getElementById('btnMeasureNoise');
+            btn.disabled = false;
+            btn.innerHTML = `<span data-i18n="review_measure_btn">${t('review_measure_btn')}</span>`;
+        }
+
+        function closeReviewModal() {
+            document.getElementById('reviewModal').classList.remove('active');
+            if (_noiseStream) {
+                _noiseStream.getTracks().forEach(track => track.stop());
+                _noiseStream = null;
+            }
+            if (_audioContext) {
+                _audioContext.close();
+                _audioContext = null;
+            }
+        }
+
+        // Bắt sự kiện click sao
+        document.querySelectorAll('#starRating i').forEach(star => {
+            star.addEventListener('click', function() {
+                _selectedRating = Number(this.getAttribute('data-val'));
+                document.querySelectorAll('#starRating i').forEach(s => {
+                    const val = Number(s.getAttribute('data-val'));
+                    s.style.color = (val <= _selectedRating) ? '#F59E0B' : '#CBD5E1';
+                });
+                checkReviewReady();
+            });
+        });
+
+        // Đo độ ồn
+        document.getElementById('btnMeasureNoise').addEventListener('click', async function() {
+            const btn = this;
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+            
+            try {
+                if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                    throw new Error('Thiết bị không hỗ trợ Mic');
+                }
+                
+                _noiseStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                _audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                const analyser = _audioContext.createAnalyser();
+                const source = _audioContext.createMediaStreamSource(_noiseStream);
+                source.connect(analyser);
+                analyser.fftSize = 256;
+                
+                const dataArray = new Uint8Array(analyser.frequencyBinCount);
+                
+                // Đo trong 3 giây
+                let maxDb = 0;
+                const interval = setInterval(() => {
+                    analyser.getByteFrequencyData(dataArray);
+                    let sum = 0;
+                    for (let i = 0; i < dataArray.length; i++) {
+                        sum += dataArray[i];
+                    }
+                    const avg = sum / dataArray.length;
+                    // Chuyển đổi tương đối ra dB (Công thức ước lượng)
+                    const db = Math.round(20 * Math.log10(avg + 1)); 
+                    if (db > maxDb) maxDb = db;
+                }, 100);
+
+                setTimeout(() => {
+                    clearInterval(interval);
+                    _measuredDb = maxDb;
+                    
+                    const resultDiv = document.getElementById('noiseResult');
+                    resultDiv.innerHTML = t('noise_db_result', { db: _measuredDb });
+                    resultDiv.style.display = 'block';
+                    
+                    btn.innerHTML = '<i class="fa-solid fa-check"></i>';
+                    checkReviewReady();
+                    
+                    if (_noiseStream) _noiseStream.getTracks().forEach(track => track.stop());
+                    if (_audioContext) _audioContext.close();
+                }, 3000);
+                
+            } catch (e) {
+                showToast('Không thể truy cập Mic: ' + e.message, false);
+                btn.disabled = false;
+                btn.innerHTML = `<span>${t('review_measure_btn')}</span>`;
+            }
+        });
+
+        function checkReviewReady() {
+            // Chỉ cho bấm gửi khi đã chọn sao VÀ đã đo Db
+            if (_selectedRating > 0 && _measuredDb !== null) {
+                document.getElementById('btnSubmitReview').disabled = false;
+            }
+        }
+
+        async function submitReview() {
+            if (!_currentReviewCheckinId || _selectedRating === 0) return;
+            
+            const btn = document.getElementById('btnSubmitReview');
+            const orig = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+            
+            try {
+                const res = await fetch(CLOUD_FUNCTION_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: 'cafeSubmitReview',
+                        checkinId: _currentReviewCheckinId,
+                        salesEmail: currentEmail,
+                        rating: _selectedRating,
+                        noiseDb: _measuredDb
+                    })
+                });
+                const data = await res.json();
+                if (data.status === 200) {
+                    showToast(t('review_thanks'), true);
+                    closeReviewModal();
+                } else {
+                    showToast(data.message || 'Lỗi', false);
+                    btn.disabled = false;
+                    btn.innerHTML = orig;
+                }
+            } catch (e) {
+                showToast('Lỗi kết nối', false);
+                btn.disabled = false;
+                btn.innerHTML = orig;
+            }
+        }
     </script>
+    <!-- ========== REVIEW MODAL ========== -->
+    <div id="reviewModal" class="cafe-bm-overlay">
+        <div class="cafe-bm-box">
+            <div class="cafe-bm-header">
+                <div class="cafe-bm-title"><i class="fa-solid fa-star"></i> <span data-i18n="review_title">Đánh giá quán Cafe</span></div>
+                <button class="cafe-bm-close" onclick="closeReviewModal()"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            
+            <div style="text-align: center; margin: 20px 0;">
+                <div style="font-size: 14px; font-weight: 700; margin-bottom: 10px;" data-i18n="review_rating_label">Chất lượng quán</div>
+                <div id="starRating" style="display: flex; justify-content: center; gap: 10px; font-size: 32px; color: #CBD5E1; cursor: pointer;">
+                    <i class="fa-solid fa-star" data-val="1"></i>
+                    <i class="fa-solid fa-star" data-val="2"></i>
+                    <i class="fa-solid fa-star" data-val="3"></i>
+                    <i class="fa-solid fa-star" data-val="4"></i>
+                    <i class="fa-solid fa-star" data-val="5"></i>
+                </div>
+            </div>
+
+            <div style="text-align: center; margin: 24px 0; padding: 16px; background: #F8FAFC; border-radius: 12px; border: 1px solid #E2E8F0;">
+                <div style="font-size: 13px; font-weight: 700; margin-bottom: 10px;" data-i18n="review_noise_label">Đo độ ồn tại quán</div>
+                <button id="btnMeasureNoise" class="cafe-btn-sm primary" style="width: 100%; margin-bottom: 10px;" data-i18n="review_measure_btn">Bắt đầu đo (Cần cấp quyền Mic)</button>
+                <div id="noiseResult" style="font-size: 15px; font-weight: 800; color: #0F172A; display: none;"></div>
+            </div>
+
+            <button id="btnSubmitReview" class="cafe-bm-submit" onclick="submitReview()" disabled>
+                <span data-i18n="review_submit_btn">Gửi đánh giá</span>
+            </button>
+        </div>
+    </div>
 </body>
 </html>
