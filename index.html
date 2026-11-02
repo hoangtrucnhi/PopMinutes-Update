@@ -13577,17 +13577,18 @@ window.addEventListener('message', async function(event) {
                 _audioContext = null;
             }
         }
-
-        document.querySelectorAll('#starRating i').forEach(star => {
-            star.addEventListener('click', function() {
-                _selectedRating = Number(this.getAttribute('data-val'));
-                document.querySelectorAll('#starRating i').forEach(s => {
-                    const val = Number(s.getAttribute('data-val'));
-                    s.style.color = (val <= _selectedRating) ? '#F59E0B' : '#CBD5E1';
-                });
-                checkReviewReady();
+                // Hàm xử lý khi click vào ngôi sao
+        window.selectStar = function(val) {
+            _selectedRating = val;
+            // Đổi màu các ngôi sao
+            document.querySelectorAll('#starRating i').forEach(s => {
+                const v = Number(s.getAttribute('data-val'));
+                s.style.color = (v <= _selectedRating) ? '#F59E0B' : '#CBD5E1'; // Màu vàng cam khi chọn
             });
-        });
+            // Gọi hàm kiểm tra xem đã đủ điều kiện submit chưa
+            checkReviewReady();
+        };
+
  // 🚨 THÊM 2 DÒNG NÀY ĐỂ CHỜ DOM LOAD XONG
         document.addEventListener('DOMContentLoaded', function() {
             
@@ -13695,11 +13696,11 @@ window.addEventListener('message', async function(event) {
             <div style="text-align: center; margin: 20px 0;">
                 <div style="font-size: 14px; font-weight: 700; margin-bottom: 10px;" data-i18n="review_rating_label">Chất lượng quán</div>
                 <div id="starRating" style="display: flex; justify-content: center; gap: 10px; font-size: 32px; color: #CBD5E1; cursor: pointer;">
-                    <i class="fa-solid fa-star" data-val="1"></i>
-                    <i class="fa-solid fa-star" data-val="2"></i>
-                    <i class="fa-solid fa-star" data-val="3"></i>
-                    <i class="fa-solid fa-star" data-val="4"></i>
-                    <i class="fa-solid fa-star" data-val="5"></i>
+                    <i class="fa-solid fa-star" data-val="1" onclick="selectStar(1)"></i>
+                    <i class="fa-solid fa-star" data-val="2" onclick="selectStar(2)"></i>
+                    <i class="fa-solid fa-star" data-val="3" onclick="selectStar(3)"></i>
+                    <i class="fa-solid fa-star" data-val="4" onclick="selectStar(4)"></i>
+                    <i class="fa-solid fa-star" data-val="5" onclick="selectStar(5)"></i>
                 </div>
             </div>
 
