@@ -5386,6 +5386,8 @@
                 bill_penalty: 'Phụ thu ({n} người vắng): +{h}h',
                 bill_total_time: 'Tổng thời gian: {h}h',
                 booking_seats: 'Đã đặt: {n} ghế',
+                expired_package_msg: 'Gói dịch vụ của công ty bạn đã hết hạn. Vui lòng liên hệ Admin để gia hạn.',
+                expired_package_title: 'Gói đã hết hạn',
                 },
             en: {
                 // ===== CAFE NOTIFICATIONS (EN) =====
@@ -5925,6 +5927,8 @@
                 bill_penalty: 'Surcharge ({n} absent): +{h}h',
                 bill_total_time: 'Total time: {h}h',
                 booking_seats: 'Booked: {n} seats',
+                expired_package_msg: 'Your company\'s subscription has expired. Please contact Admin to renew.',
+                expired_package_title: 'Subscription Expired',
             }
         };
 
@@ -9507,8 +9511,12 @@ const ccEmail1 = (sendToClient && clientEmailValue) ? clientEmailValue : '';
                 if (data.status === 200) {
                     showToast(t('cafe_checkin_success'), true);
                     setTimeout(loadCafeCheckin, 500);
-                } else {
-                    showToast(data.code ? t(data.code, data.params) : (data.message || t('cafe_unknown_error')), false);
+                    } else {
+                    if (data.code === 'EXPIRED_PACKAGE') {
+                        showToast(t('expired_package_msg'), false);
+                    } else {
+                        showToast(data.code ? t(data.code, data.params) : (data.message || t('cafe_unknown_error')), false);
+                    }
                 }
             } catch (e) {
                 showToast(e.message, false);
@@ -9991,8 +9999,12 @@ const remaining = Math.max(0, Math.ceil((undoDeadlineMs - Date.now()) / 60000));
                     setTimeout(() => {
                         loadCafeBookings();
                     }, 600);
-                } else {
-                    showToast(data.code ? t(data.code, data.params) : (data.message || t('cafe_unknown_error')), false);
+                    } else {
+                    if (data.code === 'EXPIRED_PACKAGE') {
+                        showToast(t('expired_package_msg'), false);
+                    } else {
+                        showToast(data.code ? t(data.code, data.params) : (data.message || t('cafe_unknown_error')), false);
+                    }
                     btn.disabled = false;
                     btn.innerHTML = orig;
                 }
@@ -11643,6 +11655,9 @@ if (deleteTaskModal) {
                             platformObj.syncStatus = 'synced';
                             platformObj.externalId = createResult.externalId;
                         } else {
+                            if (createResult.code === 'EXPIRED_PACKAGE') {
+                                throw new Error(t('expired_package_msg'));
+                            }
                             throw new Error(createResult.message || 'Create task failed');
                         }
                     } catch (err) {
