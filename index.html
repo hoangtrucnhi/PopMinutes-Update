@@ -6404,17 +6404,7 @@ let currentEmail = "",
                 if (!isNaN(expDate.getTime())) {
                     expDate.setHours(23, 59, 59, 999);
                     if (expDate < new Date()) {
-                        isPackageExpired = true;
-                        // Hiển thị banner cảnh báo đỏ
-                        if (!document.getElementById('expiredBanner')) {
-                            const banner = document.createElement('div');
-                            banner.id = 'expiredBanner';
-                            banner.style.cssText = 'background:#FEF2F2; color:#991B1B; padding:12px; text-align:center; font-weight:700; border-bottom:1px solid #FECACA; margin: 16px; border-radius: 8px; font-size: 13.5px;';
-                            banner.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> Gói dịch vụ đã hết hạn vào ${expiryStr}. Vui lòng liên hệ Admin để gia hạn trước khi sử dụng tính năng.`;
-                            
-                            const dashHeader = document.querySelector('.dash-header');
-                            dashHeader.parentNode.insertBefore(banner, dashHeader.nextSibling);
-                        }
+                        isPackageExpired = true;                        
                     }
                 }
             }
