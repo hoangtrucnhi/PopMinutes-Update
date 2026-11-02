@@ -3478,19 +3478,14 @@
                     <span data-i18n="hours_unit">Giờ sử dụng tại quán cafe</span>
                 </div>
                 <div class="grid grid-cols-2 gap-2 mt-3 text-sm">
-                                    <!-- Lượt AI Credit -->
-                <div id="ai-credit-wrap" style="display: none; align-items: center; gap: 6px; margin-top: 10px; padding: 6px 10px; background: var(--navy-pale); border-radius: 8px; width: fit-content; border: 1px solid rgba(27, 43, 122, 0.2);">
-                    <i class="fa-solid fa-ticket" style="color: var(--navy);"></i>
-                    <span style="font-size: 13px; font-weight: 700; color: var(--navy);" data-i18n="ai_credits_label">Lượt dùng AI</span>:
-                    <span id="ai-credit-display" style="font-size: 15px; font-weight: 800; color: var(--navy);">0</span>
-                </div>
                     <div>
                         <div class="text-xs text-muted uppercase tracking-wide" data-i18n="package_label">Gói dịch vụ</div>
                         <div class="font-semibold" id="package-display">--</div>
                     </div>
-                    <div>
-                        <div class="text-xs text-muted uppercase tracking-wide" data-i18n="expiry_label">Hạn sử dụng</div>
-                        <div class="font-semibold" id="expiry-display">--</div>
+                    <div id="card-col2-wrap">
+                        <!-- Label này sẽ tự đổi giữa "Hạn sử dụng" và "Lượt dùng AI" tùy gói -->
+                        <div class="text-xs text-muted uppercase tracking-wide" id="card-col2-label" data-i18n="expiry_label">Hạn sử dụng</div>
+                        <div class="font-semibold" id="card-col2-value">--</div>
                     </div>
                 </div>
                 <div class="hours-bar-track"><div class="hours-bar-fill"></div></div>
@@ -6259,6 +6254,7 @@ if (event.data.type === 'NOTIFICATION_CLICK') {
         const AUTH_STORAGE_KEY = "popminutes_auth";
         const SESSION_DAYS = 90;
 
+let homeScrollY = 0; // 🚨 KHAI BÁO BIẾN NÀY ĐỂ HẾT LỖI ĐỎ
 let currentEmail = "",
     currentSalesName = "",
     currentCompanyName = "",
@@ -6413,9 +6409,29 @@ let currentEmail = "",
 
             document.getElementById('user-name-display').textContent = currentSalesName;
             document.getElementById('company-name-display').textContent = currentCompanyName;
-            document.getElementById('remaining-hours-display').textContent = result.enterprise.remainingHours;
-            document.getElementById('package-display').textContent = result.enterprise.packageId || t('undefined_package');
-            document.getElementById('expiry-display').textContent = result.enterprise.expiryDate || t('undefined_expiry');
+                        document.getElementById('remaining-hours-display').textContent = result.enterprise.remainingHours;
+            
+            const pkgId = result.enterprise.packageId || '';
+            document.getElementById('package-display').textContent = pkgId || t('undefined_package');
+
+            // 🚨 LOGIC HIỂN THỊ CỘT 2: EXPIRY HAY AI CREDIT?
+            currentAiCredits = result.enterprise.ai_credits || 0;
+            const col2Label = document.getElementById('card-col2-label');
+            const col2Value = document.getElementById('card-col2-value');
+
+            if (pkgId === 'FREE-10Y') {
+                // Gói FREE: Hiện AI Credits
+                col2Label.setAttribute('data-i18n', 'ai_credits_label');
+                col2Label.textContent = t('ai_credits_label') || 'Lượt dùng AI';
+                col2Value.textContent = currentAiCredits;
+                col2Value.style.color = 'var(--navy)';
+            } else {
+                // Gói khác: Hiện Expiry
+                col2Label.setAttribute('data-i18n', 'expiry_label');
+                col2Label.textContent = t('expiry_label') || 'Hạn sử dụng';
+                col2Value.textContent = result.enterprise.expiryDate || t('undefined_expiry');
+                col2Value.style.color = 'inherit';
+            }
                                 // 🚨 CẬP NHẬT LƯỢT AI CREDIT
             currentAiCredits = result.enterprise.ai_credits || 0;
             const creditWrap = document.getElementById('ai-credit-wrap');
@@ -8060,11 +8076,15 @@ const ccEmail1 = (sendToClient && clientEmailValue) ? clientEmailValue : '';
 
                 // Hiện toast chuẩn giống các action khác
                 showToast(t('toast_upload_success'), true);
+                
                 // 🚨 TRỪ 1 CREDIT TRÊN UI
                 if (currentAiCredits > 0) {
                     currentAiCredits--;
-                    const creditDisplay = document.getElementById('ai-credit-display');
-                    if (creditDisplay) creditDisplay.textContent = currentAiCredits;
+                    // Chỉ cập nhật nếu đang là gói FREE
+                    if (document.getElementById('package-display').textContent === 'FREE-10Y') {
+                        const col2Value = document.getElementById('card-col2-value');
+                        if (col2Value) col2Value.textContent = currentAiCredits;
+                    }
                 }
 
                 // Bắt đầu polling để lấy task mới sau khi AI xử lý xong
@@ -9543,19 +9563,21 @@ const ccEmail1 = (sendToClient && clientEmailValue) ? clientEmailValue : '';
                 });
                 const data = await res.json();
                                 if (data.status === 200) {
+                                    if (data.status === 200) {
                     if (data.is_tier1) {
-                        // 🚨 QUÁN CẤP 1: BÁO THÀNH CÔNG, CỘNG CREDIT VÀ MỞ FORM ĐÁNH GIÁ
                         showToast(t('tier1_checkin_success'), true);
                         currentAiCredits++;
-                        const creditDisplay = document.getElementById('ai-credit-display');
-                        if (creditDisplay) creditDisplay.textContent = currentAiCredits;
                         
-                        // Mở form đánh giá sau 1.5s
+                        // 🚨 CẬP NHẬT UI NẾU LÀ GÓI FREE
+                        if (document.getElementById('package-display').textContent === 'FREE-10Y') {
+                            const col2Value = document.getElementById('card-col2-value');
+                            if (col2Value) col2Value.textContent = currentAiCredits;
+                        }
+                        
                         setTimeout(() => {
                             openReviewModal(data.checkin_id);
                         }, 1500);
                     } else {
-                        // Quán Cấp 2: Báo như cũ
                         showToast(t('cafe_checkin_success'), true);
                     }
                     setTimeout(loadCafeCheckin, 500);
