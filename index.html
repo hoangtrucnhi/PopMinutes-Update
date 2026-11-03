@@ -12395,7 +12395,7 @@ if (taskSearchBtn && taskSearchInput && searchInlineWrap) {
         }
     });
 }
-        const closeTaskModalBtn = document.getElementById('closeTaskModalBtn');
+                const closeTaskModalBtn = document.getElementById('closeTaskModalBtn');
 
         document.getElementById('tasksBtn').addEventListener('click', function() {
             if (isPackageExpired) {
@@ -12406,19 +12406,6 @@ if (taskSearchBtn && taskSearchInput && searchInlineWrap) {
             const pkgId = document.getElementById('package-display').textContent;
             if (pkgId === 'FREE-10Y') {
                 showToast(t('feature_only_for_paid') || 'Tính năng này chỉ dành cho gói trả phí.', false);
-                return;
-            }
-            if (!currentEmail) {
-                alert(t('toast_login_required'));
-                return;
-            }
-            closeFilterPopover();
-            updateFilterBtnState();
-            taskModal.classList.add('active');
-            fetchTasksFromGAS();
-        });
-            if (isPackageExpired) {
-                showToast(t('expired_package_msg'), false);
                 return;
             }
             if (!currentEmail) {
