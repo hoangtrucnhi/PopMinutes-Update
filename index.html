@@ -8913,7 +8913,7 @@ const ccEmail1 = (sendToClient && clientEmailValue) ? clientEmailValue : '';
             }
         }
 
-        function renderCheckinPrompt() {
+                        function renderCheckinPrompt() {
             const container = document.getElementById('cafeCheckinContent');
             container.innerHTML = `
                 <div class="cafe-checkin-prompt">
@@ -8922,17 +8922,17 @@ const ccEmail1 = (sendToClient && clientEmailValue) ? clientEmailValue : '';
                     </div>
                     <h3 class="cafe-checkin-title">${t('cafe_checkin_no_active')}</h3>
                     <p class="cafe-checkin-desc">${t('cafe_checkin_select_hint')}</p>
-                    <button class="cafe-primary-btn" onclick="showNearbyCafes()">
-                        <span>${t('cafe_checkin_btn_nearby')}</span>
+                    <button class="cafe-primary-btn" onclick="loadAllCafes()">
+                        <span>${t('cafe_checkin_btn_nearby') || 'Danh sách quán'}</span>
                     </button>
                 </div>
                 <div id="cafeNearbyList" style="display:none; margin-top:20px;"></div>
             `;
-            // Auto trigger nearby list load
-            setTimeout(showNearbyCafes, 200);
+            // Tự động tải danh sách quán khi mở trang
+            setTimeout(loadAllCafes, 200);
         }
 
-                                function renderActiveCheckin(active) {
+        function renderActiveCheckin(active) {
             window.__currentActiveCheckin = active;
             const container = document.getElementById('cafeCheckinContent');
             let timeText;
@@ -9627,7 +9627,7 @@ const ccEmail1 = (sendToClient && clientEmailValue) ? clientEmailValue : '';
                 showToast(e.message, false);
             }
         }
-        async function showNearbyCafes() {
+                async function loadAllCafes() {
             const listEl = document.getElementById('cafeNearbyList');
             if (!listEl) return;
             listEl.style.display = 'block';
@@ -9636,18 +9636,39 @@ const ccEmail1 = (sendToClient && clientEmailValue) ? clientEmailValue : '';
             navigator.geolocation.getCurrentPosition(
                 async (pos) => {
                     try {
-                        const url = `${CLOUD_FUNCTION_URL}?action=cafeGetNearby&lat=${pos.coords.latitude}&lng=${pos.coords.longitude}&maxKm=5`;
+                        // 🚨 GỌI API cafeList VÀ TRUYỀN GPS ĐỂ TÍNH KHOẢNG CÁCH
+                        const url = `${CLOUD_FUNCTION_URL}?action=cafeList&lat=${pos.coords.latitude}&lng=${pos.coords.longitude}`;
                         const res = await fetch(url);
                         const data = await res.json();
+                        
                         if (data.status !== 200 || !data.cafes || data.cafes.length === 0) {
-                            listEl.innerHTML = `<div class="cafe-empty">${t('cafe_nearby_empty') || 'Không có quán nào gần đây'}</div>`;
+                            listEl.innerHTML = `<div class="cafe-empty">${t('cafe_nearby_empty') || 'Không có quán nào'}</div>`;
                             return;
                         }
-                                                let html = '';
-                        data.cafes.forEach(c => {
+                        
+                        const pkgId = document.getElementById('package-display').textContent;
+                        const isFree = pkgId === 'FREE-10Y';
+
+                        // 🚨 LỌC QUÁN THEO GÓI
+                        let filteredCafes = data.cafes;
+                        if (isFree) {
+                            filteredCafes = data.cafes.filter(c => c.tier === 1);
+                        } else {
+                            filteredCafes = data.cafes.filter(c => c.tier !== 1);
+                        }
+
+                        if (filteredCafes.length === 0) {
+                            listEl.innerHTML = `<div class="cafe-empty">${isFree ? 'Không có quán nào hỗ trợ gói Free' : 'Không có quán nào dành cho gói trả phí'}</div>`;
+                            return;
+                        }
+
+                        let html = '';
+                        filteredCafes.forEach(c => {
                             const lat = pos.coords.latitude;
                             const lng = pos.coords.longitude;
                             const cafeNameSafe = escapeHtml(c.name).replace(/'/g, "\\'");
+                            const distStr = c.distance_km !== null ? `${c.distance_km}km` : '';
+                            
                             html += `
                                 <div class="cafe-card">
                                     <div class="cafe-card-header">
@@ -9655,16 +9676,14 @@ const ccEmail1 = (sendToClient && clientEmailValue) ? clientEmailValue : '';
                                             <i class="fa-solid fa-store"></i>
                                             ${escapeHtml(c.name)}
                                         </div>
-                                        <span class="cafe-badge confirmed">${c.distance_km}km</span>
+                                        ${distStr ? `<span class="cafe-badge confirmed">${distStr}</span>` : ''}
                                     </div>
                                     <div class="cafe-card-meta">
                                         <div><i class="fa-solid fa-location-dot"></i> ${escapeHtml(c.address)}</div>
                                     </div>
-                                <div class="cafe-card-actions">
-                                    <button class="cafe-btn-sm primary" style="width:100%;" onclick="showCheckinPicker('${c.cafe_id}', ${lat}, ${lng}, '${cafeNameSafe}')">
-                                        <span>${t('cafe_picker_pick_btn')}</span>
-                                    </button>
-                                </div>
+                                    <div class="cafe-card-actions">
+                                        <button class="cafe-btn-sm primary" style="width:100%;" onclick="showCheckinPicker('${c.cafe_id}', ${lat}, ${lng}, '${cafeNameSafe}')"><span>${t('cafe_picker_pick_btn')}</span></button>
+                                    </div>
                                 </div>
                             `;
                         });
@@ -9674,10 +9693,107 @@ const ccEmail1 = (sendToClient && clientEmailValue) ? clientEmailValue : '';
                     }
                 },
                 (err) => {
-                    listEl.innerHTML = `<div class="cafe-empty">Không lấy được GPS: ${err.message}</div>`;
+                    // Nếu không lấy được GPS, vẫn tải danh sách nhưng không có khoảng cách
+                    fetchCafesWithoutGps(listEl);
                 },
                 { enableHighAccuracy: true, timeout: 10000 }
             );
+        }
+                async function fetchCafesWithoutGps(listEl) {
+            try {
+                const res = await fetch(`${CLOUD_FUNCTION_URL}?action=cafeList`);
+                const data = await res.json();
+                if (data.status !== 200 || !data.cafes) {
+                    listEl.innerHTML = `<div class="cafe-empty">${t('cafe_loading_error')}</div>`;
+                    return;
+                }
+                
+                const pkgId = document.getElementById('package-display').textContent;
+                const isFree = pkgId === 'FREE-10Y';
+                
+                let filteredCafes = data.cafes;
+                if (isFree) filteredCafes = data.cafes.filter(c => c.tier === 1);
+                else filteredCafes = data.cafes.filter(c => c.tier !== 1);
+
+                if (filteredCafes.length === 0) {
+                    listEl.innerHTML = `<div class="cafe-empty">Không có quán nào phù hợp</div>`;
+                    return;
+                }
+
+                let html = '';
+                filteredCafes.forEach(c => {
+                    const cafeNameSafe = escapeHtml(c.name).replace(/'/g, "\\'");
+                    html += `
+                        <div class="cafe-card">
+                            <div class="cafe-card-header">
+                                <div class="cafe-card-title"><i class="fa-solid fa-store"></i> ${escapeHtml(c.name)}</div>
+                            </div>
+                            <div class="cafe-card-meta">
+                                <div><i class="fa-solid fa-location-dot"></i> ${escapeHtml(c.address)}</div>
+                                <div style="color: #DC2626; font-size: 11px; margin-top: 4px;"><i class="fa-solid fa-triangle-exclamation"></i> Vui lòng bật GPS để check-in</div>
+                            </div>
+                            <div class="cafe-card-actions">
+                                <button class="cafe-btn-sm primary" style="width:100%;" onclick="showCheckinPicker('${c.cafe_id}', 0, 0, '${cafeNameSafe}')"><span>${t('cafe_picker_pick_btn')}</span></button>
+                            </div>
+                        </div>
+                    `;
+                });
+                listEl.innerHTML = html;
+            } catch (e) {
+                listEl.innerHTML = `<div class="cafe-empty">${t('cafe_loading_error')}</div>`;
+            }
+        }
+                // 🚨 BIẾN LƯU TRỮ DANH SÁCH QUÁN ĐỂ LỌC
+        window._nearbyCafesCache = [];
+
+        function filterNearbyCafes() {
+            const keyword = document.getElementById('cafeSearchInput').value.trim().toLowerCase();
+            const listEl = document.getElementById('cafeNearbyList');
+            
+            let filtered = window._nearbyCafesCache;
+            if (keyword) {
+                filtered = filtered.filter(c => 
+                    c.name.toLowerCase().includes(keyword) || 
+                    c.address.toLowerCase().includes(keyword)
+                );
+            }
+            
+            const pkgId = document.getElementById('package-display').textContent;
+            const isFree = pkgId === 'FREE-10Y';
+            
+            if (isFree) {
+                filtered = filtered.filter(c => c.tier === 1);
+            } else {
+                filtered = filtered.filter(c => c.tier !== 1);
+            }
+
+            if (filtered.length === 0) {
+                listEl.innerHTML = `<div class="cafe-empty">Không tìm thấy quán nào phù hợp</div>`;
+                return;
+            }
+
+            let html = '';
+            filtered.forEach(c => {
+                const cafeNameSafe = escapeHtml(c.name).replace(/'/g, "\\'");
+                html += `
+                    <div class="cafe-card">
+                        <div class="cafe-card-header">
+                            <div class="cafe-card-title">
+                                <i class="fa-solid fa-store"></i>
+                                ${escapeHtml(c.name)}
+                            </div>
+                            <span class="cafe-badge confirmed">${c.distance_km}km</span>
+                        </div>
+                        <div class="cafe-card-meta">
+                            <div><i class="fa-solid fa-location-dot"></i> ${escapeHtml(c.address)}</div>
+                        </div>
+                        <div class="cafe-card-actions">
+                            <button class="cafe-btn-sm primary" style="width:100%;" onclick="showCheckinPicker('${c.cafe_id}', ${c.location.lat}, ${c.location.lng}, '${cafeNameSafe}')"><span>${t('cafe_picker_pick_btn')}</span></button>
+                        </div>
+                    </div>
+                `;
+            });
+            listEl.innerHTML = html;
         }
         // ================================================================
         // ============ PHASE 5: SALES RESPOND UNDO (GPS) =================
