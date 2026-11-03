@@ -5406,6 +5406,7 @@
                 review_measure_btn: 'Bắt đầu đo (Cần cấp quyền Mic)',
                 review_submit_btn: 'Gửi đánh giá',
                 noise_db_result: 'Độ ồn hiện tại: {db} dB',
+                feature_only_for_paid: 'Tính năng này chỉ dành cho gói trả phí.',
                 },
             en: {
                 // ===== CAFE NOTIFICATIONS (EN) =====
@@ -5962,6 +5963,7 @@
                 review_measure_btn: 'Start Measuring (Mic required)',
                 review_submit_btn: 'Submit Review',
                 noise_db_result: 'Current Noise: {db} dB',
+                feature_only_for_paid: 'This feature is only for paid packages.',
             }
         };
 
@@ -12405,7 +12407,7 @@ if (taskSearchBtn && taskSearchInput && searchInlineWrap) {
             // 🚨 CHẶN GÓI FREE DÙNG TASK
             const pkgId = document.getElementById('package-display').textContent;
             if (pkgId === 'FREE-10Y') {
-                showToast(t('feature_only_for_paid') || 'Tính năng này chỉ dành cho gói trả phí.', false);
+                showToast(t('feature_only_for_paid'), false);
                 return;
             }
             if (!currentEmail) {
