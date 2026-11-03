@@ -3613,7 +3613,9 @@
                 <!-- ===== MODE: BOOKINGS ===== -->
                 <div id="cafeContentBookings" class="cafe-content">
                     <div class="cafe-action-row">
-                        <button class="cafe-primary-btn" onclick="openCafeBookingModal()">
+                    <button class="cafe-primary-btn" id="btnNewBooking" onclick="openCafeBookingModal()" style="display: none;">
+                        <span data-i18n="cafe_new_booking">Đặt chỗ mới</span>
+                    </button>
                             <span data-i18n="cafe_new_booking">Đặt chỗ mới</span>
                         </button>
                     </div>
@@ -8481,18 +8483,23 @@ const ccEmail1 = (sendToClient && clientEmailValue) ? clientEmailValue : '';
             });
         }
 
-        function openCafePage(mode) {
+                function openCafePage(mode) {
             // mode: 'bookings' | 'checkin' | 'history'
             mode = mode || 'bookings';
             if (mode !== 'bookings' && mode !== 'checkin' && mode !== 'history') {
                 mode = 'bookings';
             }
 
+            // 🚨 NẾU LÀ GÓI FREE THÌ KHÔNG ĐƯỢC VÀO MODE BOOKING
+            const pkgId = document.getElementById('package-display').textContent;
+            if (pkgId === 'FREE-10Y' && mode === 'bookings') {
+                mode = 'checkin'; // Tự động chuyển sang tab Check-in
+            }
+
             if (!currentEmail) {
                 alert(t('toast_login_required'));
                 return;
             }
-
             // Hide all pages
             document.getElementById('dashboard-screen').classList.add('hidden');
             document.getElementById('notifications-page').classList.add('hidden');
@@ -8597,9 +8604,16 @@ const ccEmail1 = (sendToClient && clientEmailValue) ? clientEmailValue : '';
             return (Date.now() - b.start_time_ms) > GRACE_MS;
         }
 
-                                async function loadCafeBookings() {
+                    async function loadCafeBookings() {
             const container = document.getElementById('cafeBookingsList');
             if (!container) return;
+            
+            // 🚨 ẨN/HIỆN NÚT ĐẶT CHỖ DỰA VÀO GÓI
+            const pkgId = document.getElementById('package-display').textContent;
+            const btnNewBooking = document.getElementById('btnNewBooking');
+            if (btnNewBooking) {
+                btnNewBooking.style.display = (pkgId === 'FREE-10Y') ? 'none' : 'block';
+            }
             container.innerHTML = `<p class="cafe-loading">${t('loading')}</p>`;
 
             await fetchCafesForSales();
@@ -12384,6 +12398,25 @@ if (taskSearchBtn && taskSearchInput && searchInlineWrap) {
         const closeTaskModalBtn = document.getElementById('closeTaskModalBtn');
 
         document.getElementById('tasksBtn').addEventListener('click', function() {
+            if (isPackageExpired) {
+                showToast(t('expired_package_msg'), false);
+                return;
+            }
+            // 🚨 CHẶN GÓI FREE DÙNG TASK
+            const pkgId = document.getElementById('package-display').textContent;
+            if (pkgId === 'FREE-10Y') {
+                showToast(t('feature_only_for_paid') || 'Tính năng này chỉ dành cho gói trả phí.', false);
+                return;
+            }
+            if (!currentEmail) {
+                alert(t('toast_login_required'));
+                return;
+            }
+            closeFilterPopover();
+            updateFilterBtnState();
+            taskModal.classList.add('active');
+            fetchTasksFromGAS();
+        });
             if (isPackageExpired) {
                 showToast(t('expired_package_msg'), false);
                 return;
