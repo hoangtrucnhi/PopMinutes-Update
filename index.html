@@ -9375,7 +9375,7 @@ const ccEmail1 = (sendToClient && clientEmailValue) ? clientEmailValue : '';
                                 reviewBtnHtml = `
                                     <div style="margin-top: 12px;">
                                         <button class="cafe-btn-sm primary" style="width: 100%; border-radius: 8px; padding: 10px;" onclick="openReviewModal('${c.checkin_id}')">
-                                            <i class="fa-solid fa-star" style="color: #FCD34D;"></i> ${t('review_title') || 'Đánh giá (+0.5 AI Credit)'}
+                                            ${t('review_title') || 'Đánh giá (+0.5 AI Credit)'}
                                         </button>
                                     </div>
                                 `;
@@ -13999,7 +13999,7 @@ window.addEventListener('message', async function(event) {
     <div id="reviewModal" class="cafe-bm-overlay">
         <div class="cafe-bm-box">
             <div class="cafe-bm-header">
-                <div class="cafe-bm-title"><i class="fa-solid fa-star"></i> <span data-i18n="review_title">Đánh giá</span></div>
+                <div class="cafe-bm-title"><span data-i18n="review_title">Đánh giá</span></div>
                 <button class="cafe-bm-close" onclick="closeReviewModal()"><i class="fa-solid fa-xmark"></i></button>
             </div>
             
