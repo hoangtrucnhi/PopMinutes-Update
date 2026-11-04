@@ -13743,16 +13743,17 @@ window.addEventListener('message', async function(event) {
 }
 
         function closeReviewModal() {
-            document.getElementById('reviewModal').classList.remove('active');
-            if (_noiseStream) {
-                _noiseStream.getTracks().forEach(track => track.stop());
-                _noiseStream = null;
-            }
-            if (_audioContext) {
-                _audioContext.close();
-                _audioContext = null;
-            }
-        }
+    document.getElementById('reviewModal').classList.remove('active');
+    if (_noiseStream) {
+        _noiseStream.getTracks().forEach(track => track.stop());
+        _noiseStream = null;
+    }
+    // 🚨 FIX: Chỉ close khi chưa đóng để tránh InvalidStateError
+    if (_audioContext && _audioContext.state !== 'closed') {
+        _audioContext.close();
+    }
+    _audioContext = null;
+}
                 // Hàm xử lý khi click vào ngôi sao
         window.selectStar = function(val) {
             _selectedRating = val;
@@ -13769,54 +13770,87 @@ window.addEventListener('message', async function(event) {
         document.addEventListener('DOMContentLoaded', function() {
             
         document.getElementById('btnMeasureNoise').addEventListener('click', async function() {
-            const btn = this;
-            btn.disabled = true;
-            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> ' + t('measuring');
+    const btn = this;
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> ' + (t('measuring') || 'Đang đo...');
+    
+    try {
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+            throw new Error('Thiết bị không hỗ trợ Mic');
+        }
+        
+        _noiseStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        _audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        const analyser = _audioContext.createAnalyser();
+        const source = _audioContext.createMediaStreamSource(_noiseStream);
+        source.connect(analyser);
+        analyser.fftSize = 256;
+        // 🚨 FIX: Time domain cần mảng có fftSize phần tử (không phải frequencyBinCount)
+        const dataArray = new Uint8Array(analyser.fftSize);
+        
+        let maxDb = 0;
+        let count = 0;
+        const interval = setInterval(() => {
+            // 🚨 FIX: Dùng getByteTimeDomainData để tính RMS chính xác hơn frequency
+            analyser.getByteTimeDomainData(dataArray);
             
-            try {
-                if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-                    throw new Error('Thiết bị không hỗ trợ Mic');
-                }
-                
-                _noiseStream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                _audioContext = new (window.AudioContext || window.webkitAudioContext)();
-                const analyser = _audioContext.createAnalyser();
-                const source = _audioContext.createMediaStreamSource(_noiseStream);
-                source.connect(analyser);
-                analyser.fftSize = 256;
-                const dataArray = new Uint8Array(analyser.frequencyBinCount);
-                
-                let maxDb = 0;
-                let count = 0;
-                const interval = setInterval(() => {
-                    analyser.getByteFrequencyData(dataArray);
-                    let sum = 0;
-                    for (let i = 0; i < dataArray.length; i++) sum += dataArray[i];
-                    const avg = sum / dataArray.length;
-                    const db = Math.round(20 * Math.log10(avg + 1)); 
-                    if (db > maxDb) maxDb = db;
-                    count++;
-                    if (count >= 30) {
-                        clearInterval(interval);
-                        _noiseStream.getTracks().forEach(t => t.stop());
-                        _audioContext.close();
-                        
-                        _measuredDb = maxDb;
-                        const resultDiv = document.getElementById('noiseResult');
-                        resultDiv.innerHTML = t('noise_db_result', { db: _measuredDb });
-                        resultDiv.style.display = 'block';
-                        
-                        btn.innerHTML = '<i class="fa-solid fa-check"></i> ' + t('measured_done');
-                        checkReviewReady();
-                    }
-                }, 100);
-            } catch (e) {
-                showToast(t('mic_error', { msg: e.message }), false);
-                btn.disabled = false;
-                btn.innerHTML = t('review_measure_btn');
+            // Tính RMS (Root Mean Square) — chuẩn đo âm lượng
+            let sumSquares = 0;
+            for (let i = 0; i < dataArray.length; i++) {
+                const normalized = (dataArray[i] - 128) / 128; // Đưa về -1..1
+                sumSquares += normalized * normalized;
             }
-        });
-             });
+            const rms = Math.sqrt(sumSquares / dataArray.length);
+            
+            // 🚨 FIX: dBFS → dB SPL ước lượng (0-100 dB)
+            // rms=0.001 (~im lặng) → -60dBFS → 40 dB
+            // rms=0.1   (~nói chuyện) → -20dBFS → 80 dB
+            // rms=0.5   (~ồn ào)     → -6dBFS  → 94 dB
+            let db = 0;
+            if (rms > 0.00001) {
+                db = Math.max(0, Math.round(20 * Math.log10(rms) + 100));
+            }
+            
+            if (db > maxDb) maxDb = db;
+            count++;
+            
+            if (count >= 30) {
+                clearInterval(interval);
+                if (_noiseStream) {
+                    _noiseStream.getTracks().forEach(t => t.stop());
+                    _noiseStream = null;
+                }
+                // 🚨 FIX: Check state trước khi close để tránh InvalidStateError
+                if (_audioContext && _audioContext.state !== 'closed') {
+                    _audioContext.close();
+                }
+                _audioContext = null;
+                
+                _measuredDb = maxDb;
+                const resultDiv = document.getElementById('noiseResult');
+                resultDiv.innerHTML = t('noise_db_result', { db: _measuredDb }) || `Độ ồn: ${_measuredDb} dB`;
+                resultDiv.style.display = 'block';
+                
+                btn.innerHTML = '<i class="fa-solid fa-check"></i> ' + (t('measured_done') || 'Đã đo xong');
+                checkReviewReady();
+            }
+        }, 100);
+    } catch (e) {
+        showToast(t('mic_error', { msg: e.message }) || ('Lỗi Mic: ' + e.message), false);
+        btn.disabled = false;
+        btn.innerHTML = t('review_measure_btn') || 'Bắt đầu đo';
+        // 🚨 FIX: Cleanup nếu có lỗi
+        if (_noiseStream) {
+            _noiseStream.getTracks().forEach(t => t.stop());
+            _noiseStream = null;
+        }
+        if (_audioContext && _audioContext.state !== 'closed') {
+            _audioContext.close();
+        }
+        _audioContext = null;
+    }
+});
+});
 
         function checkReviewReady() {
             if (_selectedRating > 0 && _measuredDb !== null) {
