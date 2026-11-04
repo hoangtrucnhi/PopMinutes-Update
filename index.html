@@ -9325,7 +9325,7 @@ const ccEmail1 = (sendToClient && clientEmailValue) ? clientEmailValue : '';
         }
 
 
-                                        async function loadCafeHistory() {
+        async function loadCafeHistory() {
             const container = document.getElementById('cafeHistoryList');
             if (!container) return;
             container.innerHTML = `<p class="cafe-loading">${t('loading')}</p>`;
@@ -9348,15 +9348,29 @@ const ccEmail1 = (sendToClient && clientEmailValue) ? clientEmailValue : '';
                     return;
                 }
                 let html = '';
-                                checkins.forEach(c => {
+                checkins.forEach(c => {
                     const badgeClass = c.status === 'active' ? 'active' : 'completed';
                     
+                    // 🚨 LOGIC MỚI: Gộp chung Credit & Kích thích Review
                     let reviewBtnHtml = '';
                     if (c.status === 'completed') {
                         if (c.is_reviewed) {
-                            reviewBtnHtml = `<div style="margin-top: 8px; font-size: 12px; color: var(--success); font-weight: 600;"><i class="fa-solid fa-circle-check"></i> ${t('review_thanks')}</div>`;
+                            // ĐÃ REVIEW: Hiện Badge tổng Credit (Tier 1 = 1.5, Khác = 0.5)
+                            const creditStr = c.is_tier1 ? '1.5' : '0.5';
+                            reviewBtnHtml = `
+                                <div style="margin-top: 12px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; background: #FEF3C7; border: 1px dashed #F59E0B; border-radius: 8px; padding: 8px 12px; color: #B45309; font-weight: 800; font-size: 13px;">
+                                    <i class="fa-solid fa-gift"></i> +${creditStr} AI Credit
+                                </div>
+                            `;
                         } else {
-                            reviewBtnHtml = `<div style="margin-top: 8px;"><button class="cafe-btn-sm primary" onclick="openReviewModal('${c.checkin_id}')"><i class="fa-solid fa-star"></i> ${t('review_title')}</button></div>`;
+                            // CHƯA REVIEW: Ẩn credit, chỉ hiện nút mồi
+                            reviewBtnHtml = `
+                                <div style="margin-top: 12px;">
+                                    <button class="cafe-btn-sm primary" style="width: 100%; border-radius: 8px; padding: 10px;" onclick="openReviewModal('${c.checkin_id}')">
+                                        <i class="fa-solid fa-star" style="color: #FCD34D;"></i> ${t('review_title')}
+                                    </button>
+                                </div>
+                            `;
                         }
                     }
 
