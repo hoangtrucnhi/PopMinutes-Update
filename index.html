@@ -5403,6 +5403,7 @@
                 review_noise_label: 'Đo độ ồn tại quán',
                 review_measure_btn: 'Bắt đầu đo (Cần cấp quyền Mic)',
                 review_submit_btn: 'Gửi đánh giá',
+                review_btn_label: 'Đánh giá',
                 noise_db_result: 'Độ ồn hiện tại: {db} dB',
                 feature_only_for_paid: 'Tính năng này chỉ dành cho gói trả phí.',
                 },
@@ -5960,6 +5961,7 @@
                 review_noise_label: 'Measure Noise Level',
                 review_measure_btn: 'Start Measuring (Mic required)',
                 review_submit_btn: 'Submit Review',
+                review_btn_label: 'Review',
                 noise_db_result: 'Current Noise: {db} dB',
                 feature_only_for_paid: 'This feature is only for paid packages.',
             }
@@ -9353,12 +9355,17 @@ const ccEmail1 = (sendToClient && clientEmailValue) ? clientEmailValue : '';
         checkins.forEach(c => {
                     const badgeClass = c.status === 'active' ? 'active' : 'completed';
                     
-                    let reviewBtnHtml = '';
+                                        let reviewBtnHtml = '';
                     if (c.status === 'completed') {
+                        // 🚨 GỘP LOGIC: Chỉ đổi câu chữ dựa vào gói
+                        let btnText = t('review_btn_label') || 'Đánh giá quán';
+                        if (isFreePackage) {
+                            btnText = t('review_title') || 'Đánh giá (+0.5 AI Credit)';
+                        }
+
                         if (c.is_reviewed) {
                             // ĐÃ REVIEW
                             if (isFreePackage) {
-                                // Gói Free: Hiện Badge tổng Credit (Tier 1 = 1.5, Khác = 0.5)
                                 const creditStr = c.is_tier1 ? '1.5' : '0.5';
                                 reviewBtnHtml = `
                                     <div style="margin-top: 12px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; background: var(--navy-pale); border: 1px solid var(--border); border-radius: 8px; padding: 6px 12px; color: var(--navy); font-weight: 700; font-size: 12.5px;">
@@ -9366,28 +9373,17 @@ const ccEmail1 = (sendToClient && clientEmailValue) ? clientEmailValue : '';
                                     </div>
                                 `;
                             } else {
-                                // Gói Trả phí: Chỉ hiện chữ Đã đánh giá, không hiện credit
                                 reviewBtnHtml = `<div style="margin-top: 8px; font-size: 12px; color: var(--success); font-weight: 600;"><i class="fa-solid fa-circle-check"></i> ${t('review_thanks') || 'Đã đánh giá'}</div>`;
                             }
                         } else {
                             // CHƯA REVIEW
-                            if (isFreePackage) {
-                                reviewBtnHtml = `
-                                    <div style="margin-top: 12px;">
-                                        <button class="cafe-btn-sm primary" style="width: 100%; border-radius: 8px; padding: 10px;" onclick="openReviewModal('${c.checkin_id}')">
-                                            ${t('review_title') || 'Đánh giá (+0.5 AI Credit)'}
-                                        </button>
-                                    </div>
-                                `;
-                            } else {
-                                reviewBtnHtml = `
-                                    <div style="margin-top: 12px;">
-                                        <button class="cafe-btn-sm primary" style="width: 100%; border-radius: 8px; padding: 10px;" onclick="openReviewModal('${c.checkin_id}')">
-                                            <i class="fa-solid fa-star" style="color: #FCD34D;"></i> Đánh giá quán
-                                        </button>
-                                    </div>
-                                `;
-                            }
+                            reviewBtnHtml = `
+                                <div style="margin-top: 12px;">
+                                    <button class="cafe-btn-sm primary" style="width: 100%; border-radius: 8px; padding: 10px;" onclick="openReviewModal('${c.checkin_id}')">
+                                        ${btnText}
+                                    </button>
+                                </div>
+                            `;
                         }
                     }
 
@@ -9717,19 +9713,20 @@ const ccEmail1 = (sendToClient && clientEmailValue) ? clientEmailValue : '';
                             const distStr = c.distance_km !== null ? `${c.distance_km}km` : '';
                             
                             const ratingHtml = (c.total_reviews > 0) 
-                                ? `<span style="color: #F59E0B; font-size: 12px; margin-left: 6px; font-weight: 700;"><i class="fa-solid fa-star"></i> ${c.avg_rating} (${c.total_reviews})</span>` 
+                                ? `<div style="color: #F59E0B; font-size: 12px; font-weight: 600; display: flex; align-items: center; gap: 4px; margin-bottom: 2px;">${c.avg_rating} <i class="fa-solid fa-star"></i> <span style="color: var(--muted); font-weight: 400;">(${c.total_reviews})</span></div>` 
                                 : '';
 
                             html += `
                                 <div class="cafe-card">
-                                    <div class="cafe-card-header">
+                                    <div class="cafe-card-header" style="margin-bottom: 6px;">
                                         <div class="cafe-card-title">
                                             <i class="fa-solid fa-store"></i>
-                                            ${escapeHtml(c.name)} ${ratingHtml}
+                                            ${escapeHtml(c.name)}
                                         </div>
                                         ${distStr ? `<span class="cafe-badge confirmed">${distStr}</span>` : ''}
                                     </div>
                                     <div class="cafe-card-meta">
+                                        ${ratingHtml}
                                         <div><i class="fa-solid fa-location-dot"></i> ${escapeHtml(c.address)}</div>
                                     </div>
                                     <div class="cafe-card-actions">
@@ -10191,8 +10188,13 @@ const remaining = Math.max(0, Math.ceil((undoDeadlineMs - Date.now()) / 60000));
                 preview.classList.remove('active');
                 return;
             }
+                        const ratingHtml = (cafe.total_reviews > 0) 
+                ? `<div style="color: #F59E0B; font-size: 12px; font-weight: 600; margin-top: 4px;"><i class="fa-solid fa-star"></i> ${cafe.avg_rating} <span style="color: var(--muted); font-weight: 400;">(${cafe.total_reviews} đánh giá)</span></div>` 
+                : '';
+
             preview.innerHTML = `
                 <div><i class="fa-solid fa-store"></i> <b>${escapeHtml(cafe.name)}</b></div>
+                ${ratingHtml}
                 <div style="margin-top:4px;"><i class="fa-solid fa-location-dot"></i> ${escapeHtml(cafe.address)}</div>
             `;
             preview.classList.add('active');
