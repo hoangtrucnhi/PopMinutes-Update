@@ -9346,28 +9346,48 @@ const ccEmail1 = (sendToClient && clientEmailValue) ? clientEmailValue : '';
                     return;
                 }
                 let html = '';
-                        checkins.forEach(c => {
+                        // 🚨 KIỂM TRA GÓI ĐỂ ẨN AI CREDIT VỚI GÓI TRẢ PHÍ
+        const currentPkg = document.getElementById('package-display').textContent;
+        const isFreePackage = currentPkg === 'FREE-10Y';
+
+        checkins.forEach(c => {
                     const badgeClass = c.status === 'active' ? 'active' : 'completed';
                     
                     let reviewBtnHtml = '';
                     if (c.status === 'completed') {
                         if (c.is_reviewed) {
-                            // ĐÃ REVIEW: Badge thanh lịch, đồng bộ tone xanh Navy của app
-                            const creditStr = c.is_tier1 ? '1.5' : '0.5';
-                            reviewBtnHtml = `
-                                <div style="margin-top: 12px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; background: var(--navy-pale); border: 1px solid var(--border); border-radius: 8px; padding: 6px 12px; color: var(--navy); font-weight: 700; font-size: 12.5px;">
-                                    <i class="fa-solid fa-bolt" style="color: #D97706;"></i> +${creditStr} AI Credit
-                                </div>
-                            `;
+                            // ĐÃ REVIEW
+                            if (isFreePackage) {
+                                // Gói Free: Hiện Badge tổng Credit (Tier 1 = 1.5, Khác = 0.5)
+                                const creditStr = c.is_tier1 ? '1.5' : '0.5';
+                                reviewBtnHtml = `
+                                    <div style="margin-top: 12px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; background: var(--navy-pale); border: 1px solid var(--border); border-radius: 8px; padding: 6px 12px; color: var(--navy); font-weight: 700; font-size: 12.5px;">
+                                        <i class="fa-solid fa-bolt" style="color: #D97706;"></i> +${creditStr} AI Credit
+                                    </div>
+                                `;
+                            } else {
+                                // Gói Trả phí: Chỉ hiện chữ Đã đánh giá, không hiện credit
+                                reviewBtnHtml = `<div style="margin-top: 8px; font-size: 12px; color: var(--success); font-weight: 600;"><i class="fa-solid fa-circle-check"></i> ${t('review_thanks') || 'Đã đánh giá'}</div>`;
+                            }
                         } else {
-                            // CHƯA REVIEW: Nút mồi
-                            reviewBtnHtml = `
-                                <div style="margin-top: 12px;">
-                                    <button class="cafe-btn-sm primary" style="width: 100%; border-radius: 8px; padding: 10px;" onclick="openReviewModal('${c.checkin_id}')">
-                                        ${t('review_title')}
-                                    </button>
-                                </div>
-                            `;
+                            // CHƯA REVIEW
+                            if (isFreePackage) {
+                                reviewBtnHtml = `
+                                    <div style="margin-top: 12px;">
+                                        <button class="cafe-btn-sm primary" style="width: 100%; border-radius: 8px; padding: 10px;" onclick="openReviewModal('${c.checkin_id}')">
+                                            <i class="fa-solid fa-star" style="color: #FCD34D;"></i> ${t('review_title') || 'Đánh giá (+0.5 AI Credit)'}
+                                        </button>
+                                    </div>
+                                `;
+                            } else {
+                                reviewBtnHtml = `
+                                    <div style="margin-top: 12px;">
+                                        <button class="cafe-btn-sm primary" style="width: 100%; border-radius: 8px; padding: 10px;" onclick="openReviewModal('${c.checkin_id}')">
+                                            <i class="fa-solid fa-star" style="color: #FCD34D;"></i> Đánh giá quán
+                                        </button>
+                                    </div>
+                                `;
+                            }
                         }
                     }
 
@@ -9654,7 +9674,7 @@ const ccEmail1 = (sendToClient && clientEmailValue) ? clientEmailValue : '';
                 showToast(e.message, false);
             }
         }
-                async function loadAllCafes() {
+        async function loadAllCafes() {
             const listEl = document.getElementById('cafeNearbyList');
             if (!listEl) return;
             listEl.style.display = 'block';
@@ -9696,12 +9716,16 @@ const ccEmail1 = (sendToClient && clientEmailValue) ? clientEmailValue : '';
                             const cafeNameSafe = escapeHtml(c.name).replace(/'/g, "\\'");
                             const distStr = c.distance_km !== null ? `${c.distance_km}km` : '';
                             
+                            const ratingHtml = (c.total_reviews > 0) 
+                                ? `<span style="color: #F59E0B; font-size: 12px; margin-left: 6px; font-weight: 700;"><i class="fa-solid fa-star"></i> ${c.avg_rating} (${c.total_reviews})</span>` 
+                                : '';
+
                             html += `
                                 <div class="cafe-card">
                                     <div class="cafe-card-header">
                                         <div class="cafe-card-title">
                                             <i class="fa-solid fa-store"></i>
-                                            ${escapeHtml(c.name)}
+                                            ${escapeHtml(c.name)} ${ratingHtml}
                                         </div>
                                         ${distStr ? `<span class="cafe-badge confirmed">${distStr}</span>` : ''}
                                     </div>
@@ -9750,10 +9774,14 @@ const ccEmail1 = (sendToClient && clientEmailValue) ? clientEmailValue : '';
                 let html = '';
                 filteredCafes.forEach(c => {
                     const cafeNameSafe = escapeHtml(c.name).replace(/'/g, "\\'");
+                    const ratingHtml = (c.total_reviews > 0) 
+                        ? `<span style="color: #F59E0B; font-size: 12px; margin-left: 6px; font-weight: 700;"><i class="fa-solid fa-star"></i> ${c.avg_rating} (${c.total_reviews})</span>` 
+                        : '';
+
                     html += `
                         <div class="cafe-card">
                             <div class="cafe-card-header">
-                                <div class="cafe-card-title"><i class="fa-solid fa-store"></i> ${escapeHtml(c.name)}</div>
+                                <div class="cafe-card-title"><i class="fa-solid fa-store"></i> ${escapeHtml(c.name)} ${ratingHtml}</div>
                             </div>
                             <div class="cafe-card-meta">
                                 <div><i class="fa-solid fa-location-dot"></i> ${escapeHtml(c.address)}</div>
@@ -10081,7 +10109,7 @@ const remaining = Math.max(0, Math.ceil((undoDeadlineMs - Date.now()) / 60000));
             }
         }
         // ============ CAFE BOOKING MODAL ============
-                                        async function openCafeBookingModal() {
+    async function openCafeBookingModal() {
             if (!currentEmail) {
                 alert(t('toast_login_required'));
                 return;
@@ -10112,9 +10140,15 @@ const remaining = Math.max(0, Math.ceil((undoDeadlineMs - Date.now()) / 60000));
             endInput.value = String(endHour).padStart(2, '0') + ':00';
 
             cafeSelect.innerHTML = '<option value="">-- Đang tải --</option>';
-            const cafes = await fetchCafesForSales();
+            const allCafes = await fetchCafesForSales();
+            
+            // 🚨 LỌC QUÁN: Gói trả phí (không phải FREE-10Y) chỉ được đặt quán Tier 2
+            const pkgId = document.getElementById('package-display').textContent;
+            const isFree = pkgId === 'FREE-10Y';
+            const cafes = allCafes.filter(c => isFree ? c.tier === 1 : c.tier !== 1);
+
             if (cafes.length === 0) {
-                cafeSelect.innerHTML = '<option value="">-- Không có quán nào --</option>';
+                cafeSelect.innerHTML = '<option value="">-- Không có quán nào phù hợp --</option>';
             } else {
                 let opts = '<option value="">-- Chọn quán --</option>';
                 cafes.forEach(c => {
@@ -10122,7 +10156,6 @@ const remaining = Math.max(0, Math.ceil((undoDeadlineMs - Date.now()) / 60000));
                 });
                 cafeSelect.innerHTML = opts;
             }
-
             document.querySelectorAll('#cafeBookingModal [data-i18n]').forEach(el => {
                 const key = el.getAttribute('data-i18n');
                 const txt = t(key);
