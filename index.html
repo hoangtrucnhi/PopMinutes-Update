@@ -13721,20 +13721,26 @@ window.addEventListener('message', async function(event) {
         let _noiseStream = null;
 
         function openReviewModal(checkinId) {
-            _currentReviewCheckinId = checkinId;
-            _selectedRating = 0;
-            _measuredDb = null;
-            
-            document.getElementById('reviewModal').classList.add('active');
-            document.getElementById('noiseResult').style.display = 'none';
-            document.getElementById('btnSubmitReview').disabled = true;
-            
-            document.querySelectorAll('#starRating i').forEach(star => star.style.color = '#CBD5E1');
-            
-            const btn = document.getElementById('btnMeasureNoise');
-            btn.disabled = false;
-            btn.innerHTML = `<span>${t('review_measure_btn')}</span>`;
-        }
+    _currentReviewCheckinId = checkinId;
+    _selectedRating = 0;
+    _measuredDb = null;
+    
+    document.getElementById('reviewModal').classList.add('active');
+    document.getElementById('noiseResult').style.display = 'none';
+    document.getElementById('noiseResult').innerHTML = '';
+    
+    // 🚨 FIX: Reset nút Submit (xóa spinner còn sót từ lần trước)
+    const submitBtn = document.getElementById('btnSubmitReview');
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = `<span>${t('review_submit_btn') || 'Gửi đánh giá'}</span>`;
+    
+    document.querySelectorAll('#starRating i').forEach(star => star.style.color = '#CBD5E1');
+    
+    // 🚨 FIX: Reset nút Measure
+    const btn = document.getElementById('btnMeasureNoise');
+    btn.disabled = false;
+    btn.innerHTML = `<span>${t('review_measure_btn') || 'Bắt đầu đo'}</span>`;
+}
 
         function closeReviewModal() {
             document.getElementById('reviewModal').classList.remove('active');
@@ -13862,12 +13868,14 @@ window.addEventListener('message', async function(event) {
                 
                 const data = await res.json();
                 if (data.status === 200) {
-                    showToast(t('review_thanks'), true);
-                    closeReviewModal();
-                    if (typeof loadCafeHistory === 'function') loadCafeHistory();
-                    // 🚨 CẬP NHẬT LẠI SỐ CREDIT PHÒNG TRƯỜNG HỢP CÓ THAY ĐỔI
-                    refreshDashboardData(); 
-                } else {
+    showToast(t('review_thanks'), true);
+    // 🚨 FIX: Khôi phục nút TRƯỚC khi đóng modal
+    btn.disabled = false;
+    btn.innerHTML = orig;
+    closeReviewModal();
+    if (typeof loadCafeHistory === 'function') loadCafeHistory();
+    refreshDashboardData(); 
+} else {
                     // Hiển thị lỗi nếu ở quá xa (CAFE_TOO_FAR)
                     if (data.code === 'CAFE_TOO_FAR') {
                         showToast(t('gps_too_far_review', { dist: data.params.distance }), false);
