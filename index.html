@@ -13805,17 +13805,13 @@ window.addEventListener('message', async function(event) {
             document.getElementById('lightboxImg').src = _currentLightboxImages[_currentLightboxIndex];
         }
 
-        function prevLightboxImage(e) {
+                function prevLightboxImage(e) {
             e.stopPropagation();
-             function buildCafeImagesHtml(images) {
-            if (!images || images.length === 0) return '';
-            
-            let html = `<div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; margin-top: 10px; margin-bottom: 12px; border-radius: 8px; overflow: hidden;">`;
-            const displayImages = images.slice(0, 3);
-            
-            displayImages.forEach((img, idx) => {
-                const isLast = idx === 2 && images.length > 3;
-                function buildCafeImagesHtml(images) {
+            _currentLightboxIndex = (_currentLightboxIndex - 1 + _currentLightboxImages.length) % _currentLightboxImages.length;
+            document.getElementById('lightboxImg').src = _currentLightboxImages[_currentLightboxIndex];
+        }
+
+        function buildCafeImagesHtml(images) {
             if (!images || images.length === 0) return '';
             
             let html = `<div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; margin-top: 10px; margin-bottom: 12px; border-radius: 8px; overflow: hidden;">`;
