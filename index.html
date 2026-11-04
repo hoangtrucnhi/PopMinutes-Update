@@ -3616,8 +3616,6 @@
                     <button class="cafe-primary-btn" id="btnNewBooking" onclick="openCafeBookingModal()" style="display: none;">
                         <span data-i18n="cafe_new_booking">Đặt chỗ mới</span>
                     </button>
-                            <span data-i18n="cafe_new_booking">Đặt chỗ mới</span>
-                        </button>
                     </div>
                     <div id="cafeBookingsList">
                         <p class="cafe-loading" data-i18n="loading">Đang tải...</p>
@@ -5400,7 +5398,7 @@
                 mic_error: 'Lỗi Mic: {msg}',
                 measuring: 'Đang đo...',
                 measured_done: 'Đã đo xong',
-                review_title: 'Đánh giá quán Cafe',
+                review_title: 'Đánh giá',
                 review_rating_label: 'Chất lượng quán',
                 review_noise_label: 'Đo độ ồn tại quán',
                 review_measure_btn: 'Bắt đầu đo (Cần cấp quyền Mic)',
@@ -5428,7 +5426,7 @@
                 login_btn: 'Continue',
                 greeting: 'User:',
                 customer_label: 'Customer',
-                hours_unit: 'Hours used at café',
+                hours_unit: 'Hours used at cafes',
                 package_label: 'Package',
                 expiry_label: 'Expiry',
                 undefined_package: 'Not defined',
@@ -5957,7 +5955,7 @@
                 mic_error: 'Mic error: {msg}',
                 measuring: 'Measuring...',
                 measured_done: 'Measured',
-                review_title: 'Cafe Review',
+                review_title: 'Review',
                 review_rating_label: 'Cafe Quality',
                 review_noise_label: 'Measure Noise Level',
                 review_measure_btn: 'Start Measuring (Mic required)',
@@ -7650,7 +7648,7 @@ for (let attempt = 1; attempt <= 3; attempt++) {
             document.getElementById('company-name-display').textContent = "";
             document.getElementById('remaining-hours-display').textContent = "--";
             document.getElementById('package-display').textContent = t('undefined_package');
-            document.getElementById('expiry-display').textContent = t('undefined_expiry');
+            document.getElementById('card-col2-value').textContent = '--';
 
             // Reset error
             const errorMsg = document.getElementById('error-message');
@@ -13968,7 +13966,7 @@ window.addEventListener('message', async function(event) {
     <div id="reviewModal" class="cafe-bm-overlay">
         <div class="cafe-bm-box">
             <div class="cafe-bm-header">
-                <div class="cafe-bm-title"><i class="fa-solid fa-star"></i> <span data-i18n="review_title">Đánh giá quán Cafe</span></div>
+                <div class="cafe-bm-title"><i class="fa-solid fa-star"></i> <span data-i18n="review_title">Đánh giá</span></div>
                 <button class="cafe-bm-close" onclick="closeReviewModal()"><i class="fa-solid fa-xmark"></i></button>
             </div>
             
