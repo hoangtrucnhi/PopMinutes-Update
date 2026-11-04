@@ -13815,6 +13815,14 @@ window.addEventListener('message', async function(event) {
             
             displayImages.forEach((img, idx) => {
                 const isLast = idx === 2 && images.length > 3;
+                function buildCafeImagesHtml(images) {
+            if (!images || images.length === 0) return '';
+            
+            let html = `<div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; margin-top: 10px; margin-bottom: 12px; border-radius: 8px; overflow: hidden;">`;
+            const displayImages = images.slice(0, 3);
+            
+            displayImages.forEach((img, idx) => {
+                const isLast = idx === 2 && images.length > 3;
                 const overlayHtml = isLast ? `
                     <div style="position: absolute; inset: 0; background: rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; color: white; font-size: 20px; font-weight: 800;">
                         +${images.length - 2}
