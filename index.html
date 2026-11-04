@@ -5406,6 +5406,7 @@
                 review_btn_label: 'Đánh giá',
                 noise_db_result: 'Độ ồn hiện tại: {db} dB',
                 feature_only_for_paid: 'Tính năng này chỉ dành cho gói trả phí.',
+                reviews_count: 'đánh giá',
                 },
             en: {
                 // ===== CAFE NOTIFICATIONS (EN) =====
@@ -5964,6 +5965,7 @@
                 review_btn_label: 'Review',
                 noise_db_result: 'Current Noise: {db} dB',
                 feature_only_for_paid: 'This feature is only for paid packages.',
+                reviews_count: 'reviews',
             }
         };
 
@@ -9713,7 +9715,10 @@ const ccEmail1 = (sendToClient && clientEmailValue) ? clientEmailValue : '';
                             const distStr = c.distance_km !== null ? `${c.distance_km}km` : '';
                             
                             const ratingHtml = (c.total_reviews > 0) 
-                                ? `<div style="color: #F59E0B; font-size: 12px; font-weight: 600; display: flex; align-items: center; gap: 4px; margin-bottom: 2px;">${c.avg_rating} <i class="fa-solid fa-star"></i> <span style="color: var(--muted); font-weight: 400;">(${c.total_reviews})</span></div>` 
+                                ? `<div style="color: #F59E0B; font-size: 12px; font-weight: 600; display: flex; align-items: center; gap: 4px; margin-bottom: 2px;">
+                                    <i class="fa-solid fa-star" style="color: #FCD34D;"></i> ${c.avg_rating} 
+                                    <span style="color: var(--muted); font-weight: 400;">(${c.total_reviews} ${t('reviews_count') || 'đánh giá'})</span>
+                                   </div>` 
                                 : '';
 
                             html += `
@@ -10188,8 +10193,11 @@ const remaining = Math.max(0, Math.ceil((undoDeadlineMs - Date.now()) / 60000));
                 preview.classList.remove('active');
                 return;
             }
-                        const ratingHtml = (cafe.total_reviews > 0) 
-                ? `<div style="color: #F59E0B; font-size: 12px; font-weight: 600; margin-top: 4px;"><i class="fa-solid fa-star"></i> ${cafe.avg_rating} <span style="color: var(--muted); font-weight: 400;">(${cafe.total_reviews} đánh giá)</span></div>` 
+            const ratingHtml = (cafe.total_reviews > 0) 
+                ? `<div style="color: #F59E0B; font-size: 12px; font-weight: 600; display: flex; align-items: center; gap: 4px; margin-top: 4px;">
+                    <i class="fa-solid fa-star" style="color: #FCD34D;"></i> ${cafe.avg_rating} 
+                    <span style="color: var(--muted); font-weight: 400;">(${cafe.total_reviews} ${t('reviews_count') || 'đánh giá'})</span>
+                   </div>` 
                 : '';
 
             preview.innerHTML = `
