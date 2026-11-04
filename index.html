@@ -13811,13 +13811,14 @@ window.addEventListener('message', async function(event) {
             document.getElementById('lightboxImg').src = _currentLightboxImages[_currentLightboxIndex];
         }
 
-        function buildCafeImagesHtml(images) {
+                function buildCafeImagesHtml(images) {
             if (!images || images.length === 0) return '';
             
             let html = `<div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; margin-top: 10px; margin-bottom: 12px; border-radius: 8px; overflow: hidden;">`;
             const displayImages = images.slice(0, 3);
             
-            displayImages.forEach((img, idx) => {
+            displayImages.forEach((item, idx) => {
+                const url = item.url || item;
                 const isLast = idx === 2 && images.length > 3;
                 const overlayHtml = isLast ? `
                     <div style="position: absolute; inset: 0; background: rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; color: white; font-size: 20px; font-weight: 800;">
@@ -13826,8 +13827,8 @@ window.addEventListener('message', async function(event) {
                 ` : '';
                 
                 html += `
-                    <div style="position: relative; aspect-ratio: 1 / 1; cursor: pointer; background: #eee;" onclick="openLightbox(${JSON.stringify(images).replace(/"/g, '&quot;')}, ${idx})">
-                        <img src="${img}" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover;">
+                    <div style="position: relative; aspect-ratio: 1 / 1; cursor: pointer; background: #eee;" onclick="openLightbox(${JSON.stringify(images.map(i => i.url || i)).replace(/"/g, '&quot;')}, ${idx})">
+                        <img src="${url}" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover;">
                         ${overlayHtml}
                     </div>
                 `;
