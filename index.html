@@ -9723,6 +9723,8 @@ const ccEmail1 = (sendToClient && clientEmailValue) ? clientEmailValue : '';
                                    </div>` 
                                 : '';
 
+                            const imagesHtml = buildCafeImagesHtml(c.images);
+
                             html += `
                                 <div class="cafe-card">
                                     <div class="cafe-card-header" style="margin-bottom: 6px;">
@@ -9736,6 +9738,7 @@ const ccEmail1 = (sendToClient && clientEmailValue) ? clientEmailValue : '';
                                         ${ratingHtml}
                                         <div><i class="fa-solid fa-location-dot"></i> ${escapeHtml(c.address)}</div>
                                     </div>
+                                    ${imagesHtml}
                                     <div class="cafe-card-actions">
                                         <button class="cafe-btn-sm primary" style="width:100%;" onclick="showCheckinPicker('${c.cafe_id}', ${lat}, ${lng}, '${cafeNameSafe}')"><span>${t('cafe_picker_pick_btn')}</span></button>
                                     </div>
@@ -10202,10 +10205,13 @@ const remaining = Math.max(0, Math.ceil((undoDeadlineMs - Date.now()) / 60000));
                    </div>` 
                 : '';
 
+            const imagesHtml = buildCafeImagesHtml(cafe.images);
+
             preview.innerHTML = `
                 <div><i class="fa-solid fa-store"></i> <b>${escapeHtml(cafe.name)}</b></div>
                 ${ratingHtml}
                 <div style="margin-top:4px;"><i class="fa-solid fa-location-dot"></i> ${escapeHtml(cafe.address)}</div>
+                ${imagesHtml}
             `;
             preview.classList.add('active');
         }
@@ -13775,7 +13781,61 @@ window.addEventListener('message', async function(event) {
         let _measuredDb = null;
         let _audioContext = null;
         let _noiseStream = null;
+        // ============================================================
+        //  XỬ LÝ ẢNH QUÁN (SALES APP)
+        // ============================================================
+        let _currentLightboxImages = [];
+        let _currentLightboxIndex = 0;
 
+        function openLightbox(images, index) {
+            _currentLightboxImages = images;
+            _currentLightboxIndex = index;
+            document.getElementById('lightboxImg').src = images[index];
+            document.getElementById('imageLightbox').classList.add('active');
+        }
+
+        function closeLightbox(e) {
+            if (e && e.target.id !== 'imageLightbox' && !e.target.closest('button')) return;
+            document.getElementById('imageLightbox').classList.remove('active');
+        }
+
+        function nextLightboxImage(e) {
+            e.stopPropagation();
+            _currentLightboxIndex = (_currentLightboxIndex + 1) % _currentLightboxImages.length;
+            document.getElementById('lightboxImg').src = _currentLightboxImages[_currentLightboxIndex];
+        }
+
+        function prevLightboxImage(e) {
+            e.stopPropagation();
+            _currentLightboxIndex = (_currentLightboxIndex - 1 + _currentLightboxImages.length) % _currentLightboxImages.length;
+            document.getElementById('lightboxImg').src = _currentLightboxImages[_currentLightboxIndex];
+        }
+
+        // Hàm tạo HTML 3 ảnh (ảnh thứ 3 có overlay +N)
+        function buildCafeImagesHtml(images) {
+            if (!images || images.length === 0) return '';
+            
+            let html = `<div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; margin-top: 10px; margin-bottom: 12px; border-radius: 8px; overflow: hidden;">`;
+            const displayImages = images.slice(0, 3);
+            
+            displayImages.forEach((img, idx) => {
+                const isLast = idx === 2 && images.length > 3;
+                const overlayHtml = isLast ? `
+                    <div style="position: absolute; inset: 0; background: rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; color: white; font-size: 20px; font-weight: 800;">
+                        +${images.length - 2}
+                    </div>
+                ` : '';
+                
+                html += `
+                    <div style="position: relative; padding-top: 100%; cursor: pointer;" onclick="openLightbox(${JSON.stringify(images).replace(/"/g, '&quot;')}, ${idx})">
+                        <img src="${img}" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover;">
+                        ${overlayHtml}
+                    </div>
+                `;
+            });
+            html += `</div>`;
+            return html;
+        }
         function openReviewModal(checkinId) {
     _currentReviewCheckinId = checkinId;
     _selectedRating = 0;
@@ -14007,6 +14067,15 @@ window.addEventListener('message', async function(event) {
             }
         }
     </script>
+        <!-- LIGHTBOX XEM ẢNH -->
+    <div id="imageLightbox" class="modal-overlay" style="background: rgba(0,0,0,0.9); z-index: 99999; padding: 0;" onclick="closeLightbox(event)">
+        <div style="width: 100vw; height: 100vh; display: flex; align-items: center; justify-content: center; position: relative;">
+            <button onclick="closeLightbox(event)" style="position: absolute; top: 20px; right: 20px; background: none; border: none; color: white; font-size: 30px; z-index: 10;"><i class="fa-solid fa-xmark"></i></button>
+            <button onclick="prevLightboxImage(event)" style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%); background: rgba(255,255,255,0.2); border: none; color: white; font-size: 24px; width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; z-index: 10;"><i class="fa-solid fa-chevron-left"></i></button>
+            <button onclick="nextLightboxImage(event)" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: rgba(255,255,255,0.2); border: none; color: white; font-size: 24px; width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; z-index: 10;"><i class="fa-solid fa-chevron-right"></i></button>
+            <img id="lightboxImg" src="" style="max-width: 100%; max-height: 90vh; object-fit: contain;">
+        </div>
+    </div>
     <!-- ========== REVIEW MODAL ========== -->
     <div id="reviewModal" class="cafe-bm-overlay">
         <div class="cafe-bm-box">
