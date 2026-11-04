@@ -9348,22 +9348,21 @@ const ccEmail1 = (sendToClient && clientEmailValue) ? clientEmailValue : '';
                     return;
                 }
                 let html = '';
-                checkins.forEach(c => {
+                        checkins.forEach(c => {
                     const badgeClass = c.status === 'active' ? 'active' : 'completed';
                     
-                    // 🚨 LOGIC MỚI: Gộp chung Credit & Kích thích Review
                     let reviewBtnHtml = '';
                     if (c.status === 'completed') {
                         if (c.is_reviewed) {
-                            // ĐÃ REVIEW: Hiện Badge tổng Credit (Tier 1 = 1.5, Khác = 0.5)
+                            // ĐÃ REVIEW: Badge thanh lịch, đồng bộ tone xanh Navy của app
                             const creditStr = c.is_tier1 ? '1.5' : '0.5';
                             reviewBtnHtml = `
-                                <div style="margin-top: 12px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; background: #FEF3C7; border: 1px dashed #F59E0B; border-radius: 8px; padding: 8px 12px; color: #B45309; font-weight: 800; font-size: 13px;">
-                                    <i class="fa-solid fa-gift"></i> +${creditStr} AI Credit
+                                <div style="margin-top: 12px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; background: var(--navy-pale); border: 1px solid var(--border); border-radius: 8px; padding: 6px 12px; color: var(--navy); font-weight: 700; font-size: 12.5px;">
+                                    <i class="fa-solid fa-bolt" style="color: #D97706;"></i> +${creditStr} AI Credit
                                 </div>
                             `;
                         } else {
-                            // CHƯA REVIEW: Ẩn credit, chỉ hiện nút mồi
+                            // CHƯA REVIEW: Nút mồi
                             reviewBtnHtml = `
                                 <div style="margin-top: 12px;">
                                     <button class="cafe-btn-sm primary" style="width: 100%; border-radius: 8px; padding: 10px;" onclick="openReviewModal('${c.checkin_id}')">
