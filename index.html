@@ -9632,14 +9632,14 @@ const ccEmail1 = (sendToClient && clientEmailValue) ? clientEmailValue : '';
                 });
                 const data = await res.json();
                 
-                                    if (data.status === 200) {
+                    if (data.status === 200) {
                     if (data.is_tier1) {
                         // Gói Free: Lưu ID để bật Form Review, hiện Toast ngắn
                         localStorage.setItem('pending_review_checkin_id', data.checkin_id);
                         showToast(t('tier1_checkin_success'), true);
                     } else {
-                        // Gói Trả phí: Hiện Toast cũ
-                        showToast(data.message || t('cafe_checkin_success'), true);
+                        // Gói Trả phí: Dùng i18n của Frontend
+                        showToast(t('cafe_checkin_success_full'), true);
                     }
                     
                     setTimeout(() => {
