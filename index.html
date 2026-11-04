@@ -9383,7 +9383,7 @@ const ccEmail1 = (sendToClient && clientEmailValue) ? clientEmailValue : '';
                                 reviewBtnHtml = `
                                     <div style="margin-top: 12px;">
                                         <button class="cafe-btn-sm primary" style="width: 100%; border-radius: 8px; padding: 10px;" onclick="openReviewModal('${c.checkin_id}')">
-                                            <i class="fa-solid fa-star" style="color: #FCD34D;"></i> Đánh giá quán
+                                            ${t('review_title')
                                         </button>
                                     </div>
                                 `;
