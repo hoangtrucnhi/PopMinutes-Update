@@ -5392,7 +5392,7 @@
                 ai_credits_label: 'Lượt dùng AI',
                 out_of_ai_credits: 'Bạn đã hết lượt sử dụng AI. Vui lòng đến quán cafe đối tác check-in để nhận thêm lượt.',
                 tier1_checkin_success: 'Đưa quán quét QR để +1 AI credit.',
-                review_thanks: '+0.5 AI credit',
+                review_thanks: 'Đã đánh giá',
                 gps_required_review: 'Vui lòng bật GPS để đánh giá quán!',
                 gps_too_far_review: 'Bạn đang cách quán {dist}m. Chỉ có thể đánh giá khi ở trong bán kính 50m.',
                 mic_error: 'Lỗi Mic: {msg}',
@@ -5951,7 +5951,7 @@
                 ai_credits_label: 'AI Credits',
                 out_of_ai_credits: 'You have run out of AI credits. Please check in at a partner cafe to earn more.',
                 tier1_checkin_success: 'Show QR to the cafe to get +1 AI credit.',
-                review_thanks: '+0.5 AI credit',
+                review_thanks: 'Reviewed',
                 gps_required_review: 'Please turn on GPS to review the cafe!',
                 gps_too_far_review: 'You are {dist}m away. You can only review within 50m.',
                 mic_error: 'Mic error: {msg}',
@@ -9365,9 +9365,10 @@ const ccEmail1 = (sendToClient && clientEmailValue) ? clientEmailValue : '';
                             btnText = t('review_title') || 'Đánh giá (+0.5 AI Credit)';
                         }
 
-                        if (c.is_reviewed) {
+                                                if (c.is_reviewed) {
                             // ĐÃ REVIEW
                             if (isFreePackage) {
+                                // Gói Free: Hiện Badge tổng Credit (Tier 1 = 1.5, Khác = 0.5)
                                 const creditStr = c.is_tier1 ? '1.5' : '0.5';
                                 reviewBtnHtml = `
                                     <div style="margin-top: 12px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; background: var(--navy-pale); border: 1px solid var(--border); border-radius: 8px; padding: 6px 12px; color: var(--navy); font-weight: 700; font-size: 12.5px;">
@@ -9375,7 +9376,8 @@ const ccEmail1 = (sendToClient && clientEmailValue) ? clientEmailValue : '';
                                     </div>
                                 `;
                             } else {
-                                reviewBtnHtml = `<div style="margin-top: 8px; font-size: 12px; color: var(--success); font-weight: 600;"><i class="fa-solid fa-circle-check"></i> ${t('review_thanks') || 'Đã đánh giá'}</div>`;
+                                // Gói Trả phí: Chỉ hiện chữ Đã đánh giá màu xám nhã nhặn
+                                reviewBtnHtml = `<div style="margin-top: 8px; font-size: 12.5px; color: var(--muted); font-weight: 600; display: inline-flex; align-items: center; gap: 6px;"><i class="fa-solid fa-circle-check" style="color: var(--success);"></i> ${t('review_thanks')}</div>`;
                             }
                         } else {
                             // CHƯA REVIEW
