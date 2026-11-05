@@ -9796,17 +9796,7 @@ const ccEmail1 = (sendToClient && clientEmailValue) ? clientEmailValue : '';
             html += `</div>`;
             return html;
         }
-                    } catch (e) {
-                        listEl.innerHTML = `<div class="cafe-empty">${t('cafe_loading_error')}</div>`;
-                    }
-                },
-                (err) => {
-                    // Nếu không lấy được GPS, vẫn tải danh sách nhưng không có khoảng cách
-                    fetchCafesWithoutGps(listEl);
-                },
-                { enableHighAccuracy: true, timeout: 10000 }
-            );
-        }
+
                 async function fetchCafesWithoutGps(listEl) {
             try {
                 const res = await fetch(`${CLOUD_FUNCTION_URL}?action=cafeList`);
