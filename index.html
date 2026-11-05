@@ -3821,7 +3821,7 @@
                 <div class="cafe-bm-field">
                     <label><span data-i18n="cafe_bm_select_cafe">Chọn quán</span> <span class="req">*</span></label>
                     <select id="cafeBmCafe" class="cafe-bm-select" onchange="onCafeBmSelect()">
-                        <option value="">-- Chọn quán --</option>
+                        <option value="" data-i18n="select_cafe_placeholder">-- Chọn quán --</option>
                     </select>
                     <div id="cafeBmCafePreview" class="cafe-bm-cafe-preview"></div>
                 </div>
@@ -3845,19 +3845,19 @@
                 <div class="cafe-bm-field" style="background: #F8FAFC; padding: 12px; border-radius: 12px; border: 1px solid #E2E8F0;">
                     <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
                         <input type="checkbox" id="hasGuestCheckbox" onchange="toggleGuestCount()" style="width: 18px; height: 18px; accent-color: var(--navy); cursor: pointer;">
-                        <label for="hasGuestCheckbox" style="font-size: 14px; font-weight: 700; color: var(--text); cursor: pointer; margin: 0;">Bạn có đi cùng ai không?</label>
+                        <label for="hasGuestCheckbox" style="font-size: 14px; font-weight: 700; color: var(--text); cursor: pointer; margin: 0;" data-i18n="has_guest_label">Bạn có đi cùng ai không?</label>
                     </div>
                     
                     <div id="guestCountWrap" style="display: none; margin-top: 10px;">
-                        <label style="font-size: 12px; font-weight: 700; color: var(--muted); text-transform: uppercase;">Tổng số ghế cần giữ (Tính cả bạn) <span class="req">*</span></label>
-                    <select id="cafeBmGuestCount" class="cafe-bm-input">
-                        <option value="1">1 người (Đi 1 mình)</option>
-                        <option value="2">2 người (Bạn + 1 khách)</option>
-                        <option value="3">3 người (Bạn + 2 khách)</option>
-                        <option value="4">4 người (Bạn + 3 khách)</option>
-                    </select>
-                        <div style="font-size: 12px; color: #0284C7; margin-top: 8px; line-height: 1.5; font-style: italic;">
-                            <i class="fa-solid fa-circle-info"></i> Số người đi cùng không bị trừ vào quỹ giờ của bạn. Tuy nhiên, người đi cùng sẽ được hưởng ưu đãi giảm giá nước tại quán (nếu có).
+                        <label style="font-size: 12px; font-weight: 700; color: var(--muted); text-transform: uppercase;" data-i18n="guest_count_label">Tổng số ghế cần giữ (Tính cả bạn)</label>
+                        <select id="cafeBmGuestCount" class="cafe-bm-input">
+                            <option value="1">1 người (Đi 1 mình)</option>
+                            <option value="2">2 người (Bạn + 1 khách)</option>
+                            <option value="3">3 người (Bạn + 2 khách)</option>
+                            <option value="4">4 người (Bạn + 3 khách)</option>
+                        </select>
+                        <div style="font-size: 12px; color: #0284C7; margin-top: 8px; line-height: 1.5; font-style: italic;" data-i18n="guest_note">
+                            Chỉ trừ số giờ 1 mình bạn sử dụng vào quỹ. Số giờ người đi cùng sử dụng không bị phụ thu nếu đến đầy đủ. Và, người đi cùng sẽ được hưởng ưu đãi giảm giá nước tại quán.
                         </div>
                     </div>
                 </div>
@@ -5407,6 +5407,10 @@
                 noise_db_result: 'Độ ồn hiện tại: {db} dB',
                 feature_only_for_paid: 'Tính năng này chỉ dành cho gói trả phí.',
                 reviews_count: 'đánh giá',
+                select_cafe_placeholder: '-- Chọn quán --',
+                has_guest_label: 'Bạn có đi cùng ai không?',
+                guest_count_label: 'Tổng số ghế cần giữ (Tính cả bạn)',
+                guest_note: 'Chỉ trừ số giờ 1 mình bạn sử dụng vào quỹ. Số giờ người đi cùng sử dụng không bị phụ thu nếu đến đầy đủ. Và, người đi cùng sẽ được hưởng ưu đãi giảm giá nước tại quán.',
                 },
             en: {
                 // ===== CAFE NOTIFICATIONS (EN) =====
@@ -5966,6 +5970,10 @@
                 noise_db_result: 'Current Noise: {db} dB',
                 feature_only_for_paid: 'This feature is only for paid packages.',
                 reviews_count: 'reviews',
+                select_cafe_placeholder: '-- Select cafe --',
+                has_guest_label: 'Are you bringing anyone?',
+                guest_count_label: 'Total seats to hold (Including you)',
+                guest_note: 'Only your hours are deducted from the quota. Guests\' hours are not charged if they arrive fully. Guests also get a discount on drinks at the cafe.',
             }
         };
 
