@@ -9684,7 +9684,7 @@ const ccEmail1 = (sendToClient && clientEmailValue) ? clientEmailValue : '';
                 showToast(e.message, false);
             }
         }
-                async function loadAllCafes() {
+                        async function loadAllCafes() {
             const listEl = document.getElementById('cafeNearbyList');
             if (!listEl) return;
             listEl.style.display = 'block';
@@ -9719,6 +9719,7 @@ const ccEmail1 = (sendToClient && clientEmailValue) ? clientEmailValue : '';
                 { enableHighAccuracy: true, timeout: 10000 }
             );
         }
+
         // Hàm render giao diện danh sách quán (Dùng chung cho cả lúc có cache và không)
         function renderNearbyCafesHtml(cafes) {
             const listEl = document.getElementById('cafeNearbyList');
