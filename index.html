@@ -8931,24 +8931,34 @@ const ccEmail1 = (sendToClient && clientEmailValue) ? clientEmailValue : '';
             }
         }
 
-                        function renderCheckinPrompt() {
-            const container = document.getElementById('cafeCheckinContent');
-            container.innerHTML = `
-                <div class="cafe-checkin-prompt">
-                    <div class="cafe-checkin-icon">
-                        <i class="fa-solid fa-location-dot"></i>
-                    </div>
-                    <h3 class="cafe-checkin-title">${t('cafe_checkin_no_active')}</h3>
-                    <p class="cafe-checkin-desc">${t('cafe_checkin_select_hint')}</p>
-                    <button class="cafe-primary-btn" onclick="loadAllCafes()">
-                        <span>${t('cafe_checkin_btn_nearby') || 'Danh sách quán'}</span>
-                    </button>
-                </div>
-                <div id="cafeNearbyList" style="display:none; margin-top:20px;"></div>
-            `;
-            // Tự động tải danh sách quán khi mở trang
-            setTimeout(loadAllCafes, 200);
+         function renderCheckinPrompt() {
+    const container = document.getElementById('cafeCheckinContent');
+    container.innerHTML = `
+        <div class="cafe-checkin-prompt">
+            <div class="cafe-checkin-icon">
+                <i class="fa-solid fa-location-dot"></i>
+            </div>
+            <h3 class="cafe-checkin-title">${t('cafe_checkin_no_active')}</h3>
+            <p class="cafe-checkin-desc">${t('cafe_checkin_select_hint')}</p>
+            <button class="cafe-primary-btn" onclick="loadAllCafes()">
+                <span>${t('cafe_checkin_btn_nearby') || 'Danh sách quán'}</span>
+            </button>
+        </div>
+        <div id="cafeNearbyList" style="display:none; margin-top:20px;"></div>
+    `;
+    
+    // Nếu đã có dữ liệu cache thì render luôn, không gọi API lại
+    if (window._nearbyCafesCache && window._nearbyCafesCache.length > 0) {
+        const listEl = document.getElementById('cafeNearbyList');
+        if (listEl) {
+            listEl.style.display = 'block';
+            renderNearbyCafesHtml(window._nearbyCafesCache);
         }
+    } else {
+        // Chưa có cache mới gọi API
+        setTimeout(loadAllCafes, 200);
+    }
+}
 
         function renderActiveCheckin(active) {
             window.__currentActiveCheckin = active;
@@ -9674,7 +9684,7 @@ const ccEmail1 = (sendToClient && clientEmailValue) ? clientEmailValue : '';
                 showToast(e.message, false);
             }
         }
-        async function loadAllCafes() {
+                async function loadAllCafes() {
             const listEl = document.getElementById('cafeNearbyList');
             if (!listEl) return;
             listEl.style.display = 'block';
@@ -9683,7 +9693,7 @@ const ccEmail1 = (sendToClient && clientEmailValue) ? clientEmailValue : '';
             navigator.geolocation.getCurrentPosition(
                 async (pos) => {
                     try {
-                        // 🚨 GỌI API cafeList VÀ TRUYỀN GPS ĐỂ TÍNH KHOẢNG CÁCH
+                        // GỌI API cafeList VÀ TRUYỀN GPS ĐỂ TÍNH KHOẢNG CÁCH
                         const url = `${CLOUD_FUNCTION_URL}?action=cafeList&lat=${pos.coords.latitude}&lng=${pos.coords.longitude}`;
                         const res = await fetch(url);
                         const data = await res.json();
@@ -9693,59 +9703,105 @@ const ccEmail1 = (sendToClient && clientEmailValue) ? clientEmailValue : '';
                             return;
                         }
                         
-                        const pkgId = document.getElementById('package-display').textContent;
-                        const isFree = pkgId === 'FREE-10Y';
+                        // 🚨 LƯU VÀO CACHE
+                        window._nearbyCafesCache = data.cafes;
+                        
+                        // 🚨 GỌI HÀM RENDER (BÊN DƯỚI)
+                        renderNearbyCafesHtml(data.cafes);
+                    } catch (e) {
+                        listEl.innerHTML = `<div class="cafe-empty">${t('cafe_loading_error')}</div>`;
+                    }
+                },
+                (err) => {
+                    // Nếu không lấy được GPS, vẫn tải danh sách nhưng không có khoảng cách
+                    fetchCafesWithoutGps(listEl);
+                },
+                { enableHighAccuracy: true, timeout: 10000 }
+            );
+        }
+        // Hàm render giao diện danh sách quán (Dùng chung cho cả lúc có cache và không)
+        function renderNearbyCafesHtml(cafes) {
+            const listEl = document.getElementById('cafeNearbyList');
+            if (!listEl) return;
+            
+            const pkgId = document.getElementById('package-display').textContent;
+            const isFree = pkgId === 'FREE-10Y';
+            let filteredCafes = cafes;
 
-                        // 🚨 LỌC QUÁN THEO GÓI
-                        let filteredCafes = data.cafes;
-                        if (isFree) {
-                            filteredCafes = data.cafes.filter(c => c.tier === 1);
-                        } else {
-                            filteredCafes = data.cafes.filter(c => c.tier !== 1);
-                        }
+            // LỌC QUÁN THEO GÓI
+            if (isFree) {
+                filteredCafes = cafes.filter(c => c.tier === 1);
+            } else {
+                filteredCafes = cafes.filter(c => c.tier !== 1);
+            }
 
-                        if (filteredCafes.length === 0) {
-                            listEl.innerHTML = `<div class="cafe-empty">${isFree ? 'Không có quán nào hỗ trợ gói Free' : 'Không có quán nào dành cho gói trả phí'}</div>`;
-                            return;
-                        }
+            if (filteredCafes.length === 0) {
+                listEl.innerHTML = `<div class="cafe-empty">${isFree ? 'Không có quán nào hỗ trợ gói Free' : 'Không có quán nào dành cho gói trả phí'}</div>`;
+                return;
+            }
 
-                        let html = '';
-                        filteredCafes.forEach(c => {
-                            const lat = pos.coords.latitude;
-                            const lng = pos.coords.longitude;
-                            const cafeNameSafe = escapeHtml(c.name).replace(/'/g, "\\'");
-                            const distStr = c.distance_km !== null ? `${c.distance_km}km` : '';
-                            
-                            const ratingHtml = (c.total_reviews > 0) 
-                                ? `<div style="color: #F59E0B; font-size: 12px; font-weight: 600; display: flex; align-items: center; gap: 4px; margin-bottom: 2px;">
-                                    <i class="fa-solid fa-star" style="color: #FCD34D;"></i> ${c.avg_rating} 
-                                    <span style="color: var(--muted); font-weight: 400;">(${c.total_reviews} ${t('reviews_count') || 'đánh giá'})</span>
-                                   </div>` 
-                                : '';
+            let html = '';
+            filteredCafes.forEach(c => {
+                const cafeNameSafe = escapeHtml(c.name).replace(/'/g, "\\'");
+                const distStr = c.distance_km !== null ? `${c.distance_km}km` : '';
+                
+                const ratingHtml = (c.total_reviews > 0) 
+                    ? `<div style="color: #F59E0B; font-size: 12px; font-weight: 600; display: flex; align-items: center; gap: 4px; margin-bottom: 2px;">
+                        <i class="fa-solid fa-star" style="color: #FCD34D;"></i> ${c.avg_rating} 
+                        <span style="color: var(--muted); font-weight: 400;">(${c.total_reviews} ${t('reviews_count') || 'đánh giá'})</span>
+                       </div>` 
+                    : '';
 
-                            const imagesHtml = buildCafeImagesHtml(c.images);
+                const imagesHtml = buildCafeImagesHtml(c.images);
 
-                            html += `
-                                <div class="cafe-card">
-                                    <div class="cafe-card-header" style="margin-bottom: 6px;">
-                                        <div class="cafe-card-title">
-                                            <i class="fa-solid fa-store"></i>
-                                            ${escapeHtml(c.name)}
-                                        </div>
-                                        ${distStr ? `<span class="cafe-badge confirmed">${distStr}</span>` : ''}
-                                    </div>
-                                    <div class="cafe-card-meta">
-                                        ${ratingHtml}
-                                        <div><i class="fa-solid fa-location-dot"></i> ${escapeHtml(c.address)}</div>
-                                    </div>
-                                    ${imagesHtml}
-                                    <div class="cafe-card-actions">
-                                        <button class="cafe-btn-sm primary" style="width:100%;" onclick="showCheckinPicker('${c.cafe_id}', ${lat}, ${lng}, '${cafeNameSafe}')"><span>${t('cafe_picker_pick_btn')}</span></button>
-                                    </div>
-                                </div>
-                            `;
-                        });
-                        listEl.innerHTML = html;
+                html += `
+                    <div class="cafe-card">
+                        <div class="cafe-card-header" style="margin-bottom: 6px;">
+                            <div class="cafe-card-title">
+                                <i class="fa-solid fa-store"></i>
+                                ${escapeHtml(c.name)}
+                            </div>
+                            ${distStr ? `<span class="cafe-badge confirmed">${distStr}</span>` : ''}
+                        </div>
+                        <div class="cafe-card-meta">
+                            ${ratingHtml}
+                            <div><i class="fa-solid fa-location-dot"></i> ${escapeHtml(c.address)}</div>
+                        </div>
+                        ${imagesHtml}
+                        <div class="cafe-card-actions">
+                            <button class="cafe-btn-sm primary" style="width:100%;" onclick="showCheckinPicker('${c.cafe_id}', ${c.location?.lat || 0}, ${c.location?.lng || 0}, '${cafeNameSafe}')"><span>${t('cafe_picker_pick_btn')}</span></button>
+                        </div>
+                    </div>
+                `;
+            });
+            listEl.innerHTML = html;
+        }
+
+function buildCafeImagesHtml(images) {
+    if (!images || images.length === 0) return '';
+    
+    let html = `<div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; margin-top: 10px; margin-bottom: 12px; border-radius: 8px; overflow: hidden;">`;
+    const displayImages = images.slice(0, 3);
+    
+    displayImages.forEach((item, idx) => {
+        const url = item.url || item;
+        const isLast = idx === 2 && images.length > 3;
+        const overlayHtml = isLast ? `
+            <div style="position: absolute; inset: 0; background: rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; color: white; font-size: 20px; font-weight: 800;">
+                +${images.length - 2}
+            </div>
+        ` : '';
+        
+        html += `
+            <div style="position: relative; aspect-ratio: 1 / 1; cursor: pointer; background: #eee;" onclick="openLightbox(${JSON.stringify(images.map(i => i.url || i)).replace(/"/g, '&quot;')}, ${idx})">
+                <img src="${url}" loading="lazy" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover;">
+                ${overlayHtml}
+            </div>
+        `;
+    });
+    html += `</div>`;
+    return html;
+}
                     } catch (e) {
                         listEl.innerHTML = `<div class="cafe-empty">${t('cafe_loading_error')}</div>`;
                     }
