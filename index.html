@@ -13959,7 +13959,13 @@ window.addEventListener('message', async function(event) {
             throw new Error('Thiết bị không hỗ trợ Mic');
         }
         
-        _noiseStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        _noiseStream = await navigator.mediaDevices.getUserMedia({ 
+    audio: { 
+        echoCancellation: false, 
+        noiseSuppression: false, 
+        autoGainControl: false 
+    } 
+});
         _audioContext = new (window.AudioContext || window.webkitAudioContext)();
         const analyser = _audioContext.createAnalyser();
         const source = _audioContext.createMediaStreamSource(_noiseStream);
@@ -13986,9 +13992,9 @@ window.addEventListener('message', async function(event) {
             // rms=0.001 (~im lặng) → -60dBFS → 40 dB
             // rms=0.1   (~nói chuyện) → -20dBFS → 80 dB
             // rms=0.5   (~ồn ào)     → -6dBFS  → 94 dB
-            let db = 0;
+            let db = 30; // Mức nền tối thiểu của phòng yên tĩnh
             if (rms > 0.00001) {
-                db = Math.max(0, Math.round(20 * Math.log10(rms) + 100));
+                db = Math.max(30, Math.round(20 * Math.log10(rms) + 100));
             }
             
             if (db > maxDb) maxDb = db;
