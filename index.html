@@ -7952,10 +7952,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 showToast(t('expired_package_msg'), false);
                 return;
             }
-            if (currentAiCredits <= 0) {
+            
+            // 🚨 CHỈ CHẶN NẾU LÀ GÓI FREE-10Y VÀ HẾT CREDIT
+            const pkgId = document.getElementById('package-display').textContent;
+            if (pkgId === 'FREE-10Y' && currentAiCredits <= 0) {
                 showToast(t('out_of_ai_credits'), false);
                 return;
             }
+            
             if (!currentEmail) {
                 alert(t('toast_login_required'));
                 return;
@@ -8117,13 +8121,13 @@ const ccEmail1 = (sendToClient && clientEmailValue) ? clientEmailValue : '';
                 // Hiện toast chuẩn giống các action khác
                 showToast(t('toast_upload_success'), true);
                 
-                // 🚨 TRỪ 1 CREDIT TRÊN UI
-                if (currentAiCredits > 0) {
+                // 🚨 TRỪ 1 CREDIT TRÊN UI (Chỉ dành cho gói Free)
+                const pkgDisplay = document.getElementById('package-display').textContent;
+                if (pkgDisplay === 'FREE-10Y') {
                     currentAiCredits--;
-                    // Chỉ cập nhật nếu đang là gói FREE
-                    if (document.getElementById('package-display').textContent === 'FREE-10Y') {
-                        const col2Value = document.getElementById('card-col2-value');
-                        if (col2Value) col2Value.textContent = currentAiCredits;
+                    const col2Value = document.getElementById('card-col2-value');
+                    if (col2Value) {
+                        col2Value.textContent = Math.round(currentAiCredits * 10) / 10;
                     }
                 }
 
