@@ -9648,17 +9648,24 @@ const ccEmail1 = (sendToClient && clientEmailValue) ? clientEmailValue : '';
             _pendingCheckinLng = null;
         }
 
-        async function pickCheckinBooking(bookingId) {
+                async function pickCheckinBooking(bookingId) {
             const cafeId = _pendingCheckinCafeId;
-            const lat = _pendingCheckinLat;
-            const lng = _pendingCheckinLng;
             closeCheckinPicker();
             if (!cafeId) return;
 
-            await submitCheckIn(cafeId, lat, lng, bookingId);
-        }
+            showToast(t('cafe_missing_gps') || 'Đang lấy vị trí GPS...', true);
 
-        // ===== SUBMIT CHECK-IN (cập nhật để nhận bookingId) =====
+            navigator.geolocation.getCurrentPosition(
+                async (pos) => {
+                    // 🚨 Lấy tọa độ THỰC TẾ của điện thoại, không dùng tọa độ quán
+                    await submitCheckIn(cafeId, pos.coords.latitude, pos.coords.longitude, bookingId);
+                },
+                (err) => {
+                    showToast('Không lấy được GPS: ' + err.message, false);
+                },
+                { enableHighAccuracy: true, timeout: 10000 }
+            );
+        }
                 // ===== SUBMIT CHECK-IN (cập nhật để nhận bookingId) =====
         async function submitCheckIn(cafeId, lat, lng, bookingId) {
             const enterpriseId = window.__currentEnterpriseId || currentEnterpriseId;
