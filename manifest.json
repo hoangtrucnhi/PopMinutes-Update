@@ -5,7 +5,7 @@
   "start_url": "/PopMinutes-Update/",
   "scope": "/PopMinutes-Update/",
   "id": "/PopMinutes-Update/",
-  "display": "standalone",
+  "display": "fullscreen",
   "orientation": "portrait",
   "background_color": "#FFFFFF",
   "theme_color": "#1B2B7A",
