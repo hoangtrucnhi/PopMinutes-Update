@@ -5056,6 +5056,7 @@
                 notif_task_due: 'Sắp đến hạn',
                 notif_task_overdue: 'Quá hạn',
                 notif_record_done: 'Biên bản đã xong',
+                notif_record_done_desc: 'Vui lòng kiểm tra email (hộp thư đến hoặc mục Spam) để xem biên bản.',
                 notif_record_processing: 'Đang xử lý',
                 notif_task_done: 'Nhiệm vụ hoàn thành',
                 profile_title: 'Thông tin cá nhân',
@@ -5619,6 +5620,7 @@
                 notif_task_due: 'Task due soon',
                 notif_task_overdue: 'Overdue task',
                 notif_record_done: 'Minutes completed',
+                notif_record_done_desc: 'Please check your email (Inbox or Spam folder) to view the minutes.',
                 notif_record_processing: 'Processing',
                 notif_task_done: 'Task completed',
                 profile_title: 'Profile',
@@ -6788,24 +6790,29 @@ for (let attempt = 1; attempt <= 3; attempt++) {
                         const rid = rec.recordId || `${clientName}|${timeStr}`;
                         const baseTs = new Date(timeStr).getTime() || (Date.now() - idx * 1000);
 
-                        let statusKey, type, icon, titleKey;
+                        let statusKey, type, icon, titleKey, descText;
                         if (rec.status === 'Done') {
                             statusKey = 'done'; type = 'success'; icon = 'fa-circle-check';
                             titleKey = 'notif_record_done';
+                            descText = timeStr
+                                ? `${t('notif_record_done_desc')} · ${timeStr}`
+                                : t('notif_record_done_desc');
                         } else if (rec.status === 'Processing') {
                             statusKey = 'proc'; type = 'warning'; icon = 'fa-spinner';
                             titleKey = 'notif_record_processing';
+                            descText = timeStr;
                         } else {
                             statusKey = 'up'; type = 'info'; icon = 'fa-clock';
                             titleKey = 'notif_record_uploaded';
+                            descText = timeStr;
                         }
 
-                            notifs.push({
+                        notifs.push({
                             id: `rec_${statusKey}_${rid}`,
                             type,
                             icon,
                             title: `${t(titleKey)}: ${clientName}`,
-                            desc: timeStr,
+                            desc: descText,
                             timestamp: baseTs,
                             category: 'record',
                             recordId: rec.recordId || ''
